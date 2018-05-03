@@ -2,7 +2,7 @@
 % Please edit documentation in R/spSUR-package.R
 \name{spSUR-package}
 \alias{spSUR-package}
-\title{Spatial Seemingly Urelated Regression Models}
+\title{Spatial Seemingly Unrelated Regression Models}
 \description{
 A collection of functions to test and estimate Spatial Seemingly Unrelated Regression (SUR) models by maximum
 likelihood and three-stage least square the ussual SUR especifications with spatial effects
@@ -81,6 +81,11 @@ spatial autocorrelation coefficients \code{\link{wald_deltas}}
 
 The marginal effects \code{\link{impacts}} of spatial autoregressive models (SAR; SDM; SARAR) has been calculated
 following the propose of LeSage and Pace (2009)
+}
+
+\section{Dataset}{
+
+This package comes with three different datasets: spc; NAT; Unemployment
 }
 
 \references{
