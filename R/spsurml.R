@@ -4,9 +4,9 @@
 #' @title Maximum likelihood estimation of spatial SUR model
 #'
 #' @description
-#' Maximum likelihood estimation of the SUR model without spatial effects SUR-SIM, and  the spatial
-#' SUR-SLX; SUR-SAR; SUR-SEM; SUR-SDM; SUR-SEDM and SUR-SARAR models
-#'  (including possible restrictions of beta coefficients).
+#' Maximum likelihood estimation of the SUR model without spatial effects
+#'   SUR-SIM, and  the spatial SUR-SLX; SUR-SAR; SUR-SEM; SUR-SDM; SUR-SEDM
+#'   and SUR-SARAR models (including possible restrictions of beta coefficients).
 #'
 #' @param    Form   : An object create with \code{\link[Formula]{Formula}} package allowing for multiple responses and multiple parts of regressors
 #' @param    data   : An object of class data.frame or a matrix
