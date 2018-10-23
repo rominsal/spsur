@@ -4,6 +4,7 @@
 #' @title 3sls estimation of spatial SUR model including restrictions of beta
 #'
 #' @description
+#'
 #' The function fits by three-stage least squares estimation of spatial a
 #' spatial SUR-lag spatial or SUR-SDM model.
 #'
