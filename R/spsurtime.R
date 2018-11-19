@@ -106,7 +106,7 @@
 #' R2[2,1] <- 1; R2[2,3] <- -1
 #' r2 <- matrix(0,nrow=2,ncol=1)
 #' wald_deltas(unempitml_sar, R = R2, r = r2)
-
+#' @export
 spsurtime <- function(Form, data, time, type = "sim",  method = "ml",
                       maxlagW = 2, W = NULL, cov = TRUE, trace = TRUE,
                       R = NULL, r = NULL) {

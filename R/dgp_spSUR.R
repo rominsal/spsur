@@ -134,8 +134,6 @@
 #' DGP <- dgp_spSUR(Sigma=Sigma,Betas=Betas,rho=rho,lambda=lambda,nT=nT,nG=nG,nR=nR,p=p,W=W)
 #'
 #' @export
-#'
-
 dgp_spSUR <- function(Sigma, nT = 1, nG, nR, Betas,
                       Thetas = NULL, durbin = FALSE, rho = NULL,
                       lambda = NULL, p = NULL, W = NULL, X = NULL)

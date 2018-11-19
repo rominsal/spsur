@@ -4,7 +4,6 @@
 #' @title 3sls estimation of spatial SUR model including restrictions of beta
 #'
 #' @description
-#'
 #' The function fits by three-stage least squares estimation of spatial a
 #' spatial SUR-lag spatial or SUR-SDM model.
 #'
@@ -92,29 +91,11 @@
 #' spcSUR.sdm.3sls <-spsur3sls(Form=Tformula,data=spc,type="sdm",W=Wspc)
 #' summary(spcSUR.sdm.3sls)
 #'
-#' ####################################
-#' ######## PANEL DATA (nG>1; nT>1) ###
-#' ####################################
+#' #################################################
+#' ######## PANEL DATA (nG>1; nT>1)         ########
+#' #################################################
 #'
-#' data(Sar)
-#' nT <- 4 # Number of periods
-#' nG <- 3 # Number equations
-#' nR <- 49 # Number of spatial units
-#' SUR.sar.3sls <-spsur3sls(Y=Ysar,X=XXsar,nG=nG,nR=nR,nT=nT,p=c(5,5,5),W=Ws,type="sar")
-#' summary(SUR.sar.3sls)
-#' ################### Durbin case with demeaning in nT
-#'    SUR.sdm.3sls.dem <-spsur3sls(Y=Ysar,X=XXsar,nG=nG,nR=nR,nT=nT,p=c(5,5,5),W=Ws,
-#'                             type="sdm",demean=TRUE)
-#'    summary(SUR.sdm.3sls.dem)
-#'
-#' #### Estimation with demeaning in nT (intercept of each equation dissapears)
-#' SUR.sar.3sls.dem <-spsur3sls(Y=Ysar,X=XXsar,nG=nG,nR=nR,nT=nT,p=c(5,5,5),W=Ws,
-#'                      type="sar",demean=TRUE)
-
-#'
-#'
-#'
-#' #' #### Example 2: Homicides + Socio-Economics (1960-90)
+#' #### Example 2: Homicides + Socio-Economics (1960-90)
 #' Homicides and selected socio-economic characteristics for continental U.S. counties. Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' https://geodacenter.github.io/data-and-lab/ncovr/
 #' data(NAT)
@@ -123,9 +104,7 @@
 #' ## A SUR-SAR model
 #' NATSUR.sar.3sls <-spsur3sls(Form=Tformula,data=NAT,type="sar",W=W,maxlagW=2)
 #' summary(NATSUR.sar.3sls)
-#'
-#'
-
+#' @export
 spsur3sls <- function(Form=NULL,data=NULL,R=NULL,r=NULL,W=NULL,
                         X=NULL,Y=NULL,
                         nG=NULL,nR=NULL,nT=NULL,p=NULL,demean=FALSE,

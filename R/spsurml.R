@@ -4,14 +4,14 @@
 #' @title Maximum likelihood estimation of spatial SUR model
 #'
 #' @description
-#' Maximum likelihood estimation of the SUR model without spatial effects
-#'   SUR-SIM, and  the spatial SUR-SLX; SUR-SAR; SUR-SEM; SUR-SDM; SUR-SEDM
-#'   and SUR-SARAR models (including possible restrictions of beta coefficients).
+#' Maximum likelihood estimation of the SUR model without spatial effects SUR-SIM, and  the spatial
+#' SUR-SLX; SUR-SAR; SUR-SEM; SUR-SDM; SUR-SEDM and SUR-SARAR models
+#'  (including possible restrictions of beta coefficients).
 #'
 #' @param    Form   : An object create with \code{\link[Formula]{Formula}} package allowing for multiple responses and multiple parts of regressors
 #' @param    data   : An object of class data.frame or a matrix
 #' @param    W      : A RxR spatial weight matrix
-#' @param    Y      : Default NULL. Data vector nRxnTx1 (firs: space dimension | second: time periods)
+#' @param    Y      : Default NULL. Data vector nRxnTx1 (first: space dimension | second: time periods)
 #' @param    X      : Default NULL. Data matrix nRxnTxp (p=sum(p_g) where p_g is the number of independent variables for g-th equation, g=1,...,nG)
 #' @param    nG     : number of equations
 #' @param    nR     : number of spatial observations
@@ -130,8 +130,9 @@
 #' #################################################
 #'
 #' #### Example 2: Homicides + Socio-Economics (1960-90)
-#' Homicides and selected socio-economic characteristics for continental U.S. counties. Data for four decennial census years: 1960, 1970, 1980 and 1990.
-#' https://geodacenter.github.io/data-and-lab/ncovr/
+#' Homicides and selected socio-economic characteristics for continental U.S. counties.
+#' Data for four decennial census years: 1960, 1970, 1980 and 1990.
+#' \url{https://geodacenter.github.io/data-and-lab/ncovr/}
 #'
 #' data(NAT)
 #' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
@@ -183,12 +184,15 @@
 #' # Durbin case with demeaning in nT
 #' SUR.sdm.ml.dem <-spsurml(Y=Ysar,X=XXsar,nG=nG,nR=nR,nT=nT,p=5,W=Ws,type="sdm",demean=TRUE)
 #' summary(SUR.sdm.ml.dem)
-
-spsurml <- function(Form=NULL,data=NULL,R=NULL,r=NULL,W=NULL,
-                  X=NULL,Y=NULL,
-                  nG=NULL,nR=NULL,nT=NULL,p=NULL,demean=FALSE,
-                  type="sim",
-                  cov=TRUE,trace=TRUE)
+#' @export
+spsurml <- function(Form = NULL, data = NULL, R = NULL,
+                    r = NULL, W = NULL,
+                    X = NULL,Y = NULL,
+                    nG = NULL, nR = NULL, nT = NULL,
+                    p = NULL, demean = FALSE,
+                    type = "sim", cov = TRUE,
+                    control=list(tol = 1e-3, maxit = 200,
+                                 trace = TRUE), ...)
 {
   # Función para estimar cualquier modelo SUR espacial.
   # imponiendo restricciones
@@ -266,14 +270,18 @@ spsurml <- function(Form=NULL,data=NULL,R=NULL,r=NULL,W=NULL,
 
   if (any(type == c("sim","sar","sem","sarar")))
     name_fit <- paste("fit_spsur",type,sep="")
-  if(type=="sdm") name_fit <-"fit_spsursar"
-  if(type=="sdem") name_fit <-"fit_spsursem"
-  if(type=="slx") name_fit <-"fit_spsursim"
+  if(type == "sdm") name_fit <-"fit_spsursar"
+  if(type == "sdem") name_fit <-"fit_spsursem"
+  if(type == "slx") name_fit <-"fit_spsursim"
   fit <- get(name_fit)
+  tol <- control$tol
+  maxit <- control$maxit
+  trace <- control$trace
   if (trace) start_fit <- proc.time()[3]
   # Maximize concentrate likelihood
-  z <- fit(nT=nT,nG=nG,nR=nR,
-                 Y=Y,X=X,W=W,trace=trace)
+  z <- fit(nT = nT, nG = nG, nR = nR,
+           Y = Y, X = X, W = W, trace = trace,
+           tol = tol, maxit = maxit)
   if (trace){
     end_fit <- proc.time()[3]
     cat("Time to fit the model: ",
@@ -305,7 +313,7 @@ spsurml <- function(Form=NULL,data=NULL,R=NULL,r=NULL,W=NULL,
     }
   }
   names(z$deltas) <- names_deltas
-  if(cov==TRUE){
+  if(cov){
     if (any(type == c("sim","sar","sem","sarar")))
       name_cov_fit <- paste("cov_spsur",type,sep="")
     if(type=="sdm") name_cov_fit <-"cov_spsursar"
@@ -315,14 +323,16 @@ spsurml <- function(Form=NULL,data=NULL,R=NULL,r=NULL,W=NULL,
     if (trace) start_cov <- proc.time()[3]
     z_cov <- cov_fit(nT=nT,nG=nG,nR=nR,
                            Y=Y,X=X,W=W,
-                           deltas=z$deltas,Sigma=z$Sigma)
+                           deltas=z$deltas,Sigma=z$Sigma,trace=trace)
     if (trace){
       end_cov <- proc.time()[3]
       cat("Time to compute covariances: ",
           end_cov-start_cov," seconds \n\n")
     }
     z$se_betas <- z_cov$se_betas
+    names(z$se_betas) <- names(z$betas)
     z$se_deltas <- z_cov$se_deltas
+    names(z$se_deltas) <- names(z$deltas)
     z$LMM <- z_cov$LMM
     z$BP <- z_cov$BP
     z$cov <- z_cov$cov

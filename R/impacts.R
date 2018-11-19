@@ -7,7 +7,7 @@
 #' Returns the marginal effects of a Spatial SUR model (SUR-SAR; SUR-SDM; SUR-SARAR)
 #'
 #' @param    Form   : An object of class spsur
-#' @param    nsim   : Number of simulations. Default=1000
+#' @param    nsim   : Number of simulations. An optinal argument. Default=1000
 #'
 #' @details
 #' The marginal effects (impacts) of spatial autoregressive models (SAR; SDM; SARAR) are more complicated than
@@ -70,12 +70,12 @@
 #' ## A SUR-SDM model
 #' spcSUR.sdm <-spsurml(Form=Tformula,data=spc,type="sdm",W=Wspc)
 #' summary(spcSUR.sdm)
-#' eff.spcSUR.sdm <- impacts(spcSUR.sdm)
+#' eff.spcSUR.sdm <- impacts(spcSUR.sdm,nsim=300)
 #'
 #' ## A SUR-SARAR model
 #' spcSUR.sarar <-spsurml(Form=Tformula,data=spc,type="sarar",W=Wspc)
 #' summary(spcSUR.sarar)
-#' eff.spcSUR.sarar <- impacts(spcSUR.sarar)
+#' eff.spcSUR.sarar <- impacts(spcSUR.sarar,nsim=300)
 #'
 #' ####################################
 #' ######## PANEL DATA (nG>1; nT>1) ###
@@ -97,10 +97,8 @@
 #' form_un <- unrate  ~ empgrowth + partrate + agri + cons + serv
 #' unempitml_sar <- spsurtime(Form=form_un,data=unemp_it,time=unemp_it$year,W=W_italy,type="sar",method="ml")
 #' summary(unempitml_sar)
-#'
 #' eff.unempitml_sar <- impacts(unempitml_sar,nsim=100)
-#'
-
+#' @export
 impacts <- function(spsurfit,nsim=1000){
   z <- spsurfit
   type <- z$type

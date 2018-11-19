@@ -17,24 +17,26 @@
 #' @param    nG     : Number of equations
 #' @param    nR     : Number of spatial observations
 #' @param    Y      : Default NULL. Data vector nRxnTx1 (firs: space dimension | second: time periods)
-#' @param    X      : Default NULL. Data matrix nRxnTxp (p=sum(p_g) where p_g is the number of independent variables for g-th equation, g=1,...,nG)
+#' @param    X      : Default NULL. Data matrix nRxnTxp (p=sum(\eqn{p_{g}}) where \eqn{p_{g}} is the number of independent variables for g-th equation, g=1,...,nG)
 #' @param    W      : A nRxnR spatial weight matrix.
 #' @param    print_table : FALSE or TRUE to print the output. Default = TRUE
 #'
 #' @details
 #'
-#' The model specification in the general case of nR individuals, nT cross sections and nG equations, with spatial interaction mechanisms, as follows:
+#' The model specification in the general case of nR individuals, nT cross sections and nG equations,
+#' with spatial interaction mechanisms, as follows:\cr
 #' \deqn{y_{gt}=\lambda_{g} W y_{gt} + X_{gt} \beta_{g} + u_{gt}}
 #' \deqn{u_{gt} = \rho_{g} W u_{gt} + \epsilon_{gt}}
-#' where y_{gt}, u_{gt} and \eqn{\epsilon_{gt}} are (nRx1) vectors; X_gt is a matrix of exogenous variables of order (nRxKg); \eqn{\lambda_g} and \eqn{\rho_g} are parametres of spatial dependence; W is the RxR matrix.
+#' where y_{gt}, u_{gt} and \eqn{\epsilon_{gt}} are (nRx1) vectors; \eqn{X_{gt}} is a matrix of exogenous variables of order (nRxp_g); \eqn{\lambda_g} and \eqn{\rho_g} are parametres of spatial dependence; W is the RxR matrix.
 #'
 #' Five tests of diagnotic of spatial autocorrelation based on the principle of the Lagrange Multiplier is develop in this code:\cr
-#'    LM-SUR-lag   : \eqn{H_0: \lambda=0 (\forall g) versus H_A: No H_0}\cr
-#'    LM-SUR-err   : \eqn{H_0: \rho=0 (\forall g) versus H_A: No H_0}\cr
-#'    LM-SUR-sarar : \eqn{H_0: \lambda=0 and \rho=0 (\forall g) versus H_A: No H_0}\cr
+#'    LM-SUR-lag   : \eqn{H_{0}: \lambda=0 (\forall g) versus H_{A}: No H_{0}}\cr
+#'    LM-SUR-err   : \eqn{H_{0}: \rho=0 (\forall g) versus H_{A}: No H_{0}}\cr
+#'    LM-SUR-sarar : \eqn{H_{0}: \lambda=0 and \rho=0 (\forall g) versus H_{A}: No H_{0}}\cr
 #'
-#' Two robust tests are included under local misspecifications of the alternative. The LM-SUR-lag and LM-SUR-err can be strongly oversized\cr
-#' For cross-section (nT=1) data and nG(>1) equations
+#' As the LM-SUR-lag and LM-SUR-err
+#' can be strongly oversized, two robust tests are included under local misspecifications of the alternative: LM*-SUR-SAR and LM*-SUR-SEM. \cr
+#'
 #' @return
 #' A list, each with
 #'   \tabular{ll}{
@@ -43,10 +45,10 @@
 #'   \code{df} \tab number of degrees of freedom for each test \cr
 #'   }
 #' @references
-#' Mur, J., Lopez, F., & Herrera, M. (2010). Testing for spatial effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 5(4), 399-440.
+#' Mur, J., Lopez, F., and Herrera, M. (2010). Testing for spatial effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 5(4), 399-440.
 #' \cr
 #' \cr
-#' Lopez, F.A., Mur, J., & Angulo, A. (2014). Spatial model selection strategies in a SUR framework. The case of regional productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
+#' Lopez, F.A., Mur, J., and Angulo, A. (2014). Spatial model selection strategies in a SUR framework. The case of regional productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
 #'
 #' @author
 #'   \tabular{ll}{
@@ -56,7 +58,7 @@
 #'  }
 #'
 #' @seealso
-#' \code{\link{spsurml}},\code{\link{spsur3sls}}
+#' \code{\link{spsurml}},  \code{\link{spsur3sls}}
 #'
 #' @examples
 #' #################################################
@@ -94,7 +96,6 @@
 #' LM_time <- lmtestspsur(Form=form_un,data=unemp_it,time=unemp_it$year,W=W_italy)
 #'
 #' @export
-
 lmtestspsur <- function(Form=NULL,data=NULL,W=NULL,
                   X=NULL,Y=NULL,time=NULL,
                   nG=NULL,nR=NULL,nT=NULL,print_table=TRUE)
