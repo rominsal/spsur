@@ -1,29 +1,42 @@
 Package: spSUR
 Type: Package
 Title: Spatial Seemingly Unrelated Regression Models
-Version: 1.0
-Date: 2018-04-27
-Authors@R: person("Ana", "Angulo", email = "aangulo@uunizar.es", role = c("aut", "cre"));
-           person("Fernando A", "Lopez", email = "fernando.lopez@upct.es", role = c("aut", "cre")); 
-           person("Roman", "Minguez", email = "roman.minguez@uclm.es", role = c("aut", "cre"));
-           person("Jesus", "Mur", email = "jmur@unizar.es", role = c("aut", "cre"));
-Maintainer: Who to complain to <Roman.Minguez@uclm.es>
-Description:  A collection of functions to test and estimate 
-              Spatial Seemingly Unrelated Regression (SUR) models by maximum 
-              likelihood and three-stage least square the ussual SUR 
-              especifications with spatial effects (SUR-SLX; SUR-SAR; SUR-SEM; 
-              SUR-SDM; SUR-SDEM and SUR-SARAR) and non spatial SUR model (SUR-SIM)
+Version: 0.1.0
+Date: 2018-05-12
+Authors@R: person("Ana", "Angulo", email = "aangulo@uunizar.es", 
+                  role = c("aut", "cre"));
+           person("Fernando A", "Lopez", email = "fernando.lopez@upct.es", 
+                  role = c("aut", "cre")); 
+           person("Roman", "Minguez", email = "roman.minguez@uclm.es", 
+                  role = c("aut", "cre"));
+           person("Jesus", "Mur", email = "jmur@unizar.es", 
+                  role = c("aut", "cre"));
+Maintainer: Who to complain to <roman.minguez@uclm.es>
+Description: A collection of functions to test and estimate Spatial Seemingly 
+    Unrelated Regression (SUR) models by maximum likelihood and 
+    three-stage least squares the usual SUR specifications with spatial 
+    effects (SUR-SLX; SUR-SAR; SUR-SEM;SUR-SDM; SUR-SDEM and SUR-SARAR) 
+    and non spatial SUR model (SUR-SIM). 
 LazyData: true
 Encoding: UTF-8
 Depends: R (>= 3.4.0) 
 License: GPL (>=2)
 Imports: 
-  Formula,
-  Matrix,
-  minqa,
-  sparseMVN,
-  spdep
-VignetteBuilder: knitr 
-RoxygenNote: 6.0.1
+    Formula (>= 1.2.3),
+    MASS (>= 7.3.50),
+    Matrix (>= 1.2.14),
+    methods (>= 3.5.1),  
+    numDeriv (>= 2016.8.1),
+    minqa (>= 1.2.4),
+    sparseMVN (>= 0.2.1.1),
+    spdep (>= 0.7.9),
+    stats (>= 3.5.1) 
 Suggests: 
-  systemfit
+    knitr (>= 1.20),
+    rmarkdown (>= 1.10),
+    Rdpack (>= 0.10.1)
+VignetteBuilder: knitr 
+RoxygenNote: 6.1.1
+RdMacros: Rdpack
+URL: http://github.com/rominsal/spSUR
+BugReports: http://github.com/rominsal/spSUR/issues
