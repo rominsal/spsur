@@ -19,8 +19,6 @@ Description: A collection of functions to test and estimate Spatial Seemingly
     and non spatial SUR model (SUR-SIM). 
 LazyData: true
 Encoding: UTF-8
-Depends: 
-    R (>= 3.4.0) 
 License: GPL-3
 Imports: 
     Formula (>= 1.2.3),
