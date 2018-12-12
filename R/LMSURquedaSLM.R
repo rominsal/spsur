@@ -1,18 +1,3 @@
-# setwd("~/Dropbox/SpSUR/spSUR2/R")
-# # setwd("E:/HANDYDRIVE/Artículos en curso/spSUR/SUR2/R")
-# load("XXsar.RData")
-# load("Ysar.RData")
-# load("Ws.RData")
-# 
-# X<- as.matrix(XXsar); Y <- as.matrix(Ysar); 
-# W <- as.matrix(Ws)
-# rm(XXsar,Ysar,Ws)
-# 
-# nT <- 4 # Número de periodos temporales
-# nG <- 3 # Número de ecuaciones
-# nR <- 49 # Sample size
-##F k <- (ncol(X)/nG)-1
-
 f_sur_sem <- function(deltag,nT,nG,nR,Y,X,W,Sigma)
 {
   # Log-lik SUR-SEM Spatio-Temporal Model
@@ -37,7 +22,7 @@ f_sur_sem <- function(deltag,nT,nG,nR,Y,X,W,Sigma)
   chol_Sigma <- chol(Sigma)
   ldet_Sigma <- sum(2*log(diag(chol_Sigma)))
   BRes <- as.matrix(B%*%Res)
-  llike <- as.numeric(-(nT*nG*nR/2)*log(2*pi) - (nR*nT/2)*ldet_Sigma 
+  llike <- as.numeric(-(nT*nG*nR/2)*log(2*pi) - (nR*nT/2)*ldet_Sigma
       + nT*sum(lDAg) - (1/2)*t(BRes)%*%solve(OME,BRes))
 }
 
@@ -45,10 +30,10 @@ f_sur_sem <- function(deltag,nT,nG,nR,Y,X,W,Sigma)
 
 LMSURquedaSLM <- function(nT,nG,nR,Y,X,W)
 {
-  #### PURPOSE: 
+  #### PURPOSE:
   ##  Test LM para contrastar si queda estructura SLM despues de estimar SEM
   ##---------------------------------------------------
-  ## where: 
+  ## where:
   ##        T   = # of ecuaciones
   ##        Y   = Un vector de orden R*T*Gx1 con las y apiladas
   ##        X  = Un vector R*T*GxK X=blkdiag([ones(R,1) Xi]);?
@@ -57,26 +42,26 @@ LMSURquedaSLM <- function(nT,nG,nR,Y,X,W)
   ##
   ##  SEE ALSO: sur2...
   ## ---------------------------------------------------
-  ## REFERENCES: 
+  ## REFERENCES:
   ## ---------------------------------------------------
   ## written by:
   ## Fernando A. Lopez Hernandez, 01/05/2010
   ## Dpto. Metodos Cuantitativos e Informaticos
   ## Universidad Politecnica de Cartagena
-  ## E-mail: Fernando.Lopez@upct.es
+  ## E-mail: Fernando.Lopez@@upct.es
   ##
   ## Ana Angulo Garijo
   ## Dpto. Economia Aplicada
   ## Universidad de Zaragoza
-  
+
   #### Test LM queda estructura SLM despues de estimar SEM
   ## Estimacion SURE-SLM para obtener los marginales
-  IT <- Matrix::Diagonal(nT) 
+  IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
   IG <- Matrix::Diagonal(nG)
   IGR <- Matrix::Diagonal(nG*nR)
-  
-  E <- array(0,dim=c(nG,nG,nG,nG))  
+
+  E <- array(0,dim=c(nG,nG,nG,nG))
   for(i in 1:nG){
     for(j in 1:nG){
       E[i,j,i,j] <- 1
@@ -85,7 +70,7 @@ LMSURquedaSLM <- function(nT,nG,nR,Y,X,W)
   }
   # Indexar los elementos diferentes de Sigma
   ff <- rep(0,nG*(nG+1)/2)
-  cf <- rep(0,nG*(nG+1)/2)    
+  cf <- rep(0,nG*(nG+1)/2)
   c1 <- 0;c2 <- 0;c3 <- 0;
   for (k1 in 1:nG){
     c2 <- c2+1
@@ -99,7 +84,7 @@ LMSURquedaSLM <- function(nT,nG,nR,Y,X,W)
   }
   #valores iniciales sugerir punto partida a fminsearch
   deltag <- matrix(0,nrow=nG,ncol=1)
-  
+
   # Introducir como punto de partida las correlaciones del modelo OLS
   ols_init <- lm(Y ~ X - 1)
   betaoud  <- coefficients(ols_init)
@@ -184,11 +169,11 @@ LMSURquedaSLM <- function(nT,nG,nR,Y,X,W)
               Sigma_corr_sem = Sigma_corr,
               Res_sem = Res_sem,
               Yhat_sem = Yhat_sem
-  ) 
+  )
   #### Matriz Informacion SUR SEM
   Sigma_inv <- solve(Sigma)
   J12A <- matrix(0,nrow=ncol(X),ncol=nG)
-  J13A <- matrix(0,nrow=ncol(X),ncol=nG*(nG+1)/2) 
+  J13A <- matrix(0,nrow=ncol(X),ncol=nG*(nG+1)/2)
   #IB=sparse(inv(B));
   J22A <- matrix(0,nrow=nG,ncol=nG)
   J11A <- t(BX) %*% solve(OME,BX)
@@ -198,24 +183,24 @@ LMSURquedaSLM <- function(nT,nG,nR,Y,X,W)
       if (i==j){
         IBg <- solve(IR - delta_sem[i]*W)
         J22A[i,j] <- nT*sum(diag(IBg%*%W%*%IBg%*%W)) +
-          sum(diag(solve(t(as.matrix(B)), 
-          as.matrix(IT %x% 
+          sum(diag(solve(t(as.matrix(B)),
+          as.matrix(IT %x%
           (E[,,j,j]%*%Sigma_inv%*%E[,,i,i] %x% WtW) %*%
           solve(B,as.matrix(OME))))))
       } else {
-        J22A[i,j] <-sum(diag(solve(t(as.matrix(B)), 
-          as.matrix(IT %x% 
+        J22A[i,j] <-sum(diag(solve(t(as.matrix(B)),
+          as.matrix(IT %x%
           (E[,,j,j]%*%Sigma_inv%*%E[,,i,i] %x% WtW) %*%
-          solve(B,as.matrix(OME)))))) 
+          solve(B,as.matrix(OME))))))
       }
     }
   }
   J23A <- matrix(0,nrow=nG,ncol=nG*(nG+1)/2)
   for (i in 1:nG){
     for (j in 1:(nG*(nG+1)/2)){
-      J23A[i,j] <- sum(diag(solve(t(as.matrix(B)), 
-          as.matrix(IT %x% 
-        ((E[,,i,i]%*%Sigma_inv%*%E[,,ff[j],cf[j]]) %x% 
+      J23A[i,j] <- sum(diag(solve(t(as.matrix(B)),
+          as.matrix(IT %x%
+        ((E[,,i,i]%*%Sigma_inv%*%E[,,ff[j],cf[j]]) %x%
               W)))))
     }
   }
@@ -255,11 +240,11 @@ LMSURquedaSLM <- function(nT,nG,nR,Y,X,W)
   X_Bsem <- as.matrix(X%*%Bsem)
   for (i in 1:nG){
     for (j in 1:nG){
-      HH <- (IT %x% E[,,j,j] %x% t(W)) %*% 
+      HH <- (IT %x% E[,,j,j] %x% t(W)) %*%
         t(as.matrix(B)) %*%
         (IT %x% Sigma_inv %x% IR) %*% B %*%
         (IT %x% E[,,i,i] %x% W)
-      # PP2[i,j] <- as.numeric( t(X%*%Bsem) %*% 
+      # PP2[i,j] <- as.numeric( t(X%*%Bsem) %*%
       #                           (HH%*%(X%*%Bsem)) +
     #        sum(diag(as.matrix(Binv%*%HH%*%t(Binv)%*%OME))))
       PP2[i,j] <- as.numeric( t(X_Bsem) %*%
@@ -297,15 +282,15 @@ as.matrix(OME %*% solve(t(as.matrix(B)),
   as.matrix(OME %*% solve(t(as.matrix(B)),
     as.matrix((IT %x% (E[,,j,j]%*%Sigma_inv) %x% t(W)) %*%
                    B %*% (IT %x% E[,,i,i] %x% W) ))))))
-        
+
       }
     }
-  } 
+  }
   Ideltasig <- matrix(0,nrow=nG,ncol=nG*(nG+1)/2)
   for (i in 1:nG){
     for (j in 1:(nG*(nG+1)/2)){
       Ideltasig[i,j] <- sum(diag(solve(B,
-        as.matrix((IT %x% 
+        as.matrix((IT %x%
           (E[,,ff[j],cf[j]]%*%Sigma_inv) %x% IR) %*%
         (B %*% (IT %x% E[,,i,i] %x% W))))))
     }

@@ -1,45 +1,35 @@
 #' @name lr_betas_spsur
 #' @rdname lr_betas_spsur
 #'
-#' @title Likelihood ratio test on coefficient homogeneity across equations
+#' @title Likelihood ratio test on coefficient homogeneity across equations.
 #'
-#' @description
-#' The function estimate an unrestricted and restricted model for equal beta parametres
+#' @description This function estimate both unrestricted and restricted models
+#'   for testing equality between beta parameters of different equations.
 #'
-#' @param    Form   : An object create with \code{\link[Formula]{Formula}} package allowing for multiple responses and multiple parts of regressors
-#' @param    data   : An object of class data.frame or a matrix
-#' @param    W      : A nRxnR spatial weight matrix
-#' @param    R      : A matrix including coefficients of linear hypothesis on beta
-#' @param    r      : A vector including independent vector of linear hypothesis on beta
-#' @param    Y      : Default NULL. Data vector nRxnTx1 (first: space dimension | second: time periods)
-#' @param    X      : Default NULL. Data matrix nRxnTxp (p=sum(\eqn{p_{g}}) where \eqn{p_{g}} is the number of independent variables for g-th equation, g=1,...,nG)
-#' @param    nG     : Default NULL. number of equations
-#' @param    nR     : Default NULL. number of spatial observations
-#' @param    nT     : Default NULL. Number of time periods
-#' @param    p      : Default NULL. Number of regressors by equation (including independent term). A number (resp. vector) if equal (resp. no equal) regressors by equation
-#' @param    type   : type of model 'sim' 'slx' 'sar' 'sem' 'sdm' 'sdem' 'sarar'. Defalult is 'sim'
-#' @param    trace  : To get intermediate results (TRUE or FALSE). Defalult is FALSE
-#' @param    printmodels    : print unrestricted and restricted models (TRUE or FALSE). Defalult is FALSE
+#' @param printmodels Logical value to print unrestricted and restricted
+#'   models. Default = \code{FALSE}.
+#' @param time Variable including temporal periods.
+#' @param trace Logical value to get intermediate results.
+#'   Default = \code{FALSE}.
+#' @inheritParams spsurml
 #'
-#' @return
-#' The LR tests
+#' @return The LR tests
 #'   \tabular{ll}{
-#'   \code{statistic} \tab The value of LR test. \cr
-#'   \code{p_val}    \tab The p-value of LR test. \cr
-#'   \code{df}    \tab The df. \cr
-#'   \code{llik_unr}    \tab The Log likelihood of unrestrited model. \cr
-#'   \code{llik_res} \tab The Log likelihood of restrited model. \cr
+#'   \code{statistic} \tab The Values of LR tests. \cr
+#'   \code{p_val}    \tab The p-value of LR tests. \cr
+#'   \code{df}    \tab The degrees of freedom. \cr
+#'   \code{llik_unr}    \tab The Log-likelihood of unrestricted model. \cr
+#'   \code{llik_res} \tab The Log-likelihood of restricted model. \cr
 #'   }
-#' @details
 #'
 #' @references
-#' López, F.A., Mur, J., & Angulo, A. (2014). Spatial model selection strategies in a SUR framework. The case of regional productivity in EU. The Annals of Regional Science, 53(1), 197-220.
-#' The code \code{\link{lr_betas_spsur}} obtain the Likelihood ratio test on coefficient homogeneity across equations:\cr
-#' \cr
-#' \cr
-#' Lopez, F.A., Mur, J., and Angulo, A. (2014). Spatial model selection strategies in a SUR framework. The case of regional productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
-#' \cr
-#' \cr
+#'   \itemize{
+#'      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
+#'        selection strategies in a SUR framework. The case of regional
+#'        productivity in EU. \emph{Annals of Regional Science}, 53(1),
+#'        197-220.
+#'   }
+#'
 #' @seealso
 #' \code{\link{spsurml}}, \code{\link{spsur3sls}}
 #'
@@ -54,23 +44,27 @@
 #' ## H0: equal beta for SMSA in both equations.
 #' R <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
 #' r <- matrix(0,ncol=1)
-#' LR_SMSA <-  lr_betas_spsur(Form=Tformula,data=spc,W=Wspc,type="sar",R=R,r=r,trace=T,printmodels=T)
+#' LR_SMSA <-  lr_betas_spsur(Form = Tformula, data = spc, W = Wspc,
+#'                            type = "sar", R = R, r = r, trace = TRUE,
+#'                            printmodels = TRUE)
 #'
 #' #################################################
 #' ######## PANEL DATA (nG>1; nT>1)         ########
 #' #################################################
 #'
 #' #### Example 2: Homicides + Socio-Economics (1960-90)
-#' Homicides and selected socio-economic characteristics for continental U.S. counties.
-#' Data for four decennial census years: 1960, 1970, 1980 and 1990.
-#' \url{https://geodacenter.github.io/data-and-lab/ncovr/}
+#' # Homicides and selected socio-economic characteristics for continental
+#' # U.S. counties.
+#' # Data for four decennial census years: 1960, 1970, 1980 and 1990.
+#' # \url{https://geodacenter.github.io/data-and-lab/ncovr/}
 #'
 #' data(NAT)
 #' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
 #' ## H0: equal beta for PS80 and PS90 in both equations.
 #' R <- matrix(c(0,1,0,0,-1,0),nrow=1)
 #' r <- matrix(0,ncol=1)
-#' LR_PS <-  lr_betas_spsur(Form=Tformula,data=NAT,W=W,type='sar',R=R,r=r,printmodels=T)
+#' LR_PS <-  lr_betas_spsur(Form = Tformula, data = NAT, W = W,
+#'                          type = 'sar', R = R, r = r, printmodels = TRUE)
 #'
 #' ##################################################
 #' #### PANEL DATA. TEMP. CORRELAT. (nG=1;nT>1) #####
@@ -78,22 +72,23 @@
 #'
 #' ## Example 3: with spatio-temporal SUR.
 #' ## Assumption: nR,nT > 1 and nG = 1. Database is a spatio-temporal panel
-#' data("unemp_it_short")
-#' data("W_italy")
+#' data("unemp_it")
 #' form_un <- unrate  ~ empgrowth + partrate + agri + cons + serv
 #' # H0: equal emprgrowth beta in equations 1, 3, and 4
 #' R <- matrix(0,nrow=2,ncol=30)
 #' R[1,2] <- 1; R[1,14] <- -1
 #' R[2,2] <- 1; R[2,20] <- -1
 #' r <- matrix(0,nrow=2,ncol=1)
-#' lr_partrate <-  lr_betas_spsur(Form=form_un,data=unemp_it,time=unemp_it$year,W=W_italy,type="sar",R=R,r=r,trace=T,printmodels=F)
-#' export
-lr_betas_spsur<- function(Form=NULL,data=NULL,R=NULL,r=NULL,W=NULL,time=NULL,
-                        X=NULL,Y=NULL,
-                        nG=NULL,nR=NULL,nT=NULL,p=NULL,
-                        type="sim",
-                        printmodels=FALSE,
-                        cov=FALSE,trace=FALSE) {
+#' lr_partrate <-  lr_betas_spsur(Form = form_un, data = unemp_it,
+#'                                time = unemp_it$year, W = W_italy,
+#'                                type = "sar", R = R, r = r, trace = TRUE,
+#'                                printmodels = FALSE)
+#' @export
+lr_betas_spsur <- function(Form = NULL, data = NULL, R = NULL, r = NULL,
+                          W = NULL, time = NULL, X = NULL, Y = NULL,
+                          nG = NULL, nR = NULL, nT = NULL, p = NULL,
+                          type = "sim", printmodels = FALSE,
+                          cov = FALSE, trace = FALSE) {
 
   if (is.null(R) || is.null(r)) stop("R and r must be specified as arguments")
   if (printmodels) cov <- TRUE
@@ -101,11 +96,14 @@ lr_betas_spsur<- function(Form=NULL,data=NULL,R=NULL,r=NULL,W=NULL,time=NULL,
   start_fit <- proc.time()[3]
   cat("\n Fitting unrestricted model ... \n")
   if (is.null(time)){
-    spcSUR_unr <-spsurml(Form=Form,data=data,type=type,W=W,
-                         cov=cov,trace=trace)
+    spcSUR_unr <-spsurml(Form = Form, data = data, type = type, W = W,
+                         cov = cov, control = list(tol = 1e-3,
+                                                   maxit = 200,
+                                                   trace = trace) )
   } else {
-    spcSUR_unr <-spsurtime(Form=Form,data=data,type=type,W=W,
-                         time=time,method="ml",cov=cov,trace=trace)
+    spcSUR_unr <-spsurtime(Form = Form, data =data, type = type, W = W,
+                           time = time, method = "ml", cov = cov,
+                           trace = trace)
   }
   ll_unr <- spcSUR_unr$llsur
   # betas_unr <-  spcSUR_unr$betas
@@ -116,11 +114,14 @@ lr_betas_spsur<- function(Form=NULL,data=NULL,R=NULL,r=NULL,W=NULL,time=NULL,
   start_fit <- proc.time()[3]
   cat("\n Fitting restricted model ...")
   if (is.null(time)){
-    spcSUR_res <-spsurml(Form=Form,data=data,R=R,r=r,type=type,W=W,
-                           cov=cov,trace=trace)
+    spcSUR_res <-spsurml(Form = Form, data = data, R = R, r = r,
+                         type = type, W = W, cov = cov,
+                         control = list(tol = 1e-3, maxit = 200,
+                                        trace = trace) )
   } else {
-    spcSUR_res <-spsurtime(Form=Form,data=data,R=R,r=r,type=type,W=W,
-                           time=time,method="ml",cov=cov,trace=trace)
+    spcSUR_res <-spsurtime(Form = Form, data = data, R = R, r = r,
+                           type = type, W = W, time = time,
+                           method = "ml", cov = cov, trace = trace)
   }
   ll_res <- spcSUR_res$llsur
   end_fit <- proc.time()[3]

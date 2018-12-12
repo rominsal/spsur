@@ -2,7 +2,7 @@ get_data_spsur <- function(formula=NULL,data=NULL,
                            W=NULL,nR=NULL,nT=NULL)
 {
   # Function to get data ordered for spatio-temporal SUR
-  # Assumption: DataFrame ordered by space (nR)
+  # Assumption: Data Frame ordered by space (nR)
   # Reordenar los datos nR*nG*nT
   nG <- length(attr(formula,"lhs"))
   if (length(attr(formula,"rhs")) < nG) {

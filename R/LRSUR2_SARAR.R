@@ -2,11 +2,11 @@
 # load("XXsar.RData")
 # load("Ysar.RData")
 # load("Ws.RData")
-# 
-# X<- as.matrix(XXsar); Y <- as.matrix(Ysar); 
+#
+# X<- as.matrix(XXsar); Y <- as.matrix(Ysar);
 # W <- as.matrix(Ws)
 # rm(XXsar,Ysar,Ws)
-# 
+#
 # nT <- 4 # Número de periodos temporales
 # nG <- 3 # Número de ecuaciones
 # nR <- 49 # Sample size
@@ -33,7 +33,7 @@ f_sur_sarar <- function(DELTA,nT,nG,nR,Y,X,W,Sigma)
     lDBg[i] <- log(det(as.matrix(IR-deltah[i]*W)))
     #det_lDBg <- determinant(as.matrix(IR-deltah[i]*W),logarithm=TRUE)
     #lDBg[i] <- det_lDBg$modulus*det_lDBg$sign
-  }  
+  }
   deltaH <- diag(deltah)
   A <- IT %x% (IGR - (deltaG %x% W))
   B <- IT %x% (IGR - (deltaH %x% W))
@@ -44,31 +44,31 @@ f_sur_sarar <- function(DELTA,nT,nG,nR,Y,X,W,Sigma)
             as.matrix(t(BX)%*% IOME %*% (B %*% (A%*%Y))))
   Res <- A%*%Y - X%*%Bsarar
   BRes <- as.matrix(B%*%Res)
-  llike <- as.numeric(- (nT*nG*nR/2)*log(2*pi) - 
-           (nR*nT/2)*log(det(Sigma)) + 
+  llike <- as.numeric(- (nT*nG*nR/2)*log(2*pi) -
+           (nR*nT/2)*log(det(Sigma)) +
            nT*sum(lDAg) + nT*sum(lDBg) -
            (1/2)*t(BRes)%*%IOME%*%BRes)
 }
 
-LRSUR2_SARAR <- function(nT,nG,nR,Y,X,W)
+LRSUR2_SARAR <- function(nT, nG, nR, Y, X, W)
 {
-  ## PURPOSE: 
+  ## PURPOSE:
   # Obtiene la verosimilitud del modelo SIM y del SARAR y obtiene el LR
   #  ANTES LOS LLAME LMSUR_tres.m
   #---------------------------------------------------
-  # where: 
+  # where:
   #        nT   = # of ecuaciones
   #        Y   = Un vector de orden nR*nT*Gx1 con las y apiladas
   #        X  = Un vector nR*nT*GxK X=blkdiag([ones(nR,1) Xi]);
   #         info = an (optional) structure variable with input options
   #         info.print = 'yes' / ['no'] print the result
-  
-  IT <- Matrix::Diagonal(nT) 
+
+  IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
   IG <- Matrix::Diagonal(nG)
   IGR <- Matrix::Diagonal(nG*nR)
-  
-  E <- array(0,dim=c(nG,nG,nG,nG))  
+
+  E <- array(0,dim=c(nG,nG,nG,nG))
   for(i in 1:nG){
     for(j in 1:nG){
       E[i,j,i,j] <- 1
@@ -116,7 +116,7 @@ LRSUR2_SARAR <- function(nT,nG,nR,Y,X,W)
       for (j in 1:nG){
         Sigma[i,j] <- cov(matrix(RR[,i,],ncol=1),matrix(RR[,j,],ncol=1))
       }
-    } 
+    }
     DELTA <- DELTA_t
     opt_sur_sarar <- optim(DELTA,f_sur_sarar,
                            method="BFGS",
@@ -129,7 +129,7 @@ LRSUR2_SARAR <- function(nT,nG,nR,Y,X,W)
     DELTA_t <- ifelse(DELTA_t>=1,0.98,DELTA_t)
     if (abs(llsur_sarar0 - llsur_sarar) < tol) break
     llsur_sarar0 <- llsur_sarar
-  }  
+  }
   # Coeficientes finales
   DELTAfin <- DELTA_t
   llsur_sararfin <- llsur_sarar
@@ -149,13 +149,13 @@ LRSUR2_SARAR <- function(nT,nG,nR,Y,X,W)
     for (j in 1:nG){
       Sigma[i,j] <- cov(matrix(RR[,i,],ncol=1),matrix(RR[,j,],ncol=1))
     }
-  }   
+  }
   Sigma_corr <- diag(rep(1,nG))
   for (i in 1:nG){
     for (j in 1:nG){
       Sigma_corr[i,j] <- cor(matrix(RR[,i,],ncol=1),matrix(RR[,j,],ncol=1))
     }
-  }  
+  }
   ## Obtención de la Lik del modelo SIM
   Sigma_sim <- Matrix::Diagonal(nG)
   for (i in 1:2){
@@ -172,11 +172,11 @@ LRSUR2_SARAR <- function(nT,nG,nR,Y,X,W)
     }
   }
   IOME_sim <- IT %x% solve(Sigma_sim) %x% IR
-  llsur_simfin <- as.numeric( -(nT*nG*nR/2)*log(2*pi) - 
+  llsur_simfin <- as.numeric( -(nT*nG*nR/2)*log(2*pi) -
              (nR*nT/2)*log(det(as.matrix(Sigma_sim))) -
              (1/2)*t(Res_sim) %*% IOME_sim %*% Res_sim)
-  test_lr <- -2*(llsur_simfin - llsur_sararfin) 
-  
+  test_lr <- -2*(llsur_simfin - llsur_sararfin)
+
   res <- list(delta_sarar = DELTA_sarar,
               llsur_sarar=llsur_sararfin,
               testlr_sim_sarar = test_lr,
@@ -187,7 +187,7 @@ LRSUR2_SARAR <- function(nT,nG,nR,Y,X,W)
               Yhat_sarar = Yhat_sarar,
               betas_sim = B_sim,
               llsur_sim = llsur_simfin
-              ) 
+              )
   #class(res) <- sur_sarar
   return(res)
 }

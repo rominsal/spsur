@@ -1,4 +1,4 @@
-# 
+#
 # f_surGRT_beta <- function(beta,nT,nG,nR,Y,X,Sigma)
 # {
 #   #ldet_Sigma <- sum(2*log(diag(chol_Sigma)))
@@ -11,11 +11,11 @@
 #   IOME <- kronecker(kronecker(IT,Sigma_inv),IR)
 #   Res <-  matrix(Y - X %*% beta,ncol=1)
 #   llike <- as.numeric( -(nT*nG*nR/2)*log(2*pi) - (nR*nT/2)*ldet_Sigma
-#            - (1/2)*(Matrix::t(Res) %*% IOME %*% Res)) 
+#            - (1/2)*(Matrix::t(Res) %*% IOME %*% Res))
 #   llike
 # }
 
-sur2_spdiag <- function(nT,nG,nR,Y,X,W,info) 
+sur2_spdiag <- function(nT,nG,nR,Y,X,W,info)
 {
   # Estimación del modelo SUR2 sin Efectos Espaciales
   IT <- Matrix::Diagonal(nT)
@@ -34,7 +34,7 @@ sur2_spdiag <- function(nT,nG,nR,Y,X,W,info)
   cat("Computing model whitout spatial effects... \n")
   # Condiciones para la convergencia
   criteria <- 0.0001; itermax <- 100
-  
+
   for (iter in 1:itermax)
   {
     # opt_sur_sp <- optim(betaoud,f_surGRT_beta,
@@ -44,11 +44,11 @@ sur2_spdiag <- function(nT,nG,nR,Y,X,W,info)
     # beta <- opt_sur_sp$par
     # llsur <- opt_sur_sp$value
     # conv_llsur <- opt_sur_sp$convergence
-    
-    opt_sur_sp <- fit_spsursim(nT=nT,nG=nG,nR=nR,Y=Y,X=X,W=W,trace=F)
+
+    opt_sur_sp <- fit_spsursim(nT=nT,nG=nG,nR=nR,Y=Y,X=X,W=W,trace=FALSE)
     beta <- opt_sur_sp$betas
     llsur <- opt_sur_sp$llsur
-    
+
     Res <- Y - X%*%beta
     RR <- array(Res,dim=c(nR,nG,nT))
     # Covariance residual matrix between G equations
@@ -64,7 +64,7 @@ sur2_spdiag <- function(nT,nG,nR,Y,X,W,info)
   # Test de diagnostico de la dependencia espacial
   # LM_SUR_SLM2
   cat("Computing LM-SAR test... \n")
- E <- array(0,dim=c(nG,nG,nG,nG))  
+ E <- array(0,dim=c(nG,nG,nG,nG))
  for(i in 1:nG){
      for(j in 1:nG){
          E[i,j,i,j] <- 1
@@ -79,10 +79,10 @@ sur2_spdiag <- function(nT,nG,nR,Y,X,W,info)
 W<-as(W,"dgCMatrix")
 
 for (i in 1:nG){
-      g_sar[i] <- Matrix::t(Res) %*%(IT %x% (Sigma_inv%*%E[,,i,i]) %x% W)%*% Y 
+      g_sar[i] <- Matrix::t(Res) %*%(IT %x% (Sigma_inv%*%E[,,i,i]) %x% W)%*% Y
   }
   # Matriz de Informacion
-  I11 <- Matrix::t(X) %*% (IT %x% Sigma_inv %x% IR) %*% X   
+  I11 <- Matrix::t(X) %*% (IT %x% Sigma_inv %x% IR) %*% X
   I12 <- matrix(0,nrow=nG,ncol=length(beta))
   for (i in 1:nG){
       I12[i,] <- matrix(t(X) %*% (IT %x% (Sigma_inv%*%E[,,i,i]) %x% W) %*% (X %*% beta),nrow=1)
@@ -96,25 +96,25 @@ for (i in 1:nG){
     H <- kronecker(IT,kronecker(E[,,j,j]%*%Sigma_inv%*%E[,,i,i],WtW)) # H <- Matrix::Matrix(IT %x% (E[,,j,j]%*%Sigma_inv%*%E[,,i,i]) %x% WtW)
       tr3 <- sum(H*OO)
       # tr3 <- nT*sum(diag(E[,,j,j]*Sigma_inv*E[,,i,i]%*%Sigma))*sum(diag(WtW))
-      if (i==j){ 
+      if (i==j){
         I22[i,j] <- as.numeric(t(X%*%beta) %*% H %*% (X%*%beta)) + tr3 + nT*tr2
       } else {
         I22[i,j] <- as.numeric(t(X%*%beta) %*% H %*% (X%*%beta)) + tr3
-      }  
+      }
      }
   }
 
-  LMSURSLM2 <- as.numeric(matrix(g_sar,nrow=1) %*% solve(I22-I12%*%solve(I11)%*%t(I12)) %*% matrix(g_sar,ncol=1))  
-  
-  
+  LMSURSLM2 <- as.numeric(matrix(g_sar,nrow=1) %*% solve(I22-I12%*%solve(I11)%*%t(I12)) %*% matrix(g_sar,ncol=1))
+
+
 
 # LM_SUR_SEM2
   cat("Computing LM-SEM test... \n")
     g_sem <- matrix(0,nrow=nG)
     for (i in 1:nG){
-        g_sem[i] <- as.numeric(t(Res) %*% (IT %x% (Sigma_inv%*%E[,,i,i]) %x% W) %*% Res) 
+        g_sem[i] <- as.numeric(t(Res) %*% (IT %x% (Sigma_inv%*%E[,,i,i]) %x% W) %*% Res)
     }
-    
+
     J22 <- matrix(0,nrow=nG,ncol=nG)
     tr1 <- sum(Matrix::t(W)*Matrix::t(W))
 
@@ -135,7 +135,7 @@ for (i in 1:nG){
         g_sarar2[i] <- t(Res) %*% (IT %x% (Sigma_inv%*%E[,,i,i]) %x% W) %*% Res
     }
     g_sarar <- rbind(g_sarar1, g_sarar2)
-    
+
 # Matriz Informacion
     K11 <- I11
     K12 <- I12
@@ -150,7 +150,7 @@ for (i in 1:nG){
     }
     Ird <- matrix(0,nG,nG)
     WW <- W%*%W
-    Sigma<-as(Sigma,"dgCMatrix") 
+    Sigma<-as(Sigma,"dgCMatrix")
     for (g in 1:nG){
         for (s in 1:nG){
             P1s1 <- Sigma %*% E[,,s,s] %*% Sigma_inv%*%E[,,g,g]
@@ -163,7 +163,7 @@ for (i in 1:nG){
         }
     }
     K23 <- Ird
-    LMSURSARAR <- as.numeric(matrix(g_sarar,nrow=1) %*% 
+    LMSURSARAR <- as.numeric(matrix(g_sarar,nrow=1) %*%
                solve(rbind(cbind(K22-K12%*%solve(K11)%*%t(K12), K23),
                             cbind(t(K23), K33))) %*% matrix(g_sarar,ncol=1))
 
@@ -171,7 +171,7 @@ for (i in 1:nG){
 cat("Computing Robust LM*-SUR-SAR test... \n")
 # Indexar los elementos diferentes de Sigma
  ff <- rep(0,nG*(nG+1)/2)
- cf <- rep(0,nG*(nG+1)/2)    
+ cf <- rep(0,nG*(nG+1)/2)
  c1 <- 0; c2<- 0; c3 <-0
     for (k1 in 1:nG){
         c2<- c2+1
@@ -185,9 +185,9 @@ cat("Computing Robust LM*-SUR-SAR test... \n")
     RI44 <- matrix(0,nrow=(nG*(nG+1)/2),ncol=nG*(nG+1)/2)
     for (i in 1:(nG*(nG+1)/2)){
         for (j in 1:(nG*(nG+1)/2)){
-            RI44[i,j] <- (nT*nR/2)*sum(diag(Sigma_inv%*%E[,,ff[i],cf[i]] 
+            RI44[i,j] <- (nT*nR/2)*sum(diag(Sigma_inv%*%E[,,ff[i],cf[i]]
                           %*%Sigma_inv%*%E[,,ff[j],cf[j]]))
-        }   
+        }
     }
 
     ##F Iff <- rbind(cbind(I11,matrix(0,nrow=(k+1)*nG,ncol=nG*(nG+1)/2)),

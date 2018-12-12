@@ -1,43 +1,38 @@
 #' @name lrtestspsur
 #' @rdname lrtestspsur
 #'
-#' @title Likelihood ratio test
+#' @title Likelihood ratio test.
 #'
+#' @description This function reports Likelihood ratios tests
+#'   for nested SUR models
 #'
-#' @description
-#' The function report Likelihood ratios tests for nested SUR models
+#' @inheritParams spsurml
+#' @param time Variable including temporal periods.
 #'
-#' @param    Form   : An object create with \code{\link[Formula]{Formula}} package allowing for multiple responses and multiple parts of regressors
-#' @param    data   : An object of class data.frame or a matrix
-#' @param    W      : A nRxnR spatial weight matrix
-#' @param    Y      : Default NULL. Data vector nRxnTx1 (firs: space dimension | second: time periods)
-#' @param    X      : Default NULL. Data matrix nRxnTxp (p=sum(\eqn{p_{g}}) where \eqn{p_{g}} is the number of independent variables for g-th equation, g=1,...,nG)
-#' @param    nG     : Default NULL. number of equations
-#' @param    nR     : Default NULL. number of spatial observations
-#' @param    nT     : Default NULL. Number of time periods
+#' @return Function \code{\link{lrtestspsur}} prints  LR tests. \cr
+#'   Returns a list with the values of LR statistics and p-values associated.
 #'
-#' @return
-#' The code \code{\link{lrtestspsur}} print the LR tests\cr
-#' \cr
-#' A list with the values of LR test and p-values
-#'
-#' @details
-#' The code \code{\link{lrtestspsur}} obtain the LogLik of the models SUR-SIM; SUR-SAR; SUR-SEM and SUR-SARAR
-#' and print the Likelihood ratio tests:\cr
-#' \cr
-#' SUR-SIM vs SUR-SAR\cr
-#' SUR-SIM vs SUR-SEM\cr
-#' SUR-SIM vs SUR-SARAR\cr
-#' SUR-SAR vs SUR-SARAR\cr
-#' SUR-SEM vs SUR-SARAR\cr
+#' @details Function \code{\link{lrtestspsur}} obtains the LogLik of
+#'   the models SUR-SIM; SUR-SAR; SUR-SEM and SUR-SARAR and print the
+#'   next likelihood ratio tests:
+#'   \itemize{
+#'     \item SUR-SIM vs SUR-SAR.
+#'     \item SUR-SIM vs SUR-SEM.
+#'     \item SUR-SIM vs SUR-SARAR.
+#'     \item SUR-SAR vs SUR-SARAR.
+#'     \item SUR-SEM vs SUR-SARAR.
+#'   }
 #'
 #' @references
-#' Mur, J., Lopez, F., and Herrera, M. (2010). Testing for spatial effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 5(4), 399-440.
-#' \cr
-#' \cr
-#' Lopez, F.A., Mur, J., and Angulo, A. (2014). Spatial model selection strategies in a SUR framework. The case of regional productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
-#' \cr
-#' \cr
+#'   \itemize{
+#'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
+#'       effects in seemingly unrelated regressions.
+#'       \emph{Spatial Economic Analysis}, 5(4), 399-440.
+#'      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
+#'        selection strategies in a SUR framework. The case of regional
+#'        productivity in EU. \emph{Annals of Regional Science}, 53(1),
+#'        197-220.
+#'   }
 #'
 #' @seealso
 #' \code{\link{spsurml}}, \code{\link{spsur3sls}}
@@ -50,39 +45,38 @@
 #' #### Example 1: Spatial Phillips-Curve. Anselin (1988, p. 203)
 #' data(spc)
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
-#' LRtests <- lrtestspsur(Form=Tformula,data=spc,W=Wspc)
+#' LRtests <- lrtestspsur(Form = Tformula, data = spc, W = Wspc)
 #'
 #' #################################################
 #' ######## PANEL DATA (nG>1; nT>1)         ########
 #' #################################################
 #'
 #' #### Example 2: Homicides + Socio-Economics (1960-90)
-#' Homicides and selected socio-economic characteristics for continental U.S. counties.
-#' Data for four decennial census years: 1960, 1970, 1980 and 1990.
-#' \url{https://geodacenter.github.io/data-and-lab/ncovr/}
+#' # Homicides and selected socio-economic characteristics for continental
+#' # U.S. counties.
+#' # Data for four decennial census years: 1960, 1970, 1980 and 1990.
+#' # \url{https://geodacenter.github.io/data-and-lab/ncovr/}
 #'
 #' data(NAT)
 #' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
-#' LRtests <- lrtestspsur(Form=Tformula,data=NAT,W=W)
+#' LRtests <- lrtestspsur(Form = Tformula, data = NAT, W = W)
 #'
 #' ##################################################
 #' #### PANEL DATA. TEMP. CORRELAT. (nG=1;nT>1) #####
 #' ##################################################
 #'
 #' #### Example 3: Italian unemployment
-#' data("unemp_it_short")
-#' data("W_italy")
+#' data("unemp_it")
 #' form_un <- unrate  ~ empgrowth + partrate + agri + cons + serv
-#' LR_time <- lrtestspsur(Form=form_un,data=unemp_it,time=unemp_it$year,W=W_italy)
+#' LR_time <- lrtestspsur(Form = form_un, data = unemp_it,
+#'                        time = unemp_it$year, W = W_italy)
 #' @export
-lrtestspsur <- function(Form=NULL,data=NULL,W=NULL,
-                         X=NULL,Y=NULL,time=NULL,
-                         nG=NULL,nR=NULL,nT=NULL)
-{
+lrtestspsur <- function(Form = NULL, data = NULL, W = NULL,
+                        X = NULL, Y = NULL, time = NULL,
+                        nG = NULL, nR = NULL, nT = NULL) {
   ## PURPOSE:
   # Realiza todos los test LR.
-  if (is.null(W) && !type=="sim") stop("W matrix is needed")
-  if (!is.null(W)) W <- Matrix::Matrix(W)
+  if (is.null(W)) stop("W matrix is needed") else W <- Matrix::Matrix(W)
   if (is.null(time)){  # nG > 1 (no temporal correlations are modelled)
     if(!is.null(Form) && !is.null(data)){
       # Lectura datos

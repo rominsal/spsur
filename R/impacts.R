@@ -3,28 +3,30 @@
 #'
 #' @title Impacts estimation of spatial SUR model
 #'
-#' @description
-#' Returns the marginal effects of a Spatial SUR model (SUR-SAR; SUR-SDM; SUR-SARAR)
+#' @description Returns the marginal effects of a Spatial SUR model
+#'   (SUR-SAR; SUR-SDM; SUR-SARAR)
 #'
-#' @param    Form   : An object of class spsur
-#' @param    nsim   : Number of simulations. An optinal argument. Default=1000
+#' @param spsurfit A fitted object of class \emph{spsur}.
+#' @param nsim Number of simulations. Default = 1000.
 #'
-#' @details
-#' The marginal effects (impacts) of spatial autoregressive models (SAR; SDM; SARAR) are more complicated than
-#' usual measurements of impacts for non spatial models. Here we follow LeSage and Pace (2009)
-#' and propose the following summaries for impact measures for Spatial SUR models:\cr
-#' \cr
-#' Average direct effects: The average over all the observations of the effects of the change
-#' of an explanatory variable of a single observation on the choice
-#' probability of that same observation.\cr
-#' \cr
-#' Average indirect effects: The average over all the observations of the effect of a change
-#'  on a explanatory variable on the choice probability of the neighbouring observations.\cr
-#' \cr
-#' Average total effects: The sum of direct and indirect impacts.\cr
+#' @details The marginal effects (impacts) of spatial autoregressive models
+#'   (SAR; SDM; SARAR) are more complicated than usual measurements of impacts
+#'   for non spatial models. Here we follow LeSage and Pace (2009) and propose
+#'   the following summaries for impact measures for Spatial SUR models:
+#'   \itemize{
+#'     \item \strong{Average direct effects}: The average over all the
+#'       observations of the effects of the change of an explanatory variable
+#'       of a single observation on the choice probability of that same
+#'       observation.
+#'     \item \strong{Average indirect effects}: The average over all the
+#'       observations of the effect of a change on a explanatory variable on
+#'       the choice probability of the neighbouring observations.
+#'     \item \strong{Average total effects}: The sum of direct and indirect
+#'       impacts.
+#'   }
 #'
-#' @return
-#' It returns the marginal effects of the estimated Spatial SUR model and simulted values.
+#' @return It returns the marginal effects of the estimated spatial SUR model
+#'   and simulted values.
 #'   \tabular{ll}{
 #'   \code{table_dir_eff} \tab table of average direct effects. \cr
 #'   \code{table_ind_eff} \tab table of average indirect effects. \cr
@@ -33,21 +35,27 @@
 #'   \code{sim_ind_eff} \tab simulate indirect effects. \cr
 #'   \code{sim_tot_eff} \tab simulate total effects. \cr
 #'   }
-#' @references
 #'
-#' Mur, J., Lopez, F., and Herrera, M. (2010). Testing for spatial effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 5(4), 399-440.
-#' \cr
-#' \cr
-#' Lopez, F.A., Mur, J., and Angulo, A. (2014). Spatial model selection strategies in a SUR framework. The case of regional productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
-#' \cr
-#' \cr
-#' LeSage, J., and Pace, R. K. (2009). Introduction to spatial econometrics. Chapman and Hall/CRC.
+#' @references
+#'   \itemize{
+#'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
+#'       effects in seemingly unrelated regressions.
+#'       \emph{Spatial Economic Analysis}, 5(4), 399-440.
+#'      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
+#'        selection strategies in a SUR framework. The case of regional
+#'        productivity in EU. \emph{Annals of Regional Science}, 53(1),
+#'        197-220.
+#'      \item LeSage, J., and Pace, R. K. (2009). \emph{Introduction to spatial
+#'        econometrics}. Chapman and Hall/CRC.
+#'   }
+#'
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@upct.es} \cr
-#'   Román Mínguez  \tab \email{roman.minguez@uclm.es} \cr
-#'   Jesús Mur  \tab \email{jmur@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
+#'
 #' @seealso
 #'
 #' \code{\link{spsurml}},  \code{\link{spsur3sls}}
@@ -63,19 +71,19 @@
 #' data(spc)
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #' ## A SUR-SAR model
-#' spcSUR.sar <-spsurml(Form=Tformula,data=spc,type="sar",W=Wspc)
+#' spcSUR.sar <-spsurml(Form = Tformula, data = spc, type = "sar", W = Wspc)
 #' summary(spcSUR.sar)
 #' eff.spcSUR.sar <- impacts(spcSUR.sar)
 #'
 #' ## A SUR-SDM model
-#' spcSUR.sdm <-spsurml(Form=Tformula,data=spc,type="sdm",W=Wspc)
+#' spcSUR.sdm <-spsurml(Form = Tformula, data = spc, type = "sdm", W = Wspc)
 #' summary(spcSUR.sdm)
-#' eff.spcSUR.sdm <- impacts(spcSUR.sdm,nsim=300)
+#' eff.spcSUR.sdm <- impacts(spcSUR.sdm, nsim = 300)
 #'
 #' ## A SUR-SARAR model
-#' spcSUR.sarar <-spsurml(Form=Tformula,data=spc,type="sarar",W=Wspc)
+#' spcSUR.sarar <-spsurml(Form = Tformula, data = spc, type = "sarar", W = Wspc)
 #' summary(spcSUR.sarar)
-#' eff.spcSUR.sarar <- impacts(spcSUR.sarar,nsim=300)
+#' eff.spcSUR.sarar <- impacts(spcSUR.sarar, nsim = 300)
 #'
 #' ####################################
 #' ######## PANEL DATA (nG>1; nT>1) ###
@@ -84,22 +92,23 @@
 #' data(NAT)
 #' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
 #' ## A SUR-SAR model
-#' NATSUR.sar <-spsurml(Form=Tformula,data=NAT,type="sar",W=W)
+#' NATSUR.sar <-spsurml(Form = Tformula, data = NAT, type = "sar", W = W)
 #' summary(NATSUR.sar)
-#' eff.NAT.sar <- impacts(NATSUR.sar,nsim=10)
+#' eff.NAT.sar <- impacts(NATSUR.sar, nsim = 100)
 #'
 #' ####################################
 #' ######## PANEL DATA (nG=1; nT>1) ###
 #' ####################################
 #'
-#' data("unemp_it_short")
-#' data("W_italy")
+#' data("unemp_it")
 #' form_un <- unrate  ~ empgrowth + partrate + agri + cons + serv
-#' unempitml_sar <- spsurtime(Form=form_un,data=unemp_it,time=unemp_it$year,W=W_italy,type="sar",method="ml")
+#' unempitml_sar <- spsurtime(Form = form_un, data = unemp_it,
+#'                            time = unemp_it$year, W = W_italy, type = "sar",
+#'                            method = "ml")
 #' summary(unempitml_sar)
-#' eff.unempitml_sar <- impacts(unempitml_sar,nsim=100)
+#' eff.unempitml_sar <- impacts(unempitml_sar, nsim = 100)
 #' @export
-impacts <- function(spsurfit,nsim=1000){
+impacts <- function(spsurfit, nsim = 1000){
   z <- spsurfit
   type <- z$type
   if (!(type == "sar" | type == "sdm" | type == "sarar")){
@@ -162,7 +171,7 @@ impacts <- function(spsurfit,nsim=1000){
       }
       BetaD_fit_j <- c(BetaD_fit_j,mean(diag(S_ij))) # average direct effect
       diag(S_ij) <- 0
-      BetaI_fit_j <- c(BetaI_fit_j,mean(rowSums(S_ij))) # average indirect effect
+      BetaI_fit_j <- c(BetaI_fit_j,mean(rowSums(S_ij))) # average indirect eff.
     }
     lBetaD_fit[[j]] <- BetaD_fit_j
     names(lBetaD_fit[[j]]) <- names(lbeta_fit[[j]])[1:p_j]
@@ -205,7 +214,7 @@ impacts <- function(spsurfit,nsim=1000){
         }
         BetaD_sim_j <- c(BetaD_sim_j,mean(diag(S_ij))) # average direct effect
         diag(S_ij) <- 0
-        BetaI_sim_j <- c(BetaI_sim_j,mean(rowSums(S_ij))) # average indirect effect
+        BetaI_sim_j <- c(BetaI_sim_j,mean(rowSums(S_ij))) # average indirect eff
       }
       lBetaD_sim[[j]][k,] <- BetaD_sim_j
       lBetaI_sim[[j]][k,] <- BetaI_sim_j
@@ -258,11 +267,11 @@ impacts <- function(spsurfit,nsim=1000){
   cat("\n","\n")
   cat("Spatial SUR model type: ",type,"\n")
   cat("\n\n Direct effects","\n\n")
-  printCoefmat(tableBetaT, P.value=TRUE, has.Pvalue=TRUE)
+  printCoefmat(tableBetaT, P.values = TRUE, has.Pvalue = TRUE)
   cat("\n\n Indirect effects","\n\n")
-  printCoefmat(tableBetaI, P.value=TRUE, has.Pvalue=TRUE)
+  printCoefmat(tableBetaI, P.values = TRUE, has.Pvalue = TRUE)
   cat("\n\n Total effects","\n\n")
-  printCoefmat(tableBetaT, P.value=TRUE, has.Pvalue=TRUE)
+  printCoefmat(tableBetaT, P.values = TRUE, has.Pvalue = TRUE)
   res <- list(table_dir_eff = tableBetaD,
               table_ind_eff = tableBetaI,
               table_tot_eff = tableBetaT,

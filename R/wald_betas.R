@@ -1,26 +1,28 @@
-#'
 #' @name wald_betas
 #' @rdname wald_betas
 #'
-#' @title Wald tests for beta coefficients
+#' @title Wald tests on beta coefficients
 #'
 #' @description
-#' Wald tests for linear hypothesis about beta coefficients
+#' Wald tests on beta coefficients
 #'
-#' @param    results : An object create with \code{\link[spSUR2]{spsurml}} or \code{\link[spSUR2]{spsur3sls}}.
+#' @param    results : An object create with \code{\link{spsurml}} or \code{\link{spsur3sls}}.
 #' @param    R       : Coefficient matrix for betas.
 #' @param    r       : Vector of independent terms.
 #'
 #' @details
-#' ¿?¿?
+#' The hypothesis H_0 is that the beta coefficients is specify in R matrix
 #'
 #' @return
 #' statistics and p-value
+#' The LR tests
+#'   \tabular{ll}{
+#'   \code{stat} \tab The value of LR test. \cr
+#'   \code{p_val}    \tab The p-value of LR test. \cr
+#'   \code{q}    \tab The degrees of freedom. \cr
+#'   }
 #'
 #' @references
-#'
-#' CAMBIAR
-#' J. LeSage and R.K. Pace. \emph{Introduction to Spatial Econometrics}, CRC Press, chapter 10.1.6, 2009
 #' Mur, J., López, F., & Herrera, M. (2010). Testing for spatial effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 5(4), 399-440.
 #' \cr
 #' \cr
@@ -31,30 +33,36 @@
 #'
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@upct.es} \cr
-#'   Román Mínguez  \tab \email{Roman.Minguez@uclm.es} \cr
-#'   Jesus Mur  \tab \email{jmur@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
 #' @seealso
-#' \code{\link{spsurml}}, \code{\link{spsur3sls}}
+#' \code{\link{lr_betas_spsur}}
+#'
 #' @examples
+#'
+#' #################################################
+#' ######## CROSS SECTION DATA (nG>1; nT=1) ########
+#' #################################################
+#'
 #' data(spc)
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #' ## Estimate SUR-SAR model
-#' spcSUR.sar <-spsurml(Form=Tformula,data=spc,type="sar",W=Wspc)
+#' spcSUR.sar <-spsurml(Form = Tformula, data = spc,
+#'                      type = "sar", W = Wspc)
 #' summary(spcSUR.sar)
 #' ## H_0: equality between SMSA coefficients in both equations.
-#' R1 <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
-#' r1 <- matrix(0,ncol=1)
-#' res1 <- wald_betas(results=spcSUR.sar,R=R1,r=r1)
-#' res1$stat; res1$p_val
+#' R1 <- matrix(c(0,0,0,1,0,0,0,-1), nrow=1)
+#' r1 <- matrix(0, ncol=1)
+#' Wald_beta <- wald_betas(results = spcSUR.sar, R = R1, r = r1)
+#'
 #' ## H_0: equality between intercepts and SMSA coefficients in both equations.
-#' R2 <- matrix(c(1,0,0,0,-1,0,0,0,0,0,0,1,0,0,0,-1),nrow=2,ncol=8,byrow=TRUE)
+#' R2 <- matrix(c(1,0,0,0,-1,0,0,0,0,0,0,1,0,0,0,-1),
+#'              nrow = 2, ncol = 8, byrow = TRUE)
 #' r2 <- matrix(c(0,0),ncol=1)
-#' res2 <- wald_betas(results=spcSUR.sar,R=R2,r=r2)
-#' res2$stat; res2$p_val
-
-
+#' res2 <- wald_betas(results = spcSUR.sar, R = R2, r = r2)
+#' @export
  wald_betas <- function(results , R , r){
   z <- results # OBJETO QUE INCLUYE ESTIMACIÓN EN Rbetas <- z$betas
   betas <- Matrix::Matrix(matrix(z$betas,ncol=1))
@@ -68,9 +76,9 @@
   Wald <- as.numeric( Matrix::t(holg) %*%
                 Matrix::solve(R %*% cov_betas %*% Matrix::t(R),holg) )
   p_val <- pchisq(Wald,df=q,lower.tail=FALSE)
-  cat("\n R: "); print(as.matrix(R))
-  cat("\n r: "); print(as.matrix(r))
-  cat("\n statistical discrepancies: "); print(as.matrix(holg))
+  # cat("\n R: "); print(as.matrix(R))
+  # cat("\n r: "); print(as.matrix(r))
+  # cat("\n statistical discrepancies: "); print(as.matrix(holg))
   cat("\n Wald stat.: ",round(Wald,3)," p-value (",p_val,")")
   res <- list(stat = Wald,
               p_val = p_val,

@@ -6,7 +6,7 @@
 # @description
 # Restricted estimation of beta coefficients
 #
-# @param    results : An object create with \code{\link[spSUR2]{spsurml}}.
+# @param    results : An object create with \code{\link{spsurml}}.
 # @param    R       : Coefficient matrix for betas.
 # @param    r       : Vector of independent terms.
 #
@@ -30,9 +30,9 @@
 #
 # @author
 #   \tabular{ll}{
-#   Fernando López  \tab \email{fernando.lopez@upct.es} \cr
-#   Román Mínguez  \tab \email{Roman.Minguez@uclm.es} \cr
-#   Jesus Mur  \tab \email{jmur@unizar.es} \cr
+#   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #   }
 # @seealso
 # \code{\link{spsur}}
@@ -152,7 +152,7 @@ betas_restr <- function(results , R , r){
   cat("\n Betas Restricted: \n\n")
   for (i in 1:length(coef_table)){
     cat("Equation ",i,"\n")
-    printCoefmat(coef_table[[i]], P.value=TRUE, has.Pvalue=TRUE)
+    printCoefmat(coef_table[[i]], P.values = TRUE, has.Pvalue = TRUE)
   }
   res <- list(betas_restr = as.matrix(betas_r),
              cov_betas_restr = as.matrix(cov_betas_r),

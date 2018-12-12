@@ -1,4 +1,6 @@
-fit_spsursim <- function(nT,nG,nR,Y,X,W,trace=TRUE){
+fit_spsursim <- function(nT, nG, nR, Y, X, W,
+                         maxit = 100, tol = 0.001,
+                         trace = TRUE){
   IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
   IG <- Matrix::Diagonal(nG)
@@ -14,8 +16,8 @@ fit_spsursim <- function(nT,nG,nR,Y,X,W,trace=TRUE){
   Sigma_inv <- try(chol2inv(chol(Sigma)))
   if(class(Sigma_inv)=="try-error")
     Sigma_inv <- MASS::ginv(as.matrix(Sigma),tol=1e-40)
-  maxit <- 100;  tol <- 0.001;
-  llsur_sim0 <- f_sur_sim(nT=nT,nG=nG,nR=nR,Y=Y,X=X,Sigma=Sigma)
+    llsur_sim0 <- f_sur_sim(nT=nT,nG=nG,nR=nR,Y=Y,X=X,
+                            Sigma=Sigma)
    if(trace){
     cat("Initial point: ","\n")
     #cat("Sigma: ",round(Sigma,3),"\n")
@@ -54,7 +56,7 @@ fit_spsursim <- function(nT,nG,nR,Y,X,W,trace=TRUE){
   #               crossprod(X,solve(OME,Y)))
   B_sim <- Matrix::solve(Matrix::crossprod(X,OMEinv %*% X),
                         Matrix::crossprod(X,OMEinv %*% Y))
-  
+
   Res <- matrix(Y - X%*%B_sim,nrow=nrow(Y))
   Yhat <- Y - Res
   Sigmas <- get_Sigma(resids=Res,nR=nR,nG=nG,nT=nT)
@@ -76,7 +78,9 @@ fit_spsursim <- function(nT,nG,nR,Y,X,W,trace=TRUE){
 ###############################################
 
 
-fit_spsursar <- function(nT,nG,nR,Y,X,W,trace=TRUE)
+fit_spsursar <- function(nT, nG, nR, Y, X, W,
+                         maxit = 100, tol = 0.001,
+                         trace=TRUE)
 {
   IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
@@ -92,7 +96,6 @@ fit_spsursar <- function(nT,nG,nR,Y,X,W,trace=TRUE)
   Sigmas <- get_Sigma(resids=Res,nR=nR,nG=nG,nT=nT)
   Sigma <- Sigmas$Sigma; rm(Sigmas)
   # Proceso iterativo para la obtención de los estimadores:
-  maxit <- 20;  tol <- 0.5
   # Obtención del minimo bajo la hip alternativa.
   # opt_sur_sar <- optim(deltag,f_sur_lag,
   #                      method="BFGS",
@@ -113,7 +116,7 @@ fit_spsursar <- function(nT,nG,nR,Y,X,W,trace=TRUE)
     cat("Initial point: "," ")
     cat("log_lik: ",round(-llsur_sar0,3)," ")
     cat("lambdas: ",round(deltag_t,3),"\n")
-    
+
   }
   # Proceso de estimacion iterativo
   for(i in 1:maxit)
@@ -145,7 +148,7 @@ fit_spsursar <- function(nT,nG,nR,Y,X,W,trace=TRUE)
       cat("Iteration: ",i,"  ")
       cat("log_lik: ",round(-llsur_sar,3)," ")
       cat("lambdas: ",round(deltag_t,3),"\n")
-      
+
     }
     if (abs(llsur_sar0 - llsur_sar) < tol) break
     llsur_sar0 <- llsur_sar
@@ -155,7 +158,7 @@ fit_spsursar <- function(nT,nG,nR,Y,X,W,trace=TRUE)
   llsur_sarfin <- llsur_sar
   delta <- Matrix::Matrix(diag(as.vector(deltag_t)))
   A <- kronecker(IT,(IGR - kronecker(delta,W)))
-  
+
   OME <- kronecker(IT,kronecker(Sigma,IR))
   #coeficientes finales
   B_sar <- Matrix::solve(Matrix::crossprod(X,Matrix::solve(OME,X)),
@@ -180,7 +183,9 @@ fit_spsursar <- function(nT,nG,nR,Y,X,W,trace=TRUE)
 
 ###############################################
 
-fit_spsursem <- function(nT,nG,nR,Y,X,W,trace=TRUE)
+fit_spsursem <- function(nT, nG, nR, Y, X, W,
+                         maxit = 100, tol = 0.001,
+                         trace=TRUE)
 {
   IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
@@ -198,7 +203,6 @@ fit_spsursem <- function(nT,nG,nR,Y,X,W,trace=TRUE)
   Sigmas <- get_Sigma(resids=Res,nR=nR,nG=nG,nT=nT)
   Sigma <- Sigmas$Sigma; rm(Sigmas)
   # Proceso iterativo para la obtención de los estimadores:
-  maxit <- 20;  tol <- 0.5
   # Obtención del minimo bajo la hip alternativa.
   opt_sur_sem <- minqa::bobyqa(par=deltag,fn=f_sur_sem,
                                lower=rep(-1,length(deltag)),
@@ -206,7 +210,7 @@ fit_spsursem <- function(nT,nG,nR,Y,X,W,trace=TRUE)
                                control=list(rhobeg=0.5,iprint=0),
                                nT=nT,nG=nG,nR=nR,Y=Y,X=X,W=W,Sigma=Sigma)
   deltag_t <- opt_sur_sem$par
-  llsur_sem0 <- opt_sur_sem$fval  
+  llsur_sem0 <- opt_sur_sem$fval
    if(trace){
     cat("Initial point: "," ")
     cat("log_lik: ",round(-llsur_sem0,3)," ")
@@ -215,7 +219,7 @@ fit_spsursem <- function(nT,nG,nR,Y,X,W,trace=TRUE)
   }
   # Proceso de estimación iterativo
   for (i in 1:maxit){
-    
+
     delta <- Matrix::Matrix(diag(as.vector(deltag_t)))
     B <- kronecker(IT,(IGR - kronecker(delta,W)))
     OME <- kronecker(IT,kronecker(Sigma,IR))
@@ -273,7 +277,9 @@ fit_spsursem <- function(nT,nG,nR,Y,X,W,trace=TRUE)
 
 ###############################################
 
-fit_spsursarar <- function(nT,nG,nR,Y,X,W,trace=TRUE){
+fit_spsursarar <- function(nT, nG, nR, Y, X, W,
+                           maxit = 100, tol = 0.001,
+                           trace=TRUE){
   IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
   IG <- Matrix::Diagonal(nG)
@@ -292,7 +298,6 @@ fit_spsursarar <- function(nT,nG,nR,Y,X,W,trace=TRUE){
   Sigmas <- get_Sigma(resids=Res,nR=nR,nG=nG,nT=nT)
   Sigma <- Sigmas$Sigma; rm(Sigmas)
   # Proceso iterativo para la obtencion de los estimadores:
-  maxit <- 20;  tol <- 0.5
   opt_sur_sarar <- minqa::bobyqa(par=DELTA,fn=f_sur_sarar,
                                lower=rep(-1,length(DELTA)),
                                upper=rep(1,length(DELTA)),
@@ -313,7 +318,7 @@ fit_spsursarar <- function(nT,nG,nR,Y,X,W,trace=TRUE){
     OME <- kronecker(IT,kronecker(Sigma,IR))
     BX <- B%*%X
     B_sarar <- Matrix::solve(Matrix::crossprod(BX,Matrix::solve(OME,BX)),
-                             Matrix::crossprod(BX,Matrix::solve(OME,B %*% (A%*%Y))))     
+                             Matrix::crossprod(BX,Matrix::solve(OME,B %*% (A%*%Y))))
     Res <- matrix(B%*%(A%*%Y - X%*%B_sarar),nrow=nrow(Y))
     Sigmas <- get_Sigma(resids=Res,nR=nR,nG=nG,nT=nT)
     Sigma <- Sigmas$Sigma; rm(Sigmas)
@@ -343,7 +348,7 @@ fit_spsursarar <- function(nT,nG,nR,Y,X,W,trace=TRUE){
    OME <- kronecker(IT,kronecker(Sigma,IR))
    BX <- B %*% X
    B_sarar <- Matrix::solve(Matrix::crossprod(BX,Matrix::solve(OME,BX)),
-                     Matrix::crossprod(BX,Matrix::solve(OME,B %*% (A%*%Y))))     
+                     Matrix::crossprod(BX,Matrix::solve(OME,B %*% (A%*%Y))))
   Res <- matrix(B %*% (A %*% Y - X %*% B_sarar),nrow=nrow(Y))
   Yhat <- Y - Res
   Sigmas <- get_Sigma(resids=Res,nR=nR,nG=nG,nT=nT)
@@ -351,7 +356,7 @@ fit_spsursarar <- function(nT,nG,nR,Y,X,W,trace=TRUE){
   Sigma_inv <- Sigmas$Sigma_inv
   Sigma_corr <- Sigmas$Sigma_corr
   rm(Sigmas)
-  
+
   ##### PRUEBAS PARA COVARIANZAS NUMÉRICAS ###########################
   # hessian_optim <- Matrix::Matrix(numDeriv::hessian(func=llsur_sarar_deltas_betas,
   #                                    x=param,#c(B_sarar,DELTA_sarar),
@@ -361,7 +366,7 @@ fit_spsursarar <- function(nT,nG,nR,Y,X,W,trace=TRUE){
   # cat("\n var_numer_sarar",var_num_sarar)
   # cat("\n sd_numer_sarar",sqrt(diag(var_num_sarar)))
 ###############################################################################
-  
+
   res <- list(deltas = as.vector(DELTA_sarar),
               betas = as.vector(B_sarar),
               llsur = -llsur_sararfin,

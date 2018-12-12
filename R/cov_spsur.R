@@ -1,10 +1,10 @@
 cov_spsursim <- function(nT,nG,nR,Y,X,W,
-                         deltas=NULL,Sigma){
-  IT <- Matrix::Diagonal(nT) 
+                         deltas=NULL,Sigma,cov=FALSE,trace=FALSE){
+  IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
   IG <- Matrix::Diagonal(nG)
   IGR <- Matrix::Diagonal(nG*nR)
-  
+
   E <- get_array_E(nG)
   Sigmainv <- try(chol2inv(chol(Sigma)))
   if(class(Sigmainv)=="try-error")
@@ -29,15 +29,15 @@ cov_spsursim <- function(nT,nG,nR,Y,X,W,
     cov = as.matrix(misim_inv),
     BP = as.numeric(BP)
   )
-  
-}  
-  
-  
-###############################################  
+
+}
+
+
+###############################################
   cov_spsursar <- function(nT,nG,nR,Y,X,W,
-                         deltas,Sigma){
-  
-  IT <- Matrix::Diagonal(nT) 
+                         deltas,Sigma,trace=FALSE){
+
+  IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
   IG <- Matrix::Diagonal(nG)
   IGR <- Matrix::Diagonal(nG*nR)
@@ -76,7 +76,7 @@ cov_spsursim <- function(nT,nG,nR,Y,X,W,
   I12A <- Matrix::Matrix(0,nrow=ncol(X),ncol=nG)
   Ainv_XBsar <-  Ainv %*% XBsar
   for (i in 1:nG){
-    I12A[,i] <- tX_OMEinv %*% 
+    I12A[,i] <- tX_OMEinv %*%
       (kronecker(kronecker(IT,E[,,i,i]),W) %*% Ainv_XBsar)
   }
   rm(tX_OMEinv)
@@ -97,7 +97,7 @@ cov_spsursim <- function(nT,nG,nR,Y,X,W,
       k2 <- kronecker(Sigma,IR)%*%Auxit
       trace_HH_OME <- nT*sum(k1*k2)
       if (i==j){
-        
+
         I22A[i,j] <- nT*sum(IAgW * Matrix::t(IAgW)) + tXBsar_HH_XBsar + trace_HH_OME
       } else {
         I22A[i,j] <- tXBsar_HH_XBsar + trace_HH_OME
@@ -123,22 +123,23 @@ cov_spsursim <- function(nT,nG,nR,Y,X,W,
   for (i in 1:(nG*(nG+1)/2)){
     for (j in 1:(nG*(nG+1)/2)){
       I33A[i,j] <- (nT*nR/2)*sum( (Sigmainv%*%E[,,ff[i],cf[i]]) *
-                                     Matrix::t((Sigmainv%*%E[,,ff[j],cf[j]])) ) 
+                                     Matrix::t((Sigmainv%*%E[,,ff[j],cf[j]])) )
     }
   }
 
   misar <- rbind(cbind(I11A,I12A,I13A),
                          cbind(Matrix::t(I12A),I22A,I23A),
-                         cbind(Matrix::t(I13A),Matrix::t(I23A),I33A)) 
+                         cbind(Matrix::t(I13A),Matrix::t(I23A),I33A))
   misar_inv <- try(Matrix::solve(misar,tol=1e-50))
   if(class(misar_inv)=="try-error")
     misar_inv <- MASS::ginv(as.matrix(misar),tol=1e-70)
   tmp <- sqrt(Matrix::diag(misar_inv))
-  
+
   ################################################
   #### MARGINAL LM TEST: Test for SEM in SAR
   ################################################
-  cat("Computing marginal test... \n")
+
+  if (trace) cat("Computing marginal test... \n")
 
   # grad rho
   RT <- Matrix::Matrix(matrix(Res,nrow=nR*nG,ncol=nT))
@@ -149,21 +150,21 @@ cov_spsursim <- function(nT,nG,nR,Y,X,W,
     }
   }
    gradrho <- Matrix::colSums(Cgradrest)
-  
+
   ## Information Matrix
   P1 <- Matrix::Matrix(sum(Matrix::diag(WW)) * IG)
-  P2 <- Matrix::Matrix(sum(Matrix::diag(WtW)) * (Sigmainv * Sigma)) 
+  P2 <- Matrix::Matrix(sum(Matrix::diag(WtW)) * (Sigmainv * Sigma))
   Irhorho <- nT*(P1+P2)
   Ird <- Matrix::Matrix(0,nrow=nG,ncol=nG)
  for (i in 1:nG){
     for (j in 1:nG){
       P1s1 <- (Sigma%*%E[,,j,j]) %*% (Sigmainv %*%E[,,i,i])
-      P1 <- kronecker(kronecker(IT,P1s1),WtW) 
+      P1 <- kronecker(kronecker(IT,P1s1),WtW)
       P2s1 <- E[,,i,i] %*% E[,,j,j]
       P2 <- kronecker(kronecker(IT,P2s1),WW)
       Ird[i,j] <- sum( (P1+P2) * Matrix::t(Ainv) )
     }
-  } 
+  }
   Irhopsar <- cbind(Matrix::Matrix(0,nrow=nG,ncol=fx),
                     Ird, Matrix::Matrix(0,nrow=nG,ncol=nG*(nG+1)/2))
   imi <- Matrix::solve((Irhorho - Irhopsar %*% misar_inv %*% Matrix::t(Irhopsar)))
@@ -188,13 +189,13 @@ cov_spsursim <- function(nT,nG,nR,Y,X,W,
 
 #####################################################
   cov_spsursem <- function(nT,nG,nR,Y,X,W,
-                           deltas,Sigma){
-    IT <- Matrix::Diagonal(nT) 
+                           deltas,Sigma,trace=FALSE){
+    IT <- Matrix::Diagonal(nT)
     IR <- Matrix::Diagonal(nR)
     IG <- Matrix::Diagonal(nG)
     IGR <- Matrix::Diagonal(nG*nR)
     WW <- W%*%W
-    WtW <- Matrix::crossprod(W)  
+    WtW <- Matrix::crossprod(W)
     Wt <- Matrix::t(W)
     E <- get_array_E(nG=nG)
     ff_cf <- get_ff_cf(nG=nG)
@@ -216,15 +217,15 @@ cov_spsursim <- function(nT,nG,nR,Y,X,W,
     BX <- as(B %*% X,"dgCMatrix")
     BY <- as(B %*% Y,"dgCMatrix")
     Bsem <-Matrix::solve(Matrix::crossprod(BX,OMEinv %*% BX),
-                         Matrix::crossprod(BX,OMEinv %*% BY))  
+                         Matrix::crossprod(BX,OMEinv %*% BY))
     # Bsem <-Matrix::solve(Matrix::crossprod(BX,Matrix::solve(OME,BX)),
-    #                       Matrix::crossprod(BX,Matrix::solve(OME,B%*%Y)))  
+    #                       Matrix::crossprod(BX,Matrix::solve(OME,B%*%Y)))
     Res <- matrix(BY - (BX %*% Bsem),nrow=nrow(Y))
     ################################
     #### Information Matrix SUR-SEM
     ################################
-    J12A <- Matrix::Matrix(0,nrow=ncol(X),ncol=nG) 
-    J13A <- Matrix::Matrix(0,nrow=ncol(X),ncol=nG*(nG+1)/2) 
+    J12A <- Matrix::Matrix(0,nrow=ncol(X),ncol=nG)
+    J13A <- Matrix::Matrix(0,nrow=ncol(X),ncol=nG*(nG+1)/2)
     J22A <- Matrix::Matrix(0,nrow=nG,ncol=nG)
     J11A <- Matrix::crossprod(BX,Matrix::solve(OME,BX))
     ## J22A
@@ -238,7 +239,7 @@ cov_spsursim <- function(nT,nG,nR,Y,X,W,
           k1<-Matrix::crossprod(Auxi,kronecker(Auxiliar,WtW))
           k2<-kronecker(Matrix::t(Sigma),IR)%*%Auxit
           J22A[i,j] <- nT*sum(k0*Matrix::t(k0)) + nT*sum(k1*k2)
-        } 
+        }
         if (j<i){J22A[i,j]=J22A[j,i]}
         if (j>i) {
           Auxiliar <- Matrix::Matrix(0,ncol=nG,nrow=nG)
@@ -267,7 +268,7 @@ rm(k0,k1,k2,Auxiliar)
                      (Sigmainv %*% E[,,ff[j],cf[j]])))
         }
     }
-    
+
     misem <- rbind(cbind(J11A, J12A, J13A),
                            cbind(Matrix::t(J12A), J22A, J23A),
                            cbind(Matrix::t(J13A), Matrix::t(J23A), J33A))
@@ -278,7 +279,7 @@ rm(k0,k1,k2,Auxiliar)
     ################################################
     #### MARGINAL TEST: Test for SAR in SEM
     ################################################
-    cat("Computing marginal test... \n")
+    if (trace) cat("Computing marginal test... \n")
 
     RT <- Matrix::Matrix(matrix(Res,nrow=nR*nG,ncol=nT))
     Yt <- Matrix::Matrix(matrix(Y,nrow=nR*nG,ncol=nT))
@@ -330,7 +331,7 @@ rm(k0,k1,k2,Auxiliar)
           k12 <- Matrix::t(k1%*%k2)
           k3<-kronecker(E[,,i,i],WW)
           Irhodel[i,j] <-nT*sum(k0*k12)+nT*sum(k3*Auxit)
-        } 
+        }
         if (i!=j) {
           k1<-kronecker(E[,,j,j]%*%Sigmainv,Wt)%*%Aux
           k2<-kronecker(E[,,i,i],W)%*%Auxi
@@ -338,7 +339,7 @@ rm(k0,k1,k2,Auxiliar)
           Irhodel[i,j] <-nT*sum(k0*k12)
         }
       }
-    } 
+    }
     rm(k0,k1,k2,k12,k3)
   #
     Ideltasig <- Matrix::Matrix(0,nrow=nG,ncol=nG*(nG+1)/2)
@@ -368,20 +369,20 @@ rm(k0,k1,k2,Auxiliar)
       cov = as.matrix(misem_inv),
       LMM = as.numeric(LMMqslmensem),
       BP = as.numeric(BP)
-    ) 
+    )
   }
-  
+
 
 #####################################################
-  
+
 cov_spsursarar <- function(nT,nG,nR,Y,X,W,
-                         deltas,Sigma){
-  IT <- Matrix::Diagonal(nT) 
+                         deltas,Sigma,trace=FALSE){
+  IT <- Matrix::Diagonal(nT)
   IR <- Matrix::Diagonal(nR)
   IG <- Matrix::Diagonal(nG)
   IGR <- Matrix::Diagonal(nG*nR)
   WW <- W %*% W
-  WtW <- Matrix::crossprod(W)  
+  WtW <- Matrix::crossprod(W)
   E <- get_array_E(nG=nG)
   ff_cf <- get_ff_cf(nG=nG)
   ff <- ff_cf$ff; cf <- ff_cf$cf; rm(ff_cf)
@@ -396,8 +397,8 @@ cov_spsursarar <- function(nT,nG,nR,Y,X,W,
   OME <- kronecker(IT,kronecker(Sigma,IR))
   BX <- B %*% X
   Bsarar <- Matrix::solve(Matrix::crossprod(BX,Matrix::solve(OME,BX)),
-                           Matrix::crossprod(BX,Matrix::solve(OME,B%*%(A%*%Y)))) 
-  Res <- matrix(B %*% (A %*% Y - X %*% Bsarar),nrow=nrow(Y))  
+                           Matrix::crossprod(BX,Matrix::solve(OME,B%*%(A%*%Y))))
+  Res <- matrix(B %*% (A %*% Y - X %*% Bsarar),nrow=nrow(Y))
 
   IOME <- kronecker(IT,kronecker(Sigmainv,IR))
   XXTBTIOMEB <- Matrix::crossprod(BX,IOME %*% B)
@@ -409,19 +410,19 @@ cov_spsursarar <- function(nT,nG,nR,Y,X,W,
   AAuxi <- Matrix::solve(AAux)
   BAuxi <- Matrix::solve(BAux)
   Wt <- Matrix::t(W)
-  
+
   ###############################
   ## Information Matrix SUR-SARAR
   ###############################
-  
+
   ## J11A
   J11A <- XXTBTIOMEB %*% X
   ## J12A
   J12A <- Matrix::Matrix(0,ncol(X),nG)
   k0 <- Matrix::solve(A,X %*% Bsarar)
   for (i in 1:nG){
-    J12A[,i] <- XXTBTIOMEB %*% 
-                 kronecker(IT,kronecker(E[,,i,i],W)) %*% k0    
+    J12A[,i] <- XXTBTIOMEB %*%
+                 kronecker(IT,kronecker(E[,,i,i],W)) %*% k0
   }
   rm(XXTBTIOMEB,k0)
   fx <- nrow(J12A)
@@ -445,10 +446,10 @@ cov_spsursarar <- function(nT,nG,nR,Y,X,W,
         k50<- (IR - delta_sar[i]*W)
         k5 <- Matrix::solve(k50)
         k6 <- k5%*%W
-        J22A[i,j] <- nT*sum(k6*Matrix::t(k6))+Matrix::t(XXBsarar)%*%HH%*%XXBsarar+t1 
+        J22A[i,j] <- nT*sum(k6*Matrix::t(k6))+Matrix::t(XXBsarar)%*%HH%*%XXBsarar+t1
       }
       else {
-        J22A[i,j] <- Matrix::t(XXBsarar)%*%HH%*%XXBsarar+t1 
+        J22A[i,j] <- Matrix::t(XXBsarar)%*%HH%*%XXBsarar+t1
       }
     }
   }
@@ -484,10 +485,10 @@ cov_spsursarar <- function(nT,nG,nR,Y,X,W,
       if (i==j){
         BG <- Matrix::solve(IR - delta_sem[i]*W,W)
         k1 <- Matrix::t(BAuxi)%*%kronecker(E[,,j,j]%*%Sigmainv%*%E[,,i,i],WtW)
-        J33A[i,j] <- nT*sum(BG*Matrix::t(BG)) + nT*sum(k1*k0) 
+        J33A[i,j] <- nT*sum(BG*Matrix::t(BG)) + nT*sum(k1*k0)
       } else {
         if (i>j) {
-          J33A[i,j] <- J33A[j,i] 
+          J33A[i,j] <- J33A[j,i]
         } else {
           k1 <- kronecker(E[,,j,j]%*%Sigmainv%*%E[,,i,i],WtW)
           J33A[i,j] <- nT*sum(k1*k3) # nT*sum(k1*Matrix::t(k3))
@@ -512,20 +513,20 @@ cov_spsursarar <- function(nT,nG,nR,Y,X,W,
       if (i>j){
         J44A[i,j] <- J44A[j,i]
       } else {
-        J44A[i,j] <- sum( (nT*nR/2)*Sigmainv %*% 
-                     E[,,ff[i],cf[i]] * t(Sigmainv%*%E[,,ff[j],cf[j]]) ) 
+        J44A[i,j] <- sum( (nT*nR/2)*Sigmainv %*%
+                     E[,,ff[i],cf[i]] * t(Sigmainv%*%E[,,ff[j],cf[j]]) )
       }
     }
   }
   # Information Matrix
   misarar <- rbind(cbind(J11A, J12A, J13A, J14A),
                            cbind(Matrix::t(J12A), J22A, J23A, J24A),
-                           cbind(Matrix::t(J13A), Matrix::t(J23A), 
+                           cbind(Matrix::t(J13A), Matrix::t(J23A),
                                          J33A, J34A),
-                           cbind(Matrix::t(J14A), Matrix::t(J24A), 
+                           cbind(Matrix::t(J14A), Matrix::t(J24A),
                                          Matrix::t(J34A), J44A))
   misarar_inv <- try(Matrix::solve(misarar,tol=1e-40))
-  
+
   if(class(misarar_inv)=="try-error")
     misarar_inv <- MASS::ginv(as.matrix(misarar),tol=1e-40)
   tmp <- sqrt(Matrix::diag(misarar_inv))
@@ -541,5 +542,5 @@ cov_spsursarar <- function(nT,nG,nR,Y,X,W,
     cov = as.matrix(misarar_inv),
     LMM = NULL,
     BP = as.numeric(BP)
-  ) 
+  )
 }
