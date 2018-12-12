@@ -20,6 +20,8 @@ Description: A collection of functions to test and estimate Spatial Seemingly
 LazyData: true
 Encoding: UTF-8
 License: GPL-3
+Depends: 
+    R (>= 3.4.0) 
 Suggests: 
     knitr,
     rmarkdown,
