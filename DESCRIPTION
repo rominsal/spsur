@@ -19,22 +19,23 @@ Description: A collection of functions to test and estimate Spatial Seemingly
     and non spatial SUR model (SUR-SIM). 
 LazyData: true
 Encoding: UTF-8
-Depends: R(>= 3.4.0) 
-License: GPL(>=2)
+Depends: 
+    R (>= 3.4.0) 
+License: GPL-3
 Imports: 
-    Formula(>= 1.2.3),
-    MASS(>= 7.3.50),
-    Matrix(>= 1.2.14),
-    methods(>= 3.5.1),  
-    numDeriv(>= 2016.8.1),
-    minqa(>= 1.2.4),
-    sparseMVN(>= 0.2.1.1),
-    spdep(>= 0.7.9),
-    stats(>= 3.5.1) 
+    Formula (>= 1.2.3),
+    MASS (>= 7.3.50),
+    Matrix (>= 1.2.14),
+    methods (>= 3.5.1),  
+    numDeriv (>= 2016.8.1),
+    minqa (>= 1.2.4),
+    sparseMVN (>= 0.2.1.1),
+    spdep (>= 0.7.9),
+    stats (>= 3.5.1) 
 Suggests: 
-    knitr(>= 1.20),
-    rmarkdown(>= 1.10),
-    Rdpack(>= 0.10.1)
+    knitr,
+    rmarkdown,
+    Rdpack
 VignetteBuilder: knitr 
 RoxygenNote: 6.1.1
 RdMacros: Rdpack
