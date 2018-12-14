@@ -1,7 +1,7 @@
-#' @name dgp_spSUR
-#' @rdname dgp_spSUR
+#' @name dgp_spsur
+#' @rdname dgp_spsur
 #'
-#' @title Data Generating Process spSUR.
+#' @title Data Generating Process spsur.
 #'
 #' @description Data Generating Process of a spatial SUR. The number of
 #'   observations is \emph{nR}x\emph{nG}x\emph{nT} and the number of
@@ -93,7 +93,7 @@
 #' co <- cbind(runif(nR,0,1),runif(nR,0,1))
 #' W <- spdep::nb2mat(spdep::knn2nb(spdep::knearneigh(co, k = 5,
 #'                                                    longlat = FALSE)))
-#' DGP <- dgp_spSUR(Sigma = Sigma, Betas = Betas, Thetas = Thetas,
+#' DGP <- dgp_spsur(Sigma = Sigma, Betas = Betas, Thetas = Thetas,
 #'                  durbin = TRUE, rho = rho, lambda = lambda, nT = nT,
 #'                  nG = nG, nR = nR, p = p, W = W)
 #' SDM <- spsurml(W = W, X = DGP$X, Y = DGP$Y, nT = nT, nR = nR, nG = nG,
@@ -115,7 +115,7 @@
 #' co <- cbind(runif(nR, 0, 1),runif(nR, 0, 1))
 #' W <- spdep::nb2mat(spdep::knn2nb(spdep::knearneigh(co, k = 5,
 #'                                                    longlat = FALSE)))
-#' DGP <- dgp_spSUR(Sigma = Sigma, Betas = Betas, rho = rho, lambda = lambda,
+#' DGP <- dgp_spsur(Sigma = Sigma, Betas = Betas, rho = rho, lambda = lambda,
 #'                  nT = nT, nG = nG, nR = nR, p = p, W = W)
 #' SAR <- spsurml(W = W, X = DGP$X, Y = DGP$Y, nT = nT, nR = nR, nG = nG,
 #'                p = c(2,3,4), type = "sar")
@@ -158,12 +158,12 @@
 #' W <- spdep::nb2mat(spdep::knn2nb(spdep::knearneigh(co, k = 5,
 #'                                                    longlat = FALSE)))
 #' ### FALLAN LAS DIMENSIONES ESTE EJEMPLO, HAY QUE REPASARLO
-#' \dontrun{ DGP <- dgp_spSUR(Sigma = Sigma, Betas = Betas, rho = rho,
+#' \dontrun{ DGP <- dgp_spsur(Sigma = Sigma, Betas = Betas, rho = rho,
 #'                            lambda = lambda, nT = nT, nG = nG, nR = nR,
 #'                            p = p, W = W)}
 #'
 #' @export
-dgp_spSUR <- function(Sigma, nT = 1, nG, nR, Betas,
+dgp_spsur <- function(Sigma, nT = 1, nG, nR, Betas,
                       Thetas = NULL, durbin = FALSE, rho = NULL,
                       lambda = NULL, p = NULL, W = NULL, X = NULL)
 {

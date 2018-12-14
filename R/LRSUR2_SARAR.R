@@ -1,17 +1,3 @@
-# setwd("E:/HANDYDRIVE/Artículos en curso/spSUR/SUR2/R")
-# load("XXsar.RData")
-# load("Ysar.RData")
-# load("Ws.RData")
-#
-# X<- as.matrix(XXsar); Y <- as.matrix(Ysar);
-# W <- as.matrix(Ws)
-# rm(XXsar,Ysar,Ws)
-#
-# nT <- 4 # Número de periodos temporales
-# nG <- 3 # Número de ecuaciones
-# nR <- 49 # Sample size
-# k <- (ncol(X)/nG)-1
-
 f_sur_sarar <- function(DELTA,nT,nG,nR,Y,X,W,Sigma)
 {
   IT <- Matrix::Diagonal(nT)

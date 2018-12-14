@@ -1,6 +1,6 @@
 #' @docType package
-#' @name spSUR-package
-#' @rdname spSUR-package
+#' @name spsur-package
+#' @rdname spsur-package
 #'
 #' @title Spatial Seemingly Unrelated Regression Models.
 #'
@@ -10,7 +10,7 @@
 #'   effects (SUR-SLX; SUR-SAR; SUR-SEM; SUR-SDM; SUR-SDEM and SUR-SARAR)
 #'   and non spatial SUR model (SUR-SIM).
 #'
-#' @details Some functionalities have been included in \pkg{spSUR} package:
+#' @details Some functionalities have been included in \pkg{spsur} package:
 #'
 #' @section 1. Testing for spatial effects:
 #'   The function \code{\link{lmtestspsur}} provides five statistics
@@ -98,7 +98,7 @@
 #'
 #' @section 5. Additional functionalities:
 #'   To carry on simulations, data generating process of spatial SUR models
-#'   are available  using the function \code{\link{dgp_spSUR}}.
+#'   are available  using the function \code{\link{dgp_spsur}}.
 #'
 #' @section Datasets:
 #'   This package comes with four different datasets: spc, NAT,
@@ -114,7 +114,7 @@
 #'      \item \emph{Italian Unemployment} includes a panel data of
 #'        unemployment in Italy in period 1996-2014 at province level.
 #'      \item A data set \emph{Sar} obtained with the function
-#'        \code{\link{dgp_spSUR}} to input data as matrices. The other input
+#'        \code{\link{dgp_spsur}} to input data as matrices. The other input
 #'         alternative is to use the \code{\link[Formula]{Formula}} package and
 #'         a data frame.
 #'   }

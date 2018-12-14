@@ -96,17 +96,17 @@ lr_betas_spsur <- function(Form = NULL, data = NULL, R = NULL, r = NULL,
   start_fit <- proc.time()[3]
   cat("\n Fitting unrestricted model ... \n")
   if (is.null(time)){
-    spcSUR_unr <-spsurml(Form = Form, data = data, type = type, W = W,
+    spcsur_unr <-spsurml(Form = Form, data = data, type = type, W = W,
                          cov = cov, control = list(tol = 1e-3,
                                                    maxit = 200,
                                                    trace = trace) )
   } else {
-    spcSUR_unr <-spsurtime(Form = Form, data =data, type = type, W = W,
+    spcsur_unr <-spsurtime(Form = Form, data =data, type = type, W = W,
                            time = time, method = "ml", cov = cov,
                            trace = trace)
   }
-  ll_unr <- spcSUR_unr$llsur
-  # betas_unr <-  spcSUR_unr$betas
+  ll_unr <- spcsur_unr$llsur
+  # betas_unr <-  spcsur_unr$betas
   # holg <- R %*% matrix(betas_unr,ncol=1) - r
   end_fit <- proc.time()[3]
   cat("\n Time to fit unrestricted model: ",end_fit-start_fit," seconds\n")
@@ -114,16 +114,16 @@ lr_betas_spsur <- function(Form = NULL, data = NULL, R = NULL, r = NULL,
   start_fit <- proc.time()[3]
   cat("\n Fitting restricted model ...")
   if (is.null(time)){
-    spcSUR_res <-spsurml(Form = Form, data = data, R = R, r = r,
+    spcsur_res <-spsurml(Form = Form, data = data, R = R, r = r,
                          type = type, W = W, cov = cov,
                          control = list(tol = 1e-3, maxit = 200,
                                         trace = trace) )
   } else {
-    spcSUR_res <-spsurtime(Form = Form, data = data, R = R, r = r,
+    spcsur_res <-spsurtime(Form = Form, data = data, R = R, r = r,
                            type = type, W = W, time = time,
                            method = "ml", cov = cov, trace = trace)
   }
-  ll_res <- spcSUR_res$llsur
+  ll_res <- spcsur_res$llsur
   end_fit <- proc.time()[3]
   cat("Time to fit restricted model: ",end_fit-start_fit," seconds\n")
 
@@ -138,9 +138,9 @@ lr_betas_spsur <- function(Form = NULL, data = NULL, R = NULL, r = NULL,
       " p-value: (",lr_pval,")")
   if (printmodels) {
     cat("\n\n UNRESTRICTED MODEL \n")
-    print(summary(spcSUR_unr))
+    print(summary(spcsur_unr))
     cat("\n\n RESTRICTED MODEL \n")
-    print(summary(spcSUR_res))
+    print(summary(spcsur_res))
   }
   res <- list(statistic=lr_stat,
               p_val=lr_pval,

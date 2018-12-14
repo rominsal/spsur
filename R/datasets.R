@@ -283,9 +283,9 @@
 "W"
 
 
-#' Simulated data from a spSUR-SAR DGP
+#' Simulated data from a spsur-SAR DGP
 #'
-#' Dataset simulated from a spSUR-SAR data generating process with:
+#' Dataset simulated from a spsur-SAR data generating process with:
 #' Number of periods: nT = 4
 #' Number of equations: nG = 3
 #' Number of spatial units: nR = 49
@@ -302,15 +302,15 @@
 #'
 #' @seealso
 #' \itemize{
-#'   \code{\link{dgp_spSUR}}: Function to simulate DGP from spatial SUR
+#'   \code{\link{dgp_spsur}}: Function to simulate DGP from spatial SUR
 #'     processes.
 #' }
 "XXsar"
 
 
-#' Simulated data from a spSUR-SAR DGP
+#' Simulated data from a spsur-SAR DGP
 #'
-#' Dataset simulated from a spSUR-SAR data generating process with:
+#' Dataset simulated from a spsur-SAR data generating process with:
 #' Number of periods: nT = 4
 #' Number of equations: nG = 3
 #' Number of spatial units: nR = 49
@@ -327,13 +327,13 @@
 #'
 #' @seealso
 #' \itemize{
-#'   \code{\link{dgp_spSUR}}: Function to simulate DGP from spatial SUR
+#'   \code{\link{dgp_spsur}}: Function to simulate DGP from spatial SUR
 #'     processes.
 #' }
 "Ysar"
 
 
-#' Spatial weight matrix for simulated spSUR-SAR DGP
+#' Spatial weight matrix for simulated spsur-SAR DGP
 #'
 #' A spatial weight matrix row-standardized based on first order
 #'   contiguity criterium.

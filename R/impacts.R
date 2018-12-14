@@ -71,19 +71,19 @@
 #' data(spc)
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #' ## A SUR-SAR model
-#' spcSUR.sar <-spsurml(Form = Tformula, data = spc, type = "sar", W = Wspc)
-#' summary(spcSUR.sar)
-#' eff.spcSUR.sar <- impacts(spcSUR.sar)
+#' spcsur.sar <-spsurml(Form = Tformula, data = spc, type = "sar", W = Wspc)
+#' summary(spcsur.sar)
+#' eff.spcsur.sar <- impacts(spcsur.sar)
 #'
 #' ## A SUR-SDM model
-#' spcSUR.sdm <-spsurml(Form = Tformula, data = spc, type = "sdm", W = Wspc)
-#' summary(spcSUR.sdm)
-#' eff.spcSUR.sdm <- impacts(spcSUR.sdm, nsim = 300)
+#' spcsur.sdm <-spsurml(Form = Tformula, data = spc, type = "sdm", W = Wspc)
+#' summary(spcsur.sdm)
+#' eff.spcsur.sdm <- impacts(spcsur.sdm, nsim = 300)
 #'
 #' ## A SUR-SARAR model
-#' spcSUR.sarar <-spsurml(Form = Tformula, data = spc, type = "sarar", W = Wspc)
-#' summary(spcSUR.sarar)
-#' eff.spcSUR.sarar <- impacts(spcSUR.sarar, nsim = 300)
+#' spcsur.sarar <-spsurml(Form = Tformula, data = spc, type = "sarar", W = Wspc)
+#' summary(spcsur.sarar)
+#' eff.spcsur.sarar <- impacts(spcsur.sarar, nsim = 300)
 #'
 #' ####################################
 #' ######## PANEL DATA (nG>1; nT>1) ###

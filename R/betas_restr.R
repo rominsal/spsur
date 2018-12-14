@@ -40,29 +40,29 @@
 # data(spc)
 # Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 # ## Estimate SUR-SAR model
-# spcSUR.sar <-spsurml(Form=Tformula,data=spc,type="sar",W=Wspc)
-# summary(spcSUR.sar)
+# spcsur.sar <-spsurml(Form=Tformula,data=spc,type="sar",W=Wspc)
+# summary(spcsur.sar)
 # ## H_0: equality between SMSA coefficients in both equations.
 # R1 <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
 # r1 <- matrix(0,ncol=1)
-# wald_betas(results=spcSUR.sar,R=R1,r=r1)
-# betas_rest1 <- betas_restr(spcSUR.sar,R=R1,r=r1)
+# wald_betas(results=spcsur.sar,R=R1,r=r1)
+# betas_rest1 <- betas_restr(spcsur.sar,R=R1,r=r1)
 # ## Estimate SUR-SEM model
-# spcSUR.sem <-spsurml(Form=Tformula,data=spc,type="sem",W=Wspc)
-# summary(spcSUR.sem)
+# spcsur.sem <-spsurml(Form=Tformula,data=spc,type="sem",W=Wspc)
+# summary(spcsur.sem)
 # ## H_0: equality between intercepts and SMSA coefficients in both equations.
 # R2 <- matrix(c(1,0,0,0,-1,0,0,0,0,0,0,1,0,0,0,-1),nrow=2,ncol=8,byrow=TRUE)
 # r2 <- matrix(c(0,0),ncol=1)
-# res2 <- wald_betas(results=spcSUR.sem,R=R2,r=r2)
-# betas_rest2 <- betas_restr(spcSUR.sem,R=R2,r=r2)
+# res2 <- wald_betas(results=spcsur.sem,R=R2,r=r2)
+# betas_rest2 <- betas_restr(spcsur.sem,R=R2,r=r2)
 # ## Estimate SUR-SARAR model
-# spcSUR.sarar <-spsurml(Form=Tformula,data=spc,type="sarar",W=Wspc)
-# summary(spcSUR.sarar)
+# spcsur.sarar <-spsurml(Form=Tformula,data=spc,type="sarar",W=Wspc)
+# summary(spcsur.sarar)
 # ## H_0: equality between SMSA coefficients in both equations.
 # R3 <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
 # r3 <- matrix(0,ncol=1)
-# wald_betas(results=spcSUR.sarar,R=R3,r=r3)
-# betas_rest3 <- betas_restr(spcSUR.sarar,R=R3,r=r3)
+# wald_betas(results=spcsur.sarar,R=R3,r=r3)
+# betas_rest3 <- betas_restr(spcsur.sarar,R=R3,r=r3)
 
 
 betas_restr <- function(results , R , r){

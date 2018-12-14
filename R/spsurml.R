@@ -73,7 +73,7 @@
 #'   the input of this function. Alternatively an \emph{Y} vector of
 #'   dependent variables and \emph{X} matrix with independent variables
 #'   could be include as imputs obtain by exaple with
-#'   \code{\link{dgp_spSUR}} \cr \cr
+#'   \code{\link{dgp_spsur}} \cr \cr
 #'
 #'   The marginal multiplier (LM) tests are used to test as null hypothesis
 #'   no spatial correlation in one part of the model allowing for spatial
@@ -169,32 +169,32 @@
 #' ## A SUR model without spatial effects
 #' data(spc)
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
-#' spcSUR.sim <-spsurml(Form = Tformula, data = spc, type = "sim", W = Wspc)
-#' summary(spcSUR.sim)
+#' spcsur.sim <-spsurml(Form = Tformula, data = spc, type = "sim", W = Wspc)
+#' summary(spcsur.sim)
 #'
 #' ## A SUR-SLX model
-#' spcSUR.slx <-spsurml(Form = Tformula, data = spc, type = "slx", W = Wspc)
-#' summary(spcSUR.slx)
+#' spcsur.slx <-spsurml(Form = Tformula, data = spc, type = "slx", W = Wspc)
+#' summary(spcsur.slx)
 #'
 #' ## A SUR-SAR model
-#' spcSUR.sar <-spsurml(Form = Tformula, data = spc, type = "sar", W = Wspc)
-#' summary(spcSUR.sar)
+#' spcsur.sar <-spsurml(Form = Tformula, data = spc, type = "sar", W = Wspc)
+#' summary(spcsur.sar)
 #'
 #' ## A SUR-SEM model
-#' spcSUR.sem <-spsurml(Form = Tformula, data = spc, type = "sem", W = Wspc)
-#' summary(spcSUR.sem)
+#' spcsur.sem <-spsurml(Form = Tformula, data = spc, type = "sem", W = Wspc)
+#' summary(spcsur.sem)
 #'
 #' ## A SUR-SDM model
-#' spcSUR.sdm <-spsurml(Form = Tformula, data = spc, type = "sdm", W = Wspc)
-#' summary(spcSUR.sdm)
+#' spcsur.sdm <-spsurml(Form = Tformula, data = spc, type = "sdm", W = Wspc)
+#' summary(spcsur.sdm)
 #'
 #' ## A SUR-SDEM model
-#' spcSUR.sdem <-spsurml(Form = Tformula, data = spc, type = "sdem", W = Wspc)
-#' summary(spcSUR.sdem)
+#' spcsur.sdem <-spsurml(Form = Tformula, data = spc, type = "sdem", W = Wspc)
+#' summary(spcsur.sdem)
 #'
 #' ## A SUR-SARAR model
-#' spcSUR.sarar <-spsurml(Form = Tformula, data = spc, type = "sarar", W = Wspc)
-#' summary(spcSUR.sarar)
+#' spcsur.sarar <-spsurml(Form = Tformula, data = spc, type = "sarar", W = Wspc)
+#' summary(spcsur.sarar)
 #'
 #' #################################################
 #' ######## PANEL DATA (nG>1; nT>1)         ########

@@ -31,7 +31,7 @@ sur2_spdiag <- function(nT,nG,nR,Y,X,W,info)
       }
   }
   ##
-  cat("Computing model whitout spatial effects... \n")
+  #cat("Computing model whitout spatial effects... \n")
   # Condiciones para la convergencia
   criteria <- 0.0001; itermax <- 100
 
@@ -63,7 +63,7 @@ sur2_spdiag <- function(nT,nG,nR,Y,X,W,info)
   }
   # Test de diagnostico de la dependencia espacial
   # LM_SUR_SLM2
-  cat("Computing LM-SAR test... \n")
+  #cat("Computing LM-SAR test... \n")
  E <- array(0,dim=c(nG,nG,nG,nG))
  for(i in 1:nG){
      for(j in 1:nG){
@@ -109,7 +109,7 @@ for (i in 1:nG){
 
 
 # LM_SUR_SEM2
-  cat("Computing LM-SEM test... \n")
+  #cat("Computing LM-SEM test... \n")
     g_sem <- matrix(0,nrow=nG)
     for (i in 1:nG){
         g_sem[i] <- as.numeric(t(Res) %*% (IT %x% (Sigma_inv%*%E[,,i,i]) %x% W) %*% Res)
@@ -127,7 +127,7 @@ for (i in 1:nG){
     LMSURSEM2 <- as.numeric(matrix(g_sem,nrow=1) %*% solve(J22) %*% matrix(g_sem,ncol=1))
 
 # LM_SUR_SARMA2
-    cat("Computing LM-SARAR test... \n")
+    #cat("Computing LM-SARAR test... \n")
     g_sarar1 <- matrix(0,nrow=nG)
     g_sarar2 <- matrix(0,nrow=nG)
     for (i in 1:nG){
@@ -168,7 +168,7 @@ for (i in 1:nG){
                             cbind(t(K23), K33))) %*% matrix(g_sarar,ncol=1))
 
 # Test LM*-SUR-Lag
-cat("Computing Robust LM*-SUR-SAR test... \n")
+#cat("Computing Robust LM*-SUR-SAR test... \n")
 # Indexar los elementos diferentes de Sigma
  ff <- rep(0,nG*(nG+1)/2)
  cf <- rep(0,nG*(nG+1)/2)
@@ -204,7 +204,7 @@ LMRSURlag <- as.numeric(Matrix::t(matrix(g_sar,ncol=1) - Irl%*%solve(Irr)%*%matr
              %*% (matrix(g_sar,ncol=1)-Irl%*%solve(Irr)%*%matrix(g_sem,ncol=1)))
 
 # Test LM*-SUR-Err
-cat("Computing Robust LM*-SUR-SEM test... \n")
+#cat("Computing Robust LM*-SUR-SEM test... \n")
 LMRSURerr <- as.numeric(Matrix::t(matrix(g_sem,ncol=1)-Irl%*%solve(Ilpf)%*%matrix(g_sar,ncol=1))
              %*% solve(Irr-Irl%*%solve(Ilpf)%*%Irl)
              %*% (matrix(g_sem,ncol=1)-Irl%*%solve(Ilpf)%*%matrix(g_sar,ncol=1)))

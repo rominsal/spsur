@@ -49,19 +49,19 @@
 #' data(spc)
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #' ## Estimate SUR-SAR model
-#' spcSUR.sar <-spsurml(Form = Tformula, data = spc,
+#' spcsur.sar <-spsurml(Form = Tformula, data = spc,
 #'                      type = "sar", W = Wspc)
-#' summary(spcSUR.sar)
+#' summary(spcsur.sar)
 #' ## H_0: equality between SMSA coefficients in both equations.
 #' R1 <- matrix(c(0,0,0,1,0,0,0,-1), nrow=1)
 #' r1 <- matrix(0, ncol=1)
-#' Wald_beta <- wald_betas(results = spcSUR.sar, R = R1, r = r1)
+#' Wald_beta <- wald_betas(results = spcsur.sar, R = R1, r = r1)
 #'
 #' ## H_0: equality between intercepts and SMSA coefficients in both equations.
 #' R2 <- matrix(c(1,0,0,0,-1,0,0,0,0,0,0,1,0,0,0,-1),
 #'              nrow = 2, ncol = 8, byrow = TRUE)
 #' r2 <- matrix(c(0,0),ncol=1)
-#' res2 <- wald_betas(results = spcSUR.sar, R = R2, r = r2)
+#' res2 <- wald_betas(results = spcsur.sar, R = R2, r = r2)
 #' @export
  wald_betas <- function(results , R , r){
   z <- results # OBJETO QUE INCLUYE ESTIMACIÓN EN Rbetas <- z$betas
@@ -79,7 +79,7 @@
   # cat("\n R: "); print(as.matrix(R))
   # cat("\n r: "); print(as.matrix(r))
   # cat("\n statistical discrepancies: "); print(as.matrix(holg))
-  cat("\n Wald stat.: ",round(Wald,3)," p-value (",p_val,")")
+  cat("\n Wald stat.: ",round(Wald,3)," (",round(p_val,3),")",sep="")
   res <- list(stat = Wald,
               p_val = p_val,
               q = q,

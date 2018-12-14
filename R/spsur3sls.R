@@ -32,7 +32,7 @@
 #'   is the input of this function. Alternatively a \emph{Y} vector of
 #'   dependent variables and \emph{X} matrix with independent
 #'   variables could be include as inputs obtained by example
-#'   with \code{\link{dgp_spSUR}} \cr \cr
+#'   with \code{\link{dgp_spsur}} \cr \cr
 #'
 #'
 #' @return Results of 3sls estimation of a SUR model with spatial effects.
@@ -97,14 +97,14 @@
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #'
 #' ## A SUR-SAR model (3SLS Estimation)
-#' spcSUR.sar.3sls <-spsur3sls(Form = Tformula, data = spc,
+#' spcsur.sar.3sls <-spsur3sls(Form = Tformula, data = spc,
 #'                             type = "sar", W = Wspc)
-#' summary(spcSUR.sar.3sls)
+#' summary(spcsur.sar.3sls)
 #'
 #' ## A SUR-SDM model (3SLS Estimation)
-#' spcSUR.sdm.3sls <-spsur3sls(Form = Tformula, data = spc,
+#' spcsur.sdm.3sls <-spsur3sls(Form = Tformula, data = spc,
 #'                             type = "sdm", W = Wspc)
-#' summary(spcSUR.sdm.3sls)
+#' summary(spcsur.sdm.3sls)
 #'
 #' #################################################
 #' ######## PANEL DATA (nG>1; nT>1)         ########
