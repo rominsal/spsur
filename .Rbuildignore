@@ -1,0 +1,6 @@
+^README\.Rmd$
+^README\.md$
+^notes$
+^.*\.Rproj$
+^\.Rproj\.user$
+^.*\.ini$
