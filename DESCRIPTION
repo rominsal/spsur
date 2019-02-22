@@ -9,8 +9,7 @@ Description: A collection of functions to test and estimate Spatial Seemingly Un
 LazyData: true
 Encoding: UTF-8
 License: GPL-3
-Depends: 
-    R (>= 3.4.0) 
+Depends: R (>= 3.4.0) 
 Imports: 
     Formula (>= 1.2.3),
     MASS (>= 7.3.50),
