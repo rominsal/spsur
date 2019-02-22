@@ -16,27 +16,26 @@ You can install the released version of spsur from [CRAN](https://CRAN.R-project
 install.packages("spsur")
 ```
 
-Main functionalities of `spsur`
+Main functionalities of **spsur**
 -------------------------------
 
 A few functions are necessary to test spatial autocorrelation in SUR and estimate the spatial SUR models. 
 The **spsur** package has one function to test spatial autocorrelation on the residuals of a SUR model (`lmtestspsur()`); 
 two functions to estimate SUR models with several spatial structures, by maximum likelihood (spsurml()) and instrumental 
 variables (`spsur3sls()`); three functions to help to the user to select the correct espeficication (`lrtestspsur()`; 
-`wald\_betas()` and `wald\_deltas()`; one function to get the impacts (`impacts()`). Finally another function has been 
-included in this package to help to the user to develop Monte Carlo exercices (`dgp\_spsur()`).
+`wald_betas()` and `wald_deltas()`; one function to get the impacts (`impacts()`). Finally another function has been 
+included in this package to help to the user to develop Monte Carlo exercices (`dgp_spsur()`).
 
 
-Data sets in `spSUR`
+Data sets in **spsur**
 --------------------
 
-The `spSUR` package include two data sets:
+The **spsur** package include two data sets:
 
 #### The spc (Spatial Phillips-Curve). A classical data set from Anselin (1988, p.203)
 
 A total of N=25 observations and Tm=2 time periods
 
-![](C:/Users/Fernando-pc/Dropbox/spSUR/notes/vignettes/spc.png)
 
 | COUNTY   |    WAGE83|      UN83|      NMR83|  SMSA|    WAGE82|    WAGE81|      UN80|      NMR80|    WAGE80|
 |:---------|---------:|---------:|----------:|-----:|---------:|---------:|---------:|----------:|---------:|
