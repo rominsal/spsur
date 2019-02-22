@@ -10,10 +10,7 @@ LazyData: true
 Encoding: UTF-8
 License: GPL-3
 Depends: R (>= 3.4.0) 
-Imports: 
-    Formula (>= 1.2.3),
-    MASS (>= 7.3.50),
-    Matrix (>= 1.2.14),
+Imports: Formula (>= 1.2.3), MASS (>= 7.3.50), Matrix (>= 1.2.14),
     methods (>= 3.5.0),  
     numDeriv (>= 2016.8.1),
     minqa (>= 1.2.4),
