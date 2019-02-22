@@ -40,5 +40,4 @@ Suggests:
 VignetteBuilder: knitr 
 RoxygenNote: 6.1.1
 RdMacros: Rdpack
-URL: http://github.com/rominsal/spsur
-BugReports: http://github.com/rominsal/spsur/issues
+
