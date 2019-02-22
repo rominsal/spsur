@@ -1,0 +1,379 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+# spsur
+
+The **spsur** package allows for the estimation of the most popular Spatial Seemingly Unrelated Regression models by maximum likelihood or instrumental variable procedures (SUR-SLX; SUR-SLM; SUR-SEM;SUR-SDM; SUR-SDEM and SUR-SARAR) and non spatial SUR model (SUR-SIM). Moreover, **spsur** implements a collection of Lagrange Multipliers and Likelihood Ratios to test for misspecifications in the SUR. Additional functions allow for the estimation of the so-called spatial impacts (direct, indirect and total effects) and also obtains random data sets, of a SUR nature, with the features decided by the user. An important aspect of **spsur** is that it operates both in a pure cross-sectional setting or in panel data sets.
+
+## Installation
+
+You can install the released version of spsur from [CRAN](https://CRAN.R-project.org) with:
+
+``` r
+install.packages("spsur")
+```
+
+## Main functionalities of `spsur`
+
+A few functions are necessary to test spatial autocorrelation in SUR and estimate the spatial SUR models. Figure show the main functionalities of the **spsur** package. The **spsur** package has one function to test spatial autocorrelation on the residuals of a SUR model (lmtestspsur()); two functions to estimate SUR models with several spatial structures, by maximum likelihood (spsurml()) and instrumental variables (spsur3sls()); three functions to help to the user to select the correct espeficication (lrtestspsur(); wald_betas() and wald_deltas(); one function to get the impacts (impacts()). Finally another function has been included in this package to help to the user to develop Monte Carlo exercices (dgp_spsur()).
+
+
+```{r Figure1, echo=FALSE, out.width = "60%", fig.align='center',fig.pos = 'h',fig.cap="\\label{Fig1} Main functionatities of spsur package"}
+knitr::include_graphics('C:/Users/Fernando-pc/Dropbox/spSUR/notes/Journal of Statisitical Software/Figure1_JSS.png')
+```
+
+
+
+## Data sets in `spSUR`
+
+The `spSUR` package include two data sets:  
+
+#### The spc (Spatial Phillips-Curve). A classical data set from Anselin (1988, p.203)
+
+A total of N=25 observations and Tm=2 time periods  
+
+![](C:/Users/Fernando-pc/Dropbox/spSUR/notes/vignettes/spc.png)
+
+
+
+```{r, echo=FALSE, results='asis'}
+data("spc")
+knitr::kable(head(spc,3))
+```
+
+#### Homicides + Socio-Economics characteristics for U.S. counties (1960-90)  
+
+from [https://geodacenter.github.io/data-and-lab/ncovr/]  
+
+Homicides and selected socio-economic characteristics for continental U.S. counties. 
+Data for four decennial census years: 1960, 1970, 1980 and 1990.  
+A total of N=3,085 US counties  
+
+![](C:/Users/Fernando-pc/Dropbox/spSUR/notes/vignettes/NAT.png)  
+
+0
+```{r, echo=FALSE, results='asis'}
+data("NCOVR")
+knitr::kable(head(NCOVR[,1:9],3))
+```
+
+## How to specify multiple equations: The `Formula` package
+
+By example: two equations with different number of regressors  
+
+
+  > $Y_{1} = \beta_{10} + \beta_{11} \ X_{11}+\beta_{12}X_{12}+\epsilon_{1}$\
+  > $Y_{2} = \beta_{20} + \beta_{21} \ X_{21}+\epsilon_{2}$  
+  
+> formula <- $Y_{1}$ | $Y_{2}$ ~ $X_{11}$ + $X_{12}$  \  |  \  $X_{21}$
+
+Note that in the left side of the formula, two dependent variables has been included separated by the symbol |. In right side, the independent variables for each equation are included separated newly by a vertical bar |, keeping the same order that in the left side.
+
+***
+# The `spSUR` package step by step  
+
+### Step 1: Testing for spatial effects
+### Step 2: Estimation of the Spatial SUR models
+### Step 3: Looking for the correct especification
+### Step 4: Impacts: Directs, Indirects and Total effects
+### Step 5: `spSUR` in a panel data framework
+### Step 6: Additional functionalities
+### Step 7: Conclusion and work to do
+***
+
+# Step 1: Testing for: `lmtestspsur`
+
+The function `lmtestspsur()` obtain five LM statistis for testing spatial dependence in Seemingly Unrelated Regression models  
+(Mur J, López FA, Herrera M, 2010: Testing for spatial effect in Seemingly Unrelated Regressions. *Spatial Economic Analysis* 5(4) 399-440). 
+
+> $H_{0}:$ No spatial autocorrelation   
+> $H_{A}:$ SUR-SAR  or  
+> $H_{A}:$ SUR-SEM  or  
+> $H_{A}:$ SUR-SARAR   
+
+* **LM-SUR-SAR**
+* **LM-SUR-SEM**
+* **LM-SUR-SARAR**  
+
+and two robust LM tests  
+
+* **LM\*-SUR-SAR**  
+* **LM\*-SUR-SEM**  
+
+#### Example 1: with Anselin's data we can test spatial effects in the SUR model: 
+
+>   $WAGE_{83} = \beta_{10} + \beta_{11} \ UN_{83} + \beta_{12} \  NMR_{83} + \beta_{13} \ SMSA + \epsilon_{83}$  
+>   $WAGE_{81} = \beta_{20} + \beta_{21} \ UN_{80} + \beta_{22} \ NMR_{80} + \beta_{23} \ SMSA+ \epsilon_{81}$  
+>   $Corr(\epsilon_{83},\epsilon_{81}) \neq 0$  
+  
+```{r}
+library("spsur")
+data("spc")
+Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
+LMs <- lmtestspsur(Form=Tformula,data=spc,W=Wspc)
+```
+
+In this example no spatial autocorrelation is identify! (25 observations). 
+
+# Step 2: Estimation of a Spatial SUR
+
+Two alternative estimation methods are implemented:
+
+## 2.1. Maximum likelihood estimation: `spsurml`
+
+Maximum likelihood estimation for differents spatial SUR models using `spsurml`. The models are:  
+
+> - **SUR-SIM:** with out spatial autocorrelation
+> - **SUR-SLX:** Spatial Lag of X SUR model
+> - **SUR-SLM:** Spatial Autorregresive SUR model
+> - **SUR-SEM:** Spatial Error SUR model
+> - **SUR-SDM:** Spatial Durbin SUR model
+> - **SUR-SDEM:** Spatial Durbin Error SUR model
+> - **SUR-SARAR:** Spatial Autorregresive with Spatial Error SUR model
+
+### 2.1.1 Anselin data set  
+
+***
+
+**SUR-SAR:** Spatial autorregresive model:  
+($y_{t} = \lambda_{t} Wy_{t} + X_{t} \beta_{t} + \epsilon_{t};  \ t=1,...,T$  )  
+
+> $WAGE_{83} = \lambda_{83} WWAGE_{83} + \beta_{10} + \beta_{11} UN_{83} + \beta_{12} NMR_{83} + \beta_{13} SMSA + \epsilon_{83}$  
+> $WAGE_{81} = \lambda_{81} WWAGE_{81} + \beta_{20} + \beta_{21} UN_{80} + \beta_{22} NMR_{80} + \beta_{23} SMSA+ \epsilon_{81}$  
+> $Corr(\epsilon_{83},\epsilon_{81}) \neq 0$  
+  
+  
+```{r}
+spcSUR.slm <-spsurml(Form=Tformula,data=spc,type="slm",W=Wspc)
+summary(spcSUR.slm)
+``` 
+***
+
+Only change the **'type'** argument in `spsurml` function it is possible to estimate several spatial model 
+
+**SUR-SEM:** Spatial error model:  
+($y_{t} = X_{t}\ \beta_{t} + u_{t}\ ; u_{t}=\rho u_{t}+ \epsilon_{t}\ t=1,...,T$)  
+  
+> $WAGE_{83} = \beta_{10} + \beta_{11} UN_{83} + \beta_{12} NMR_{83} + \beta_{13} SMSA + u_{83}; \ u_{83}=\rho W \ u_{83} + \epsilon_{83}$  
+> $WAGE_{81} =\beta_{20} + \beta_{21} UN_{80} + \beta_{22} NMR_{80} + \beta_{23} SMSA+ u_{81}; \ u_{81}=\rho W \ u_{81} + \epsilon_{81}$  
+> $Corr(\epsilon_{83},\epsilon_{81}) \neq 0$
+
+
+```{r}
+spcSUR.sem <-spsurml(Form=Tformula,data=spc,type="sem",W=Wspc)
+summary(spcSUR.sem)
+``` 
+
+# Step 3: Testing for misspecification in spatial SUR
+
+## 3.1 Testing for the diagonality of $\Sigma$
+The Breush-Pagan test of diagonality of $\Sigma$  
+
+> $H_{0}: \Sigma = \sigma^2 I_{R}$  
+> $H_{A}: \Sigma \neq \sigma^2 I_{R}$  
+
+## 3.2 Marginal tests: $LM(\rho|\lambda)$ & $LM(\lambda|\rho)$
+
+The Marginal Multiplier tests (LMM) are used to test for no correlation in one part of the model allowing for spatial correlation in the other. 
+
+***
+> * The $LM(\rho|\lambda)$ is the test for spatial error correlation in a model with subtantive spatial correlation (SUR-SAR; SUR-SDM). 
+
+> $H_{0}: SUR-SAR$  
+> $H_{A}: SUR-SARAR$  
+
+***
+> * The $LM(\lambda|\rho)$ is the test for subtantive spatial autocorrelation in a model with spatial autocorrelation in error term (SUR-SEM; SUR-SDEM).  
+
+> $H_{0}: SUR-SEM$  
+> $H_{A}: SUR-SARAR$  
+
+```{r}
+summary(spcSUR.sem)
+``` 
+***
+## 3.3 Coefficient stability/homogeneity
+
+### 3.3.1 Wald tests for beta coefficients: `wald_betas`
+In a **SUR-SAR** the model:  
+
+> $WAGE_{83} = \lambda_{83} W \ WAGE_{83} + \beta_{10} + \beta_{11} UN_{83} + \beta_{12} NMR_{83} + \boldsymbol{\beta_{13}} SMSA + \epsilon_{83}$  
+> $WAGE_{81} = \lambda_{81} W \ WAGE_{81} + \beta_{20} + \beta_{21} UN_{80} + \beta_{22} NMR_{80} + \boldsymbol{\beta_{23}} SMSA + \epsilon_{81}$ 
+
+It's possible to test equality between SMSA coefficients in both equations:  
+
+> $H_{0}: \beta_{13} = \beta_{23}$  
+> $H_{A}: \beta_{13} \neq \beta_{23}$    
+  
+```{r}
+Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
+spcSUR.slm <-spsurml(Form=Tformula,data=spc,type="slm",W=Wspc)
+R1 <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
+b1 <- matrix(0,ncol=1)
+Wald_beta <- wald_betas(results=spcSUR.slm,R=R1,b=b1)
+``` 
+  
+More complex hypothesis about $\beta$ coefficients could be tested using R1 vector  
+
+> $H_{0}: \beta_{13} = \beta_{23}$ and $\beta_{12} = \beta_{22}$   
+> $H_{A}: \beta_{13} \neq \beta_{23}$ or $\beta_{12} \neq \beta_{22}$    
+```{r}
+# Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
+# spcSUR.slm <-spsurml(Form=Tformula,data=spc,type="slm",W=Wspc)
+R1 <- t(matrix(c(0,0,0,1,0,0,0,-1,0,0,1,0,0,0,-1,0),ncol=2))
+b1 <- matrix(0,ncol=2)
+print(R1)
+Wald_beta <- wald_betas(results=spcSUR.slm,R=R1,b=b1)
+``` 
+### Estimate the restricted model  
+> In case don't reject the null, it's possible to estimate the model with equal coefficient in both equations:
+
+> $WAGE_{83} = \lambda_{83} W \ WAGE_{83} + \beta_{10} + \beta_{11} UN_{83} + \beta_{12} NMR_{83} + \boldsymbol{\beta_{13}} SMSA + \epsilon_{83}$  
+> $WAGE_{81} = \lambda_{81} W \ WAGE_{81} + \beta_{20} + \beta_{21} UN_{80} + \beta_{22} NMR_{80} + \boldsymbol{\beta_{13}} SMSA + \epsilon_{81}$ 
+
+```{r}
+Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
+R1 <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
+r1 <- matrix(0,ncol=1)
+spcSUR.sar.restring <- spsurml(Form=Tformula, data=spc, type="sar", W=Wspc,R=R1,r=r1)
+summary(spcSUR.sar.restring)
+``` 
+
+### 3.3.2 Wald test for 'spatial' coefficients homogeneity: `wald_deltas`
+In same way a test for equal spatial autocorrelation coefficients can be obtain with `wald_deltas` function:  
+In the model:  
+
+> $WAGE_{83} = \boldsymbol{\lambda_{83}} W \ WAGE_{83} + \beta_{10} + \beta_{11} UN_{83} + \beta_{12} NMR_{83} + \beta_{13} SMSA + \epsilon_{83}$  
+> $WAGE_{81} = \boldsymbol{\lambda_{81}} W \ WAGE_{81} + \beta_{20} + \beta_{21} UN_{80} + \beta_{22} NMR_{80} + \beta_{23} SMSA + \epsilon_{81}$ 
+
+In this case the null is:  
+
+> $H_{0}: \lambda_{83} = \lambda_{81}$  
+> $H_{A}: \lambda_{83} \neq \lambda_{81}$    
+```{r}
+# Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
+# spcSUR.sar <-spsurml(Form=Tformula,data=spc,type="sar",W=Wspc,trace=F)
+R1 <- matrix(c(1,-1),nrow=1)
+r1 <- matrix(0,ncol=1)
+res1 <- wald_deltas(results=spcSUR.sar,R=R1,r=r1)
+```
+### 3.3.3 Likekihood ratio tests `lr_betas_spsur`
+Alternatively to wald test, the Likelihoo Ration (LR) tests can be obtain using the `lr_betas_spsur` function.  
+
+```{r}
+Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
+R <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
+r <- matrix(0,ncol=1)
+LR_SMSA <-  lr_betas_spsur(Form=Tformula,data=spc,W=Wspc,type="sar",R=R,r=r,trace=F,printmodels=F)
+```
+
+# 4. Step 4: Marginal Effects: `impacts`
+The marginal effects `impacts` of spatial autoregressive models (SUR-SAR; SUR-SDM; SUR-SARAR) has been calculated following the propose of LeSage and Pace (2009).  
+```{r}
+eff.spcSUR.sar <-impacts(spcSUR.sar,nsim=299)
+```
+# 5. Step 5: The `spSUR` in a panel data framework
+
+## 5.1 The `spSUR` with G equation and T periods
+Case of T temporal cross-sections and G equations  
+
+
+![](/Users/roman/Dropbox/SpSUR/spsur2/vignettes/PanelGT.png) 
+
+
+
+By example with NAT data set:  
+
+> * T = 4 (Four temporal periods)  
+> * G = 2 (Two equations with different numbers of independent variables)  
+> * R = 3085 (Spatial observations)  
+
+A **SUR-SAR-PANEL** model  
+$y_{gt} = \lambda_{g} Wy_{gt} + X_{gt} \beta_{g} + \epsilon_{gt};$   
+$\ g=1,...,G; \ t=1,...,T$  
+$Corr(\epsilon_{gt},\epsilon_{g't})=Corr(\epsilon_{g},\epsilon_{g'}) \neq 0$ for $(\forall t)$
+
+```{r}
+Tformula <- HR | HC ~ UE + RD | UE
+spSUR.sar.panel <- spsurml(Form = Tformula,data=NATpanel,W=W,type="sar",nR=3085,nG=2,nT=4)
+summary(spSUR.sar.panel)
+```
+### 5.1.1 Unobserved effects: The `demaining` option
+`spsur` package offers the possibility to transform the original
+data in order to remove potential unobserved effects.  
+The most popular transformation is demeaning the data:
+To subtract the sampling averages of each individual, in every equation, from the corresponding observation.
+
+```{r}
+Tformula <- HR | HC ~ UE + RD | UE
+spSUR.sar.panel <- spsurml(Form = Tformula,data=NATpanel,W=W,type="sar",nR=3085,nG=2,nT=4,demean = T)
+summary(spSUR.sar.panel)
+```
+
+# 6. Aditional functionalities: `dgp_spSUR`
+A Data Generating Process of a spatial SUR models is avalible using the function `dgp_spSUR`
+```{r}
+nT <- 1 # Number of time periods
+nG <- 3 # Number of equations
+nR <- 500 # Number of spatial elements
+p <- 3 # Number of independent variables
+Sigma <- matrix(0.3,ncol=nG,nrow=nG)
+diag(Sigma)<-1
+Coeff <- c(2,3)
+rho <- 0.5 # level of spatial dependence
+lambda <- 0.0 # spatial autocorrelation error term = 0
+# ramdom coordinates
+# co <- cbind(runif(nR,0,1),runif(nR,0,1))
+# W <- spdep::nb2mat(spdep::knn2nb(spdep::knearneigh(co,k=5,longlat=F)))
+# DGP <- dgp_spSUR(Sigma=Sigma,Coeff=Coeff,rho=rho,lambda=lambda,nT=nT,nG=nG,nR=nR,p=p,W=W)
+```
+# 7. Conclusion & work to do  
+> - `spSUR` is a powerful R-package to test, estimate and looking for the correct specification  
+> - More functionalities and estimation algorithm coming soon  
+>     * GMM estimation  
+>     * ML estimation with equal level of spatial dependence ($\lambda$/$\rho$=constant)
+>     * Orthogonal deamining for space-time SUR models
+>     * ..... 
+> - The spSUR is avaliable in GitHub [https://github.com/rominsal/spSUR/] 
+
+********
+
+# References
+- López, F.A., P. J. Martínez-Ortiz, and J.G. Cegarra-Navarro (2017). Spatial spillovers in public
+expenditure on a municipal level in spain. *The Annals of Regional Science* 58 (1), 39–65.  
+- López, F.A., J. Mur, and A. Angulo (2014). Spatial model selection strategies in a sur framework. the
+case of regional productivity in eu. *The Annals of Regional Science* 53 (1), 197–220.  
+- Mur, J., F. López, and M. Herrera (2010). Testing for spatial effects in seemingly unrelated regressions.
+*Spatial Economic Analysis* 5 (4), 399–440.  
+
+
+## Example
+
+This is a basic example which shows you how test spatial structure in the residual of a SUR model:
+
+```{r example}
+## Testing for spatial effects in SUR model
+library("spsur")
+data("spc")
+Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
+LMs <- lmtestspsur(Form = Tformula, data = spc, W = Wspc)
+```
+
+Several Spatial SUR model can be estimated by maximun likelihhod:
+```{r basicslm}
+## A SUR-SLM model
+spcsur.slm <-spsurml(Form = Tformula, data = spc, type = "slm", W = Wspc)
+summary(spcsur.slm)
+```
+
