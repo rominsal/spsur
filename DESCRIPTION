@@ -12,30 +12,26 @@ Authors@R: c(person("Ana", "Angulo", email = "aangulo@uunizar.es",
            person("Jesus", "Mur", email = "jmur@unizar.es", 
                   role = "aut"))
 Maintainer: Roman Minguez <roman.minguez@uclm.es>
-Description: A collection of functions to test and estimate Spatial Seemingly 
-    Unrelated Regression (SUR) models by maximum likelihood and 
-    three-stage least squares the usual SUR specifications with spatial 
-    effects (SUR-SLX, SUR-SLM, SUR-SEM, SUR-SDM, SUR-SDEM and SUR-SARAR) 
-    and non spatial SUR model (SUR-SIM). 
+Description: A collection of functions to test and estimate Spatial Seemingly Unrelated Regression (SUR) models by maximum likelihood and three-stage least squares the usual SUR specifications with spatial effects (SUR-SLX, SUR-SLM, SUR-SEM, SUR-SDM, SUR-SDEM and SUR-SARAR) and non spatial SUR model (SUR-SIM). 
 LazyData: true
 Encoding: UTF-8
 License: GPL-3
 Depends: 
-R (>= 3.4.0) 
+    R (>= 3.4.0) 
 Imports: 
-Formula (>= 1.2.3),
-MASS (>= 7.3.50),
-Matrix (>= 1.2.14),
-methods (>= 3.5.0),  
-numDeriv (>= 2016.8.1),
-minqa (>= 1.2.4),
-sparseMVN (>= 0.2.1.1),
-spdep (>= 0.7.9),
-stats (>= 3.5.0)     
+    Formula (>= 1.2.3),
+    MASS (>= 7.3.50),
+    Matrix (>= 1.2.14),
+    methods (>= 3.5.0),  
+    numDeriv (>= 2016.8.1),
+    minqa (>= 1.2.4),
+    sparseMVN (>= 0.2.1.1),
+    spdep (>= 0.7.9),
+    stats (>= 3.5.0)     
 Suggests: 
-bookdown,
-knitr,
-rmarkdown,
+    bookdown,
+    knitr,
+    rmarkdown,
 Rdpack
 VignetteBuilder: knitr 
 RoxygenNote: 6.1.1.9000
