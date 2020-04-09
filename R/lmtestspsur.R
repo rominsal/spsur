@@ -1,82 +1,103 @@
 #' @name lmtestspsur
 #' @rdname lmtestspsur
 #'
-#' @title Testing for the presence of spatial effects in Seemingly Unrelated Regressions
+#' @title Testing for the presence of spatial effects in Seemingly 
+#'  Unrelated Regressions
 #'
-#' @description The function \code{\link{spsurml}}  reports a collection of Lagrange Multipliers
-#'  designed to test  for the presence of different forms of spatial dependence in a
-#'  \emph{SUR} model of the \strong{"sim"} type. That is, the approach of this function is
-#'  from \emph{'specific to general'}. As said, the model of the null hypothesis is the \strong{"sim"}
-#'  model whereas the model of the alternative depends on the effect whose omission we want to test.
+#' @description The function \code{\link{spsurml}}  reports a collection of 
+#'  Lagrange Multipliers designed to test  for the presence of different 
+#'  forms of spatial dependence in a \emph{SUR} model of the "sim" type. 
+#'  That is, the approach of this function is from 
+#'  \emph{'specific to general'}. As said, the model of the null hypothesis 
+#'  is the "sim" model whereas the model of the alternative depends on 
+#'  the effect whose omission we want to test.
 #'
-#' The collection of Lagrange Multipliers obtained by \code{lmtestspsur} are standard in the
-#' literature and take into account the multivariate nature of the \emph{SUR} model. As a limitation,
-#' note that each Multiplier tests for the omission of the same spatial effects in all the cross-sections of
-#' the \emph{G} equations.
+#' The collection of Lagrange Multipliers obtained by \code{lmtestspsur} 
+#' are standard in the literature and take into account the multivariate 
+#' nature of the \emph{SUR} model. As a limitation, note that each 
+#' Multiplier tests for the omission of the same spatial effects in all 
+#' the cross-sections of the \emph{G} equations.
+#' 
+#' @usage lmtestspsur (formula = NULL, data = NULL, na.action, 
+#'                     listw = NULL, zero.policy = NULL, X = NULL, 
+#'                     Y = NULL, time = NULL, G = NULL, N = NULL, 
+#'                     Tm = NULL, p = NULL) 
 #'
 #' @inheritParams spsurml
-#' @param print_table Logical value to print the output. Default = \code{TRUE}
-#' @param time Time variable.
-#'
-#' @details \code{\link{lmtestspsur}} tests for the omission of spatial effects in the \strong{"sim"} version
-#'  of the \emph{SUR} model: \cr
+#' @param time Time variable for the spatial panel SUR model.
+
+#' @details \code{\link{lmtestspsur}} tests for the omission of spatial 
+#'  effects in the "sim" version of the \emph{SUR} model: \cr
 #'
 #'     \deqn{y_{tg} = X_{tg} \beta_{g} + u_{tg}}
-#'     \deqn{E[u_{tg}u_{th}']= \sigma_{gh}I_{N}  \quad E[u_{tg}u_{sh}']= 0 \mbox{ if } t ne s}
+#'     \deqn{E[u_{tg}u_{th}']= \sigma_{gh}I_{N}  \quad E[u_{tg}u_{sh}']= 0 
+#'           \mbox{ if } t ne s}
 #'
-#' where \eqn{y_{tg}} and \eqn{u_{tg}} are \emph{(Nx1)} vectors, corresponding to the g-th equation and time period t;
-#' \eqn{X_{tg}} is the matrix of exogenous variables, of order\emph{\eqn{(Nxp_{g})}}. Moreover, \eqn{\beta_{g}} is an unknown
-#' \emph{\eqn{(p_{g}x1)}} vector of coefficients and \eqn{\sigma_{gh}I_{N}} the covariance between equations \emph{g} and \emph{h},
-#' being \eqn{\sigma_{gh}} and scalar and \eqn{I_{N}} the identity matrix of orden N.
+#' where \eqn{y_{tg}} and \eqn{u_{tg}} are \emph{(Nx1)} vectors, 
+#' corresponding to the g-th equation and time period t;
+#' \eqn{X_{tg}} is the matrix of exogenous variables, of order 
+#' \emph{\eqn{(Nxp_{g})}}. Moreover, \eqn{\beta_{g}} is an unknown
+#' \emph{\eqn{(p_{g}x1)}} vector of coefficients and \eqn{\sigma_{gh}I_{N}} 
+#' the covariance between equations \emph{g} and \emph{h},
+#' being \eqn{\sigma_{gh}} and scalar and \eqn{I_{N}} the identity 
+#' matrix of orden N.
 #'
 #'
 #' The Lagrange Multipliers reported by this function are the followings:
 #'
 #'   \itemize{
-#'     \item \strong{LM-SUR-LAG}: Tests for the omission of a spatial lag of the explained variable
-#'      in the right hand side of the \strong{"sim"} equation. The model of the alternative is:\cr
+#'     \item \strong{LM-SUR-LAG}: Tests for the omission of a spatial lag of 
+#'      the explained variable in the right hand side of the "sim" equation. 
+#'      The model of the alternative is: \cr
 #'
-#'     \eqn{y_{tg} = \lambda_{g}Wy_{tg}+X_{tg} \beta_{g} + u_{tg}}
-#'
-#'       The null and alternative hypotheses are:
-#'
-#'          \eqn{H_{0}: \lambda_{g}=0 (forall g)} vs  \eqn{H_{A}: \lambda_{g} ne 0 (exist g)}
-#'
-#'      \item \strong{LM-SUR-ERR}: Tests for the omission of spatial dependence in the equation of the errors
-#'      of the \strong{"sim"} model. The model of the alternative is:
-#'
-#'     \eqn{y_{tg} = X_{tg} \beta_{g} + u_{tg}}; \eqn{u_{tg}= \rho_{g}Wu_{tg}+\epsilon_{tg}}
+#'     \eqn{y_{tg} = \rho_{g}Wy_{tg} + X_{tg} \beta_{g} + u_{tg}}
 #'
 #'       The null and alternative hypotheses are:
 #'
-#'          \eqn{H_{0}: \rho_{g}=0 (forall g)} vs  \eqn{H_{A}: \rho_{g}  ne 0 (exist g)}
+#'          \eqn{H_{0}: \rho_{g}=0 (forall g)} vs  
+#'          \eqn{H_{A}: \rho_{g} ne 0 (exist g)}
 #'
-#'      \item \strong{LM-SUR-SARAR}: Tests for the simultaneous omission of a spatial lag of the explained
-#'       variable in the right hand side of the \strong{"sim"} equation and spatial dependence in the
-#'       equation of the errors. The model of the alternative is:
+#'      \item \strong{LM-SUR-ERR}: Tests for the omission of spatial 
+#'       dependence in the equation of the errors of the "sim" model. The 
+#'       model of the alternative is:
 #'
-#'
-#'     \eqn{y_{tg} = \lambda_{g}Wy_{tg}+X_{tg} \beta_{g} + u_{tg}}; \eqn{u_{tg}= \rho_{g}Wu_{tg}+\epsilon_{tg}}
+#'     \eqn{y_{tg} = X_{tg} \beta_{g} + u_{tg}}; 
+#'     \eqn{u_{tg}= \lambda_{g}Wu_{tg}+\epsilon_{tg}}
 #'
 #'       The null and alternative hypotheses are:
 #'
-#'      \eqn{H_{0}: \lambda_{g}=\rho_{g}=0 (forall g)} vs  \eqn{H_{A}: \lambda_{g} ne 0 or \rho_{g} ne 0 (exist g)}
+#'          \eqn{H_{0}: \lambda_{g}=0 (forall g)} vs  
+#'          \eqn{H_{A}: \lambda_{g}  ne 0 (exist g)}
+#'
+#'      \item \strong{LM-SUR-SARAR}: Tests for the simultaneous omission of 
+#'      a spatial lag of the explained variable in the right hand side of 
+#'      the "sim" equation and spatial dependence in the equation of the 
+#'      errors. The model of the alternative is:
+#'
+#'
+#'     \eqn{y_{tg} = \rho_{g}Wy_{tg}+X_{tg} \beta_{g} + u_{tg}}; 
+#'     \eqn{u_{tg}= \lambda_{g}Wu_{tg}+\epsilon_{tg}}
+#'
+#'       The null and alternative hypotheses are:
+#'
+#'      \eqn{H_{0}: \rho_{g}=\lambda_{g}=0 (forall g)} vs  
+#'      \eqn{H_{A}: \rho_{g} ne 0 or \lambda_{g} ne 0 (exist g)}
 #'
 #'      \item
-#'      \strong{LM*-SUR-SLM} and \strong{LM*-SUR-SEM}: These two test are the robustifyed version of the original,
-#'      raw Multipliers, \strong{LM-SUR-SLM} and \strong{LM-SUR-SEM}, which can be severely oversized if
-#'      the respective alternative hypothesis is misspeficied (this would be the case if, for example, we are
-#'      testing for omitted lags of the explained variable whereas the problem is that there is spatial dependence
-#'      in the errors, or viceversa). The null and alternative hypotheses of both test are totally analogous to  their twin
-#'      non robust Multipliers.
+#'      \strong{LM*-SUR-SLM} and \strong{LM*-SUR-SEM}: These two test are 
+#'       the robustifyed version of the original, raw Multipliers, 
+#'       \strong{LM-SUR-SLM} and \strong{LM-SUR-SEM}, which can be severely 
+#'       oversized if the respective alternative hypothesis is misspeficied 
+#'       (this would be the case if, for example, we are testing for omitted 
+#'       lags of the explained variable whereas the problem is that there is 
+#'       spatial dependence in the errors, or viceversa). The null and 
+#'       alternative hypotheses of both test are totally analogous to their
+#'       twin non robust Multipliers.
 #'     }
 #'
-#' @return A list including:
-#'   \tabular{ll}{
-#'   \code{stat_names}   \tab Name of Lagrange Multiplier. \cr
-#'   \code{stat}   \tab Value of the corresponding Lagrange Multiplier. \cr
-#'   \code{df} \tab Degrees of freedom for each Multiplier.\cr
-#'   }
+#' @return A list of \code{htest} objects each one including the Wald
+#'   statistic, the corresponding p-value and the degrees of
+#'   freedom.
 #'
 #' @author
 #'   \tabular{ll}{
@@ -110,9 +131,17 @@
 #' rm(list = ls()) # Clean memory
 #' data("spc")
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
-#' LMs <- lmtestspsur(Form = Tformula, data = spc, W = Wspc)
+#' lwspc <- spdep::mat2listw(Wspc, style = "W")
+#' lmtestspsur(formula = Tformula, data = spc, 
+#'              listw = lwspc)
 #'
-#' \dontrun{
+#' ## VIP: If you want to examine a particular example eliminate '#' and 
+#' ## execute the code of the example (they have been commented to 
+#' ## pass the checking time in CRAN)
+#' 
+#' ## VIP: The output of the whole set of the examples can be examined 
+#' ## by executing demo(demo_lmtestspsur, package="spsur")
+#' 
 #' #################################################
 #' ######## PANEL DATA (G>1; Tm>1)          ########
 #' #################################################
@@ -122,43 +151,41 @@
 #' # continental U.S. counties.
 #' # Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' # https://geodacenter.github.io/data-and-lab/ncovr/
+#' #data(NCOVR, package="spsur")
+#' #nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+#' ### Some regions with no links...
+#' #lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+#' ### With different number of exogenous variables in each equation
+#' #Tformula <- HR70 | HR80  | HR90 ~ PS70 + UE70 | PS80 + UE80 +RD80 |
+#' #            PS90 + UE90 + RD90 + PO90
+#' #lmtestspsur(formula = Tformula, data = NCOVR.sf, 
+#' #            listw = lwncovr)
 #'
-#' data("NCOVR")
-#' # With different number of exogenous variables in each equation
-#' Tformula <- HR70 | HR80  | HR90 ~ PS70 + UE70 | PS80 + UE80 +RD80 |
-#'             PS90 + UE90 + RD90 + PO90
-#' LMs <- lmtestspsur(Form = Tformula, data = NCOVR, W = W)
-#' }
-#'
-#' ################################################################
-#' ######## PANEL DATA: TEMPORAL CORRELATIONS (G=1; Tm>1) ########
-#' ################################################################
-#' \donttest{
-#' #### Example 3: NCOVR in panel data form
-#' ## Takes less than 1 minute
-#' data("NCOVR")
-#' Year <- as.numeric(kronecker(c(1960,1970,1980,1990),matrix(1,nrow = dim(NCOVR)[1])))
-#' HR <- c(NCOVR$HR60,NCOVR$HR70,NCOVR$HR80,NCOVR$HR90)
-#' PS <- c(NCOVR$PS60,NCOVR$PS70,NCOVR$PS80,NCOVR$PS90)
-#' UE <- c(NCOVR$UE60,NCOVR$UE70,NCOVR$UE80,NCOVR$UE90)
-#' NCOVRpanel <- as.data.frame(cbind(Year,HR,PS,UE))
-#' Tformula <- HR ~ PS + UE
-#' LM_time <- lmtestspsur(Form = Tformula, data = NCOVRpanel, time = Year, W = W)
-#' }
-#'
+#' #################################################################
+#' ######### PANEL DATA: TEMPORAL CORRELATIONS (G=1; Tm>1) ########
+#' #################################################################
+#' #
+#' ##### Example 3: NCOVR in panel data form
+#' #Year <- as.numeric(kronecker(c(1960,1970,1980,1990), 
+#' #                   matrix(1,nrow = dim(NCOVR.sf)[1])))
+#' #HR <- c(NCOVR.sf$HR60,NCOVR.sf$HR70,NCOVR.sf$HR80,NCOVR.sf$HR90)
+#' #PS <- c(NCOVR.sf$PS60,NCOVR.sf$PS70,NCOVR.sf$PS80,NCOVR.sf$PS90)
+#' #UE <- c(NCOVR.sf$UE60,NCOVR.sf$UE70,NCOVR.sf$UE80,NCOVR.sf$UE90)
+#' #NCOVRpanel <- as.data.frame(cbind(Year,HR,PS,UE))
+#' #Tformula <- HR ~ PS + UE
+#' #lmtestspsur(formula = Tformula, data = NCOVRpanel, 
+#' #            time = Year, listw = lwncovr)
 #' @export
-#'
 lmtestspsur <- function(formula = NULL, data = NULL, na.action,
                         listw = NULL, zero.policy = NULL,
                         X = NULL, Y = NULL, time = NULL,
                         G = NULL, N = NULL, Tm = NULL, 
                         p = NULL) {
+  #browser()
   if (is.null(listw) || !inherits(listw,c("listw","Matrix","matrix")))
     stop("listw format unknown or NULL")
   if (inherits(listw, "listw")) {
-    if (is.null(formula) || is.null(data)) {
       W <- Matrix::Matrix(spdep::listw2mat(listw))
-    }  
   }
   if (inherits(listw, "matrix")) {
     W <- Matrix::Matrix(listw)
@@ -170,25 +197,12 @@ lmtestspsur <- function(formula = NULL, data = NULL, na.action,
   }
   if (is.null(listw) || !inherits(listw,c("listw","Matrix","matrix")))
     stop("listw format unknown or NULL")
-  if (inherits(listw, "listw")) {
-    if (is.null(formula) || is.null(data)) {
-      W <- Matrix::Matrix(spdep::listw2mat(listw))
-    }  
-  }
-  if (inherits(listw, "matrix")) {
-    W <- Matrix::Matrix(listw)
-    listw <- spdep::mat2listw(W)
-  }  
-  if (inherits(listw, "Matrix")) {
-    W <- listw
-    listw <- spdep::mat2listw(as.matrix(W))
-  } 
   if (!is.null(Tm) && !is.null(G) && Tm > 1 && G == 1){
     # Change dimensions in this case with matrix Data
     G <- Tm
     Tm <- 1
   }
-  if (!is.null(formula) && !any(class(formula) == "Formula")) 
+  if (!is.null(formula) && !inherits(formula, "Formula")) 
     formula <- Formula::Formula(formula)
   cl <- match.call()
   
@@ -224,8 +238,8 @@ lmtestspsur <- function(formula = NULL, data = NULL, na.action,
       rm(get_XY)
       if (length(p) == 1) p <- rep(p,G)
     }
-  } else {  #G = 1 and Tm > 1 
-      if (class(time) != "factor") time <- as.factor(time)
+  } else { #G = 1 and Tm > 1 
+      if (!inherits(time, "factor")) time <- as.factor(time)
       time <- droplevels(time)
       if (length(time) != nrow(data)) 
         stop("time must have same length than the

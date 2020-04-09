@@ -1,13 +1,13 @@
 
 fit_spsurslm_3sls <- function(Tm, G, N, Y, X, W, p,
-                              type, maxlagW = 2){
+                              type, maxlagW){
   ## Crear matriz instrumentos para retardo espacial Wy
   IT <- Matrix::Diagonal(Tm)
   IG <- Matrix::Diagonal(G)
   IR <- Matrix::Diagonal(N)
-  if(class(X)=="matrix") X <- Matrix::Matrix(X)
-  if(class(Y)=="matrix") Y <- Matrix::Matrix(Y)
-  if(class(W)=="matrix") W <- Matrix::Matrix(W)
+  if (inherits(X, "matrix")) X <- Matrix::Matrix(X)
+  if (inherits(Y, "matrix")) Y <- Matrix::Matrix(Y)
+  if (inherits(W, "matrix")) W <- Matrix::Matrix(W)
 
   ########## FULL REGRESSOR MATRIX #######################
 

@@ -26,16 +26,17 @@ install.packages("spsur")
 
 ## Main functionalities of `spsur`
 
-A few functions are necessary to test spatial autocorrelation in SUR and estimate the spatial SUR models. Figure show the main functionalities of the **spsur** package. The **spsur** package has one function to test spatial autocorrelation on the residuals of a SUR model (lmtestspsur()); two functions to estimate SUR models with several spatial structures, by maximum likelihood (spsurml()) and instrumental variables (spsur3sls()); three functions to help to the user to select the correct espeficication (lrtestspsur(); wald_betas() and wald_deltas(); one function to get the impacts (impacts()). Finally another function has been included in this package to help to the user to develop Monte Carlo exercices (dgp_spsur()).
+A few functions are necessary to test spatial autocorrelation in SUR and estimate the spatial SUR models. Figure show the main functionalities of the **spsur** package. The **spsur** package has one function to test spatial autocorrelation on the residuals of a SUR model (`lmtestspsur()`); two functions to estimate SUR models with several spatial structures, by maximum likelihood (`spsurml()`) and instrumental variables (`spsur3sls()`); three functions to help to the user to select the correct espeficication (`lrtestspsur()`; `wald_betas()` and `wald_deltas()`; one function to get the impacts (`impactspsur()`). Another function has been included in this package to help to the user to develop Monte Carlo exercices (`dgp_spsur()`). Finally, the package include the usual methods for objects of class *spsur* like  `anova`,  `coef`, `fitted`, `logLik`, `print`, `residuals`, `summary` and `vcov`.
 
 
 ```{r Figure1, echo=FALSE, out.width = "60%", fig.align='center',fig.pos = 'h',fig.cap="\\label{Fig1} Main functionatities of spsur package"}
-knitr::include_graphics('C:/Users/Fernando-pc/Dropbox/spSUR/notes/Journal of Statisitical Software/Figure1_JSS.png')
+setwd("C:/Users/roman/Dropbox/spsurdev")
+knitr::include_graphics('/notes/Journal of Statisitical Software/Figure1_JSS.png')
 ```
 
 
 
-## Data sets in `spSUR`
+## Data sets in `spsur`
 
 The `spSUR` package include two data sets:  
 
@@ -87,7 +88,7 @@ Note that in the left side of the formula, two dependent variables has been incl
 ### Step 2: Estimation of the Spatial SUR models
 ### Step 3: Looking for the correct especification
 ### Step 4: Impacts: Directs, Indirects and Total effects
-### Step 5: `spSUR` in a panel data framework
+### Step 5: `spsur` in a panel data framework
 ### Step 6: Additional functionalities
 ### Step 7: Conclusion and work to do
 ***
@@ -121,7 +122,7 @@ and two robust LM tests
 library("spsur")
 data("spc")
 Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
-LMs <- lmtestspsur(Form=Tformula,data=spc,W=Wspc)
+LMs <- lmtestspsur(formula = Tformula, data = spc, listw = Wspc)
 ```
 
 In this example no spatial autocorrelation is identify! (25 observations). 
@@ -155,7 +156,8 @@ Maximum likelihood estimation for differents spatial SUR models using `spsurml`.
   
   
 ```{r}
-spcSUR.slm <-spsurml(Form=Tformula,data=spc,type="slm",W=Wspc)
+spcSUR.slm <- spsurml(formula = Tformula, data=spc, 
+                      type="slm", listw = Wspc)
 summary(spcSUR.slm)
 ``` 
 ***
@@ -171,7 +173,8 @@ Only change the **'type'** argument in `spsurml` function it is possible to esti
 
 
 ```{r}
-spcSUR.sem <-spsurml(Form=Tformula,data=spc,type="sem",W=Wspc)
+spcSUR.sem <- spsurml(formula = Tformula, data = spc, 
+                     type = "sem", listw=Wspc)
 summary(spcSUR.sem)
 ``` 
 

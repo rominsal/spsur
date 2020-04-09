@@ -17,9 +17,17 @@ sur3_spdiag <- function(Tm, G, N, Y, X, W)
   LLSUR <- -f_surGRT_beta(beta = beta, Tm = Tm, G = G,
                           N = N, Y = Y, X = X, Sigma = Sigma)
   Sigma_inv <- try(chol2inv(chol(Sigma)))
+  # The (if) solve a problem with matriz OME and OMEinv in case of Tm=G=1
+  if (Tm==1 & G==1){
+  OME <- as(as.matrix(kronecker(IT,kronecker(Sigma,IR))),"dgCMatrix")
+  OMEinv <- as(as.matrix(kronecker(IT,kronecker(Sigma_inv,IR))),"dgCMatrix")
+  }
+  else {
   OME <- as(kronecker(IT,kronecker(Sigma,IR)),"dgCMatrix")
-  OMEinv <- as(kronecker(IT,kronecker(Sigma_inv,IR)),
-               "dgCMatrix")
+  OMEinv <- as(kronecker(IT,kronecker(Sigma_inv,IR)),"dgCMatrix")
+  }
+  
+  
   beta <- Matrix::solve(Matrix::crossprod(X,OMEinv %*% X),
                         Matrix::crossprod(X,OMEinv %*% Y))
   beta <- as.matrix(beta)
@@ -36,7 +44,7 @@ sur3_spdiag <- function(Tm, G, N, Y, X, W)
  # Gradiente
   g_slm <- rep(0,G)
   Res <- Y - X%*%beta # Residuos del SUR sin ee
-  Sigma_inv <- solve(Sigma)
+  #Sigma_inv <- solve(Sigma)
   #W<-as(W,"dgCMatrix")
   for (i in 1:G){
       g_slm[i] <- Matrix::t(Res) %*%(IT %x% 
@@ -88,13 +96,13 @@ sur3_spdiag <- function(Tm, G, N, Y, X, W)
 
     J22 <- matrix(0, nrow = G, ncol = G)
     tr1 <- sum(Matrix::t(W) * Matrix::t(W))
-
+    tr2 <- sum(Matrix::t(W) * W)
     for (i in 1:G) {
         for (j in 1:G) {
             J22[i,j]=Tm * Sigma_inv[i,j] * Sigma[i,j] * tr1
         }
     }
-    J22 <- J22 + Tm * tr1 * Matrix::Diagonal(G)
+    J22 <- J22 + Tm * tr2 * Matrix::Diagonal(G)
     LMSURSEM2 <- as.numeric( matrix(g_sem, nrow = 1) %*% 
                                solve(J22) %*% 
                                 matrix(g_sem, ncol = 1))
@@ -159,6 +167,7 @@ sur3_spdiag <- function(Tm, G, N, Y, X, W)
         }
         c3 <- c2
     }
+
     RI44 <- matrix(0, nrow = (G*(G+1)/2), ncol = G*(G+1)/2)
     for (i in 1:(G*(G+1)/2)) {
         for (j in 1:(G*(G+1)/2)) {
@@ -174,12 +183,15 @@ sur3_spdiag <- function(Tm, G, N, Y, X, W)
                                            ncol = G*(G+1)/2)),
                       cbind(matrix(0, nrow = G*(G+1)/2,
                                       ncol= ncol(X)), RI44)) )
+    
     Ilf <- as.matrix( cbind(I12, matrix(0, nrow = G,
                                         ncol = G*(G+1)/2)) )
     Ilpf <- I22 - Ilf %*% solve(Iff) %*% t(Ilf)
-    Irr <- Tm * tr1 * (Sigma_inv * Sigma + 
-                         Matrix::Diagonal(G))
-    Irl <- Tm * (tr1+tr2) * (Sigma_inv * Sigma)
+    # Irr <- Tm * tr1 * (Sigma_inv * Sigma + 
+    #                      Matrix::Diagonal(G))
+    # Irl <- Tm * (tr1+tr2) * (Sigma_inv * Sigma)
+    Irr <- K33
+    Irl <- K23
 
 LMRSURlag <- as.numeric( Matrix::t(matrix(g_slm, ncol = 1) 
                                    - Irl %*% solve(Irr)

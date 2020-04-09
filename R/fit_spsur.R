@@ -61,7 +61,11 @@ fit_spsursim <- function(env, con){
 
 
 fit_spsurslm <- function(env, con) {
-  if(!is.null(env$W)) W <- env$W else W <- as(env$listw, "CsparseMatrix")
+  if (!is.null(env$W)) {
+    W <- env$W
+  }  else {
+    W <- as(env$listw, "CsparseMatrix")
+  }  
   G <- env$G; N <- env$N; Tm <- env$Tm
   Y <- env$Y; X <- env$X
   IT <- Matrix::Diagonal(Tm)
@@ -73,7 +77,7 @@ fit_spsurslm <- function(env, con) {
   ols_init <- lm(Y ~ X - 1)
   betaoud  <- coefficients(ols_init)
   Res <- residuals(ols_init)
-  Sigmas <- get_Sigma(resids=Res, N=N, G=G, Tm=Tm)
+  Sigmas <- get_Sigma(resids = Res, N = N, G = G, Tm = Tm)
   Sigma <- Matrix::Matrix(Sigmas$Sigma); rm(Sigmas)
   assign("Sigma", Sigma, envir = env)
   Sigmainv <- Matrix::solve(Sigma)
@@ -93,22 +97,23 @@ fit_spsurslm <- function(env, con) {
 
   }
   # Proceso de estimacion iterativo
-  for(i in 1:con$maxit) {
+  for (i in 1:con$maxit) {
     delta <- Matrix::Diagonal(length(deltag_t),deltag_t)
-    AY <- (IGR - kronecker(delta, W)) %*% Y
-    OMEinv <- kronecker(kronecker(IT,Sigmainv),IR)
+    AY <- Matrix::kronecker(IT, 
+           (IGR - Matrix::kronecker(delta, W))) %*% matrix(Y, ncol = 1)
+    OMEinv <- kronecker(kronecker(IT, Sigmainv), IR)
     B_slm <- Matrix::solve(Matrix::crossprod(X, OMEinv %*% X),
                           Matrix::crossprod(X, OMEinv %*% AY))
     Res <- matrix(AY - X %*% B_slm, ncol = 1)
-    Sigmas <- get_Sigma(resids=Res,N=N,G=G,Tm=Tm)
+    Sigmas <- get_Sigma(resids = Res, N = N, G = G, Tm = Tm)
     Sigma <- Matrix::Matrix(Sigmas$Sigma); rm(Sigmas)
     Sigmainv <- Matrix::solve(Sigma)
     assign("Sigma", Sigma, envir = env)
     deltag <- deltag_t
-    opt_sur_slm <- minqa::bobyqa(par=deltag,fn=f_sur_lag,
-                               lower=rep(env$interval[1],length(deltag)),
-                               upper=rep(env$interval[2],length(deltag)),
-                               control=list(rhobeg=0.5,iprint=0),
+    opt_sur_slm <- minqa::bobyqa(par = deltag, fn = f_sur_lag,
+                               lower = rep(env$interval[1],length(deltag)),
+                               upper = rep(env$interval[2],length(deltag)),
+                               control = list(rhobeg=0.5,iprint=0),
                                env = env)
     deltag_t <- opt_sur_slm$par
     llsur_slm <- opt_sur_slm$fval
@@ -125,15 +130,16 @@ fit_spsurslm <- function(env, con) {
   delta_slm <- deltafin
   llsur_slmfin <- llsur_slm
   # #coeficientes finales
-  delta <- Matrix::Matrix(diag(x=deltag_t, nrow = length(deltag_t),
+  delta <- Matrix::Matrix(diag(x = deltag_t, nrow = length(deltag_t),
                        ncol = length(deltag_t)))
-  AY <- (IGR - kronecker(delta, W)) %*% Y
+  AY <- Matrix::kronecker(IT, 
+         (IGR - Matrix::kronecker(delta, W))) %*% matrix(Y, ncol = 1)
   OMEinv <- kronecker(kronecker(IT,Sigmainv),IR)
   B_slm <- Matrix::solve(Matrix::crossprod(X, OMEinv %*% X),
                          Matrix::crossprod(X, OMEinv %*% AY))
   Res <- matrix(AY - X %*% B_slm, ncol = 1 )
   Yhat <- Y - Res
-  Sigmas <- get_Sigma(resids=Res, N=N, G=G, Tm=Tm)
+  Sigmas <- get_Sigma(resids = Res, N = N, G = G, Tm = Tm)
   Sigma <- Sigmas$Sigma
   rm(Sigmas)
   res <- list(deltas = as.vector(delta_slm),
@@ -148,7 +154,11 @@ fit_spsurslm <- function(env, con) {
 ###############################################
 
 fit_spsursem <- function(env, con) {
-  if(!is.null(env$W)) W <- env$W else W <- as(env$listw, "CsparseMatrix")
+  if (!is.null(env$W)) {
+    W <- env$W
+  }  else {
+    W <- as(env$listw, "CsparseMatrix")
+  }  
   G <- env$G; N <- env$N; Tm <- env$Tm
   Y <- env$Y; X <- env$X
   IT <- Matrix::Diagonal(Tm)
@@ -167,8 +177,6 @@ fit_spsursem <- function(env, con) {
   Sigma <- Matrix::Matrix(Sigmas$Sigma); rm(Sigmas)
   assign("Sigma", Sigma, envir = env)
   Sigmainv <- Matrix::solve(Sigma)
-  # Proceso iterativo para la obtención de los estimadores:
-  # Obtención del minimo bajo la hip alternativa.
   opt_sur_sem <- minqa::bobyqa(par = deltag,fn=f_sur_sem,
                                lower = rep(env$interval[1],length(deltag)),
                                upper = rep(env$interval[2],length(deltag)),
@@ -181,30 +189,30 @@ fit_spsursem <- function(env, con) {
     cat("log_lik: ",round(-llsur_sem0,3)," ")
     cat("lambdas: ",round(deltag_t,3),"\n")
   }
-  # Proceso de estimación iterativo
   for (i in 1:con$maxit){
     delta <- Matrix::Diagonal(length(deltag_t),deltag_t)
-    B <- kronecker(IT,(IGR - kronecker(delta,W)))
-    OMEinv <- kronecker(IT,kronecker(Sigmainv,IR))
-    BX <- kronecker(IT,(IGR - kronecker(delta,W))) %*% X
-    BY <- kronecker(IT,(IGR - kronecker(delta,W))) %*% Y
+    OMEinv <- Matrix::kronecker(IT, Matrix::kronecker(Sigmainv, IR))
+    BX <- Matrix::kronecker(IT, 
+                (IGR - Matrix::kronecker(delta, W))) %*% X
+    BY <- Matrix::kronecker(IT, 
+                (IGR - Matrix::kronecker(delta, W))) %*% Y
     B_sem <- Matrix::solve(Matrix::crossprod(BX, OMEinv %*% BX),
                            Matrix::crossprod(BX, OMEinv %*% BY))
-    Res <- matrix(BY - BX %*% B_sem, ncol=1)
-    RR <- array(Res, dim=c(N,G,Tm))
-    Sigmas <- get_Sigma(resids=Res,N=N,G=G,Tm=Tm)
+    Res <- matrix(BY - BX %*% B_sem, ncol = 1)
+    RR <- array(Res, dim = c(N,G,Tm))
+    Sigmas <- get_Sigma(resids = Res, N = N, G = G, Tm = Tm)
     Sigma <- Matrix::Matrix(Sigmas$Sigma); rm(Sigmas)
     assign("Sigma", Sigma, envir = env)
     Sigmainv <- Matrix::solve(Sigma)
     deltag <- deltag_t
-    opt_sur_sem <- minqa::bobyqa(par=deltag,fn=f_sur_sem,
-                                 lower = rep(env$interval[1],length(deltag)),
-                                 upper = rep(env$interval[2],length(deltag)),
-                                 control = list(rhobeg=0.5,iprint=0),
-                                 env = env)
+    opt_sur_sem <- minqa::bobyqa(par = deltag, fn = f_sur_sem,
+                            lower = rep(env$interval[1], length(deltag)),
+                            upper = rep(env$interval[2], length(deltag)),
+                            control = list(rhobeg = 0.5, iprint = 0),
+                            env = env)
     deltag_t <- opt_sur_sem$par
     llsur_sem <- opt_sur_sem$fval
-    if(con$trace){
+    if(con$trace) {
       cat("Iteration: ",i," ")
       cat("log_lik: ",round(-llsur_sem,3)," ")
       cat("lambdas: ",round(deltag_t,3),"\n")
@@ -215,18 +223,19 @@ fit_spsursem <- function(env, con) {
   }
   deltafin <- deltag_t
   llsur_semfin <- llsur_sem
-  delta <- Matrix::Diagonal(length(deltafin),deltafin)
-  OMEinv <- Matrix::kronecker(IT,Matrix::kronecker(Sigmainv,IR))
-  BX <- Matrix::kronecker(IT,(IGR - Matrix::kronecker(delta,W))) %*% X
-  BY <- Matrix::kronecker(IT,(IGR - Matrix::kronecker(delta,W))) %*% Y
+  delta <- Matrix::Diagonal(length(deltafin), deltafin)
+  OMEinv <- Matrix::kronecker(IT, Matrix::kronecker(Sigmainv, IR))
+  BX <- Matrix::kronecker(IT,
+              (IGR - Matrix::kronecker(delta,W))) %*% X
+  BY <- Matrix::kronecker(IT,
+              (IGR - Matrix::kronecker(delta,W))) %*% Y
   #coeficientes finales
   B_sem <- Matrix::solve(Matrix::crossprod(BX, OMEinv %*% BX),
                          Matrix::crossprod(BX, OMEinv %*% BY))
   delta_sem <- deltafin
-  #Res <- matrix(B%*%(Y - X%*%B_sem),nrow=nrow(Y))
   Res <- matrix(BY - BX %*% B_sem, ncol=1)
   Yhat <- Y - Res
-  Sigmas <- get_Sigma(resids=Res,N=N,G=G,Tm=Tm)
+  Sigmas <- get_Sigma(resids = Res, N = N, G = G, Tm = Tm)
   Sigma <- Sigmas$Sigma
   rm(Sigmas)
   res <- list(deltas = as.vector(delta_sem),

@@ -5,91 +5,117 @@
 #'
 #' @description The function estimates spatial SUR models using three stages
 #'  least squares, where the instruments are obtained from the spatial lags
-#'  of the \emph{X} variables, assumed to be exogenous. The number of equations, time periods
-#'  and spatial units is not restricted. The user can choose between a Spatial Durbin Model
-#'  or a Spatial Lag Model, as described below. The estimation procedure allows for the introduction
-#'  of linear restrictions on the \eqn{\beta} parameters associated to the regressors.
-#'
-#' @param type Type of spatial model, restricted to cases where lags of the explainded variable appear
-#' in the righ hand side of the equations. There are two possibilities: \strong{"slm"} or
-#' \strong{"sdm"}. Default = "slm".
-#' @param maxlagW Maximum spatial lag order of the regressors employed to produce spatial
-#'  instruments for the spatial lags of the explained variables. Default = 2. Note that in case of
-#'  \emph{type="sdm"}, the default value for maxlagW is set to 3 because the first lag of the
-#'  regressors, \eqn{WX_{tg}}, can not be used as spatial instruments.
+#'  of the \emph{X} variables, assumed to be exogenous. The number of 
+#'  equations, time periods and spatial units is not restricted. The user can 
+#'  choose between a Spatial Durbin Model or a Spatial Lag Model, as described 
+#'  below. The estimation procedure allows for the introduction of linear 
+#'  restrictions on the \eqn{\beta} parameters associated to the regressors.
+#'  
+#' @usage spsur3sls (formula = NULL, data = NULL, na.action,
+#'                   R = NULL, b = NULL, listw = NULL, 
+#'                   zero.policy = NULL, X= NULL, Y = NULL, G = NULL, 
+#'                   N = NULL, Tm = NULL, p = NULL,  
+#'                   type = "slm", Durbin = NULL, maxlagW = NULL)
+#'     
+#' @param type Type of spatial model, restricted to cases where lags of the 
+#' explainded variable appear in the righ hand side of the equations. There 
+#' are two possibilities: "slm" or "sdm". Default = "slm".
+#' @param maxlagW Maximum spatial lag order of the regressors employed to 
+#' produce spatial instruments for the spatial lags of the explained variables. 
+#' Default = 2. Note that in case of \code{type}="sdm", the default value for 
+#' \code{maxlagW} is set to 3 because the first lag of the regressors, 
+#' \eqn{WX_{tg}}, can not be used as spatial instruments.
+#' @param Durbin If a formula object and model is type "sdm" the subset 
+#'   of explanatory variables to lag for each equation.        
 #' @inheritParams spsurml
 #'
 #' @details
 #'  \emph{spsur3sls} can be used to estimate two groups of spatial models:
 #'   \itemize{
-#'     \item \strong{"slm"}: SUR model with spatial lags of the endogenous in the right hand
-#'     side of the equations
-#'       \deqn{y_{tg} = \lambda_{g} Wy_{tg} + X_{tg} \beta_{g} + \epsilon_{tg} }
-#'     \item \strong{"sdm"}: SUR model of the Spatial Durbin type
-#'       \deqn{ y_{tg} = \lambda_{g} Wy_{tg} + X_{tg} \beta_{g} +
+#'     \item "slm": SUR model with spatial lags of the endogenous in 
+#'     the right hand side of the equations
+#'       \deqn{y_{tg} = \rho_{g} Wy_{tg} + X_{tg} \beta_{g} + \epsilon_{tg} }
+#'     \item "sdm": SUR model of the Spatial Durbin type
+#'       \deqn{ y_{tg} = \rho_{g} Wy_{tg} + X_{tg} \beta_{g} +
 #'              WX_{tg} \theta_{g} + \epsilon_{tg} }
 #'              }
 #'
 #'   where \eqn{y_{tg}} and \eqn{\epsilon_{tg}} are \emph{(Nx1)} vectors,
-#'   corresponding to the g-th equation and time period t; \eqn{X_{tg}} is the matrix
-#'   of regressors, of order \emph{(Nxp_{g})}. Moreover, \eqn{\lambda_{g}} is a
-#'   spatial coefficient and \emph{W} is a \emph{(NxN)} spatial weighting matrix.
+#'   corresponding to the g-th equation and time period t; \eqn{X_{tg}} is 
+#'   the matrix of regressors, of order \emph{(Nxp_{g})}. Moreover, 
+#'   \eqn{\rho_{g}} is a spatial coefficient and \emph{W} is a 
+#'   \emph{(NxN)} spatial weighting matrix.
 #'
-#'  By default, the input of this function is an object created with \code{\link[Formula]{Formula}} and
-#'  a data frame. However, \emph{spsur3sls} also allows for the direct especification of vector
-#'  \emph{Y} and matrix \emph{X}, with the explained variables and  regressors respectively, as
-#'  inputs (these terms may be the result, for example, of \code{\link{dgp_spsur}}). \cr
-#'
-#'
-#'  \emph{spsur3sls} is a Least-Squares procedure in three-stages designed to circumvent
-#'   the endogeneity problems due to the presence of spatial lags of the explained variable
-#'   in the right hand side of the equations do the SUR. The instruments are produced internally
-#'   by \emph{spsur3sls} using a sequence of spatial lags of the \emph{X} variables, which are assumed
-#'   to be exogenous. The user must define the number of (spatial) instruments to be used in the
-#'   procedure, through the argument \emph{maxlagW} (i.e. maxlagW=3). Then, the collection of
-#'   instruments generated is \eqn{[WX_{tg}; W*WX_{tg}; W*W*WX_{tg}]}. In the case of a \emph{SDM},
-#'   the first lag of the \emph{X} matrix already is in the equation and cannot be used as instrument.
-#'   In the example above, the list of instruments for a \emph{SDM} model would be
-#'   \eqn{[W^{2}X_{tg}; W^{3}X_{tg}]}.
-#'
-#'   The \emph{first} stage of the procedure consists in the least squares of the \emph{Y} variables
-#'   on the set of instruments. From this estimation, the procedure retains the estimates of \emph{Y}
-#'   in the so-called \emph{Yls} variables. In the \emph{second} stage, the \emph{Y} variables that
-#'   appear in the right hand side of the equation are substituted by \emph{Yls} and the SUR model
-#'   is estimated by Least Squares. The \emph{third} stage improves the estimates of the second stage
-#'   through a Feasible Generalized Least Squares estimation of the parameters of the model,
-#'   using the residuals of the \emph{second} stage to estimate the \emph{Sigma} matrix.
+#'  By default, the input of this function is an object created with 
+#'  \code{\link[Formula]{Formula}} and a data frame. However, 
+#'  \emph{spsur3sls} also allows for the direct especification of vector
+#'  \emph{Y} and matrix \emph{X}, with the explained variables and  regressors 
+#'  respectively, as inputs (these terms may be the result, for example, 
+#'  of \code{\link{dgp_spsur}}). \cr
 #'
 #'
-#'  The arguments \emph{R} and \emph{b} allows to introduce linear restrictions on the \emph{beta}
-#'  coefficients of the \emph{G} equations. \code{\link{spsur3sls}}, first, introduces the
-#'  linear restrictions in the SUR model and builds, internally, the corresponding constrained
-#'  SUR model. Then, the function estimates the restricted model which is shown in the output.
-#'  The function does not compute the unconstrained model nor test for the linear restrictions.
-#'  The user may ask for the unconstrained estimation using another \code{\link{spsurml}}
-#'  estimation. Moreover, the function \code{\link{wald_betas}} obtains the Wald test
-#'  of a set of linear restrictions for an object created previously
-#'  by \code{\link{spsurml}} or \code{\link{spsur3sls}}.
+#'  \code{spsur3sls} is a Least-Squares procedure in three-stages designed 
+#'  to circumvent the endogeneity problems due to the presence of spatial 
+#'  lags of the explained variable in the right hand side of the equations 
+#'  do the SUR. The instruments are produced internally by \code{spsur3sls} 
+#'  using a sequence of spatial lags of the \emph{X} variables, which are 
+#'  assumed to be exogenous. The user must define the number of (spatial) 
+#'  instruments to be used in the procedure, through the argument 
+#'  \code{maxlagW} (i.e. maxlagW=3). Then, the collection of instruments 
+#'  generated is \eqn{[WX_{tg}; W*WX_{tg}; W*W*WX_{tg}]}. In the case of 
+#'  a \emph{SDM}, the first lag of the \emph{X} matrix already is in the 
+#'  equation and cannot be used as instrument. In the example above, the 
+#'  list of instruments for a \emph{SDM} model would be 
+#'  \eqn{[W^{2}X_{tg}; W^{3}X_{tg}]}.
 #'
-#' @return
-#'  Output of the  three-stages Least-Squares estimation of the specified spatial model.
+#'   The \emph{first} stage of the procedure consists in the least squares 
+#'   of the \emph{Y} variables on the set of instruments. From this 
+#'   estimation, the procedure retains the estimates of \emph{Y}
+#'   in the so-called \emph{Yls} variables. In the \emph{second} stage, 
+#'   the \emph{Y} variables that appear in the right hand side of the equation 
+#'   are substituted by \emph{Yls} and the SUR model
+#'   is estimated by Least Squares. The \emph{third} stage improves the 
+#'   estimates of the second stage through a Feasible Generalized Least Squares 
+#'   estimation of the parameters of the model,
+#'   using the residuals of the \emph{second} stage to estimate the 
+#'   \emph{Sigma} matrix.
+#'
+#'
+#'  The arguments \emph{R} and \emph{b} allows to introduce linear 
+#'  restrictions on the \emph{beta} coefficients of the \emph{G} equations. 
+#'  \code{\link{spsur3sls}}, first, introduces the linear restrictions in 
+#'  the SUR model and builds, internally, the corresponding constrained
+#'  SUR model. Then, the function estimates the restricted model which is 
+#'  shown in the output. The function does not compute the unconstrained 
+#'  model nor test for the linear restrictions. The user may ask for the 
+#'  unconstrained estimation using another \code{\link{spsurml}}
+#'  estimation. Moreover, the function \code{\link{wald_betas}} obtains 
+#'  the Wald test of a set of linear restrictions for an object created 
+#'  previously by \code{\link{spsurml}} or \code{\link{spsur3sls}}.
+#'
+#' @return Object of \code{spsur} class with the output of the  three-stages 
+#'   least-squares estimation of the specified spatial model.
 #'   A list with:
 #'   \tabular{ll}{
 #'     \code{call} \tab Matched call. \cr
 #'     \code{type} \tab  Type of model specified. \cr
-#'     \code{betas} \tab Estimated coefficients for the regressors. \cr
+#'     \code{Durbin} \tab Value of \code{Durbin} argument. \cr
+#'     \code{coefficients} \tab Estimated coefficients for the regressors. \cr
 #'     \code{deltas} \tab Estimated spatial coefficients. \cr
-#'     \code{se_betas} \tab Estimated standard errors for the estimates of \emph{\eqn{\beta}} coefficients. \cr
-#'     \code{se_deltas} \tab Estimated standard errors for the estimates of the spatial coefficients. \cr
-#'     \code{cov} \tab Estimated covariance matrix for the estimates of \emph{beta's} and spatial coefficients.\cr
-#'     \code{R2} \tab Coefficient of determination for each equation, obtained as the squared
-#'      of the correlation coefficient between the corresponding explained variable and
-#'       its estimates. \emph{spsur3sls} also shows a \emph{global} coefficient of
-#'        determination obtained, in the same manner, for the set of \emph{G} equations. \cr
-#'     \code{Sigma} \tab Estimated covariance matrix for the residuals of the \emph{G} equations. \cr
-#'     \code{Sigma_corr} \tab Estimated correlation matrix for the residuals of the \emph{G} equations. \cr
-#'     \code{Sigma_inv} \tab Inverse of \code{Sigma}, the \emph{(GxG)} covariance matrix of
-#'      the residuals of the SUR model. \cr
+#'     \code{rest.se} \tab Estimated standard errors for the estimates of 
+#'       \emph{\eqn{\beta}} coefficients. \cr
+#'     \code{deltas.se} \tab Estimated standard errors for the estimates of 
+#'       the spatial coefficients. \cr
+#'     \code{resvar} \tab Estimated covariance matrix for the estimates of 
+#'       \emph{beta's} and spatial coefficients.\cr
+#'     \code{R2} \tab Coefficient of determination for each equation, 
+#'       obtained as the squared of the correlation coefficient between 
+#'       the corresponding explained variable and its estimates. 
+#'       \emph{spsur3sls} also shows a \emph{global} coefficient of
+#'        determination obtained, in the same manner, for the set of 
+#'        \emph{G} equations. \cr
+#'     \code{Sigma} \tab Estimated covariance matrix for the residuals of the 
+#'       \emph{G} equations. \cr
 #'     \code{residuals} \tab Residuals of the model. \cr
 #'     \code{df.residuals} \tab Degrees of freedom for the residuals. \cr
 #'     \code{fitted.values} \tab Estimated values for the dependent variables. \cr
@@ -97,10 +123,11 @@
 #'     \code{N} \tab Number of cross-sections or spatial units. \cr
 #'     \code{Tm} \tab Number of time periods. \cr
 #'     \code{p} \tab Number of regressors by equation (including intercepts). \cr
-#'     \code{demean} \tab Logical value used for demeaning. \cr
 #'     \code{Y} \tab Vector \emph{Y} of the explained variables of the SUR model. \cr
 #'     \code{X} \tab Matrix \emph{X} of the regressors of the SUR model. \cr
 #'     \code{W} \tab Spatial weighting matrix. \cr
+#'     \code{zero.policy} \tab Logical value of \code{zero.policy} . \cr
+#'     \code{listw_style} \tab	Style of neighborhood matrix \code{W}. \cr
 #'  }
 #'
 #' @author
@@ -123,7 +150,8 @@
 #'   }
 #'
 #' @seealso
-#' \code{\link{spsurml}}, \code{\link{wald_betas}}
+#' \code{\link{spsurml}}, \code{\link[spatialreg]{stsls}}, 
+#' \code{\link{wald_betas}}
 #'
 #' @examples
 #'
@@ -135,18 +163,33 @@
 #' ## A SUR model without spatial effects
 #' rm(list = ls()) # Clean memory
 #' data(spc)
+#' lwspc <- spdep::mat2listw(Wspc, style = "W")
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #'
 #' ## A SUR-SLM model (3SLS Estimation)
-#' spcsur.slm.3sls <-spsur3sls(Form = Tformula, data = spc,
-#'                             type = "slm", W = Wspc)
-#' summary(spcsur.slm.3sls)
+#' spcsur_slm_3sls <-spsur3sls(formula = Tformula, data = spc,
+#'                             type = "slm", listw = lwspc)
+#' summary(spcsur_slm_3sls)
+#' 
+#' ## VIP: If you want to examine a particular example eliminate '#' and 
+#' ## execute the code of the example (they have been commented to 
+#' ## pass the checking time in CRAN)
+#' 
+#' ## VIP: The output of the whole set of the examples can be examined 
+#' ## by executing demo(demo_spsur3sls, package="spsur")
 #'
 #' ## A SUR-SDM model (3SLS Estimation)
-#' spcsur.sdm.3sls <-spsur3sls(Form = Tformula, data = spc,
-#'                             type = "sdm", W = Wspc)
-#' summary(spcsur.sdm.3sls)
-#'
+#' # spcsur_sdm_3sls <-spsur3sls(formula = Tformula, data = spc,
+#' #                             type = "sdm", listw = lwspc)
+#' # summary(spcsur_sdm_3sls)
+#' 
+#' # A SUR-SDM model with different spatial lags in each equation
+#' # TformulaD <-  ~ UN83 + NMR83 + SMSA | UN80 + NMR80  
+#' # spcsur_sdm2_3sls <-spsur3sls(formula = Tformula, data = spc,
+#' #                             type = "sdm", listw = lwspc,
+#' #                             Durbin = TformulaD)
+#' # summary(spcsur_sdm2_3sls)
+#' 
 #' #################################################
 #' ######## PANEL DATA (G>1; Tm>1)         #########
 #' #################################################
@@ -156,29 +199,40 @@
 #' # U.S. counties.
 #' # Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' # https://geodacenter.github.io/data-and-lab/ncovr/
-#' rm(list = ls()) # Clean memory
-#' data(NCOVR)
-#' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
-#'
-#' ## A SUR-SLR model
-#' NCOVRSUR.slm.3sls <-spsur3sls(Form = Tformula, data = NCOVR, type = "slm",
-#'                             W = W, maxlagW = 2)
-#' summary(NCOVRSUR.slm.3sls)
+#' # rm(list = ls()) # Clean memory
+#' ## Read NCOVR.sf object
+#' # data(NCOVR, package = "spsur")
+#' # nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+#' ## Some regions with no links...
+#' # lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+#' # Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
+#' ## A SUR-SLM model
+#' # NCOVRSUR_slm_3sls <-spsur3sls(formula = Tformula, data = NCOVR.sf, 
+#' #                               type = "slm", zero.policy = TRUE,
+#' #                               listw = lwncovr, maxlagW = 2)
+#' # summary(NCOVRSUR_slm_3sls)
 #'
 #' @export
 spsur3sls <- function(formula = NULL, data = NULL, na.action, 
                       R = NULL, b = NULL, listw = NULL,
-                      quiet = NULL, zero.policy = NULL, 
+                      zero.policy = NULL, 
                       X = NULL, Y = NULL, G = NULL, N = NULL,
-                      Tm = NULL, p = NULL, demean = FALSE, 
-                      type = "slm",
-                      maxlagW = 2) {
+                      Tm = NULL, p = NULL,  
+                      type = "slm", Durbin = NULL,
+                      maxlagW = NULL) {
   # Función para estimar models SUR-SLM o SUR-SDM espaciales.
   # a través de Mínimos Cuadrados Tres Etapas (3SLS)
   # Spatial Models:  slm, sdm
   
-  if (!((type=="slm") || (type=="sdm")))
+  if (!((type == "slm") || (type == "sdm")))
     stop("3sls can only be used with slm or sdm models")
+  if (is.null(maxlagW)) {
+    if (type == "slm") {
+      maxlagW <- 2 
+    } else {
+      maxlagW <- 3
+    }
+  }  
   
   if (is.null(listw) || 
       !inherits(listw,c("listw","Matrix","matrix")))
@@ -205,7 +259,7 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
     G <- Tm
     Tm <- 1
   }
-  if (!is.null(formula) && !any(class(formula) == "Formula")) 
+  if (!is.null(formula) && !inherits(formula, "Formula")) 
     formula <- Formula::Formula(formula)
   cl <- match.call()
   if (!is.null(formula) && !is.null(data)) {
@@ -220,10 +274,8 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
     }
     W <- Matrix::Matrix(spdep::listw2mat(listw))
     if (type == "sdm") {
-      Durbin <- TRUE 
-      } else { 
-      Durbin <- FALSE 
-    }
+      if(!inherits(Durbin, "formula")) Durbin <- TRUE
+    } else { Durbin <- FALSE }
     get_XY <- get_data_spsur(formula = formula, mf = mf, 
                              Durbin = Durbin,
                              listw = listw, 
@@ -246,21 +298,10 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
   }
   if (length(p) == 1) p <- rep(p,G)
   names(p) <- NULL
-  
-  #VIP: CAMBIA MATRIZ R SI HAY RESTRICCIONES DADAS POR R Y b
-  # REDUCE EL VALOR DE p EN LA ÚLTIMA ECUACIÓN
   if (!is.null(R) & !is.null(b)) {
-    demean <- FALSE   # Demeaning isn't allowed in restricted case
-    restr <- X_restr(X=X,R=R,b=b,p=p)
+    restr <- X_restr(X = X, R = R, b = b, p = p)
     X <- restr$Xstar
     p <- restr$pstar
-  }
-  if (Tm < 2) demean <- FALSE # Demeaning is not allowed for Tm < 2
-  if (demean) {
-    demeanXY <- demeaning(X=X,Y=Y,G=G,N=N,Tm=Tm,p=p)
-    X <- demeanXY$Xdem
-    Y <- demeanXY$Ydem
-    p <- demeanXY$pdem
   }
   start_fit <- proc.time()[3]
   # Fits using 3sls
@@ -302,31 +343,37 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
   arrYhat <- array(Yhat,c(N,G,Tm))
   arrY <- array(Y,c(N,G,Tm))
   R2_eq <- rep(0,G)
-  for(i in 1:G){
+  for (i in 1:G) {
     R2_eq[i] <- cor(matrix(arrY[,i,],ncol=1),
                     matrix(arrYhat[,i,],ncol=1))^2
   }
   names(R2_eq) <- paste0("R2_eq",1:G)
   z$R2 <- c(R2_pool,R2_eq)
+  # Añadido por Fernando: Hay que incluir BP y LMM con las covarianzas numéricas
+  Sigma_corr <- stats::cov2cor(Sigma)
+  index_ltri <- lower.tri(Sigma_corr)
+  BP <- N*Tm*sum(Sigma_corr[index_ltri]^2)
   ret <- structure(list(call = cl, type = type, 
+                        Durbin = Durbin, 
                         G = G, N = N, Tm = Tm, 
                         deltas = deltas, 
                         deltas.se = deltas.se,  
                         coefficients = coefficients, 
                         rest.se = rest.se,
                         resvar = resvar, 
-                        p = p, dvars = dvars,
+                        p = p, 
+                        dvars = if(exists("dvars")) dvars else NULL,
                         parameters = parameters,
+                        BP=BP,
                         R2 = c(R2_pool,R2_eq),
                         Sigma = Sigma, 
                         residuals = z$residuals, 
                         df.residual = df.residual,
                         fitted.values = z$fitted.values, 
-                        se.fit = NULL,
-                        y = Y, X = X, W = W, 
-                        demean = demean,   
+                        Y = Y, X = X, W = W, 
                         zero.policy = zero.policy, 
-                        listw_style = listw$style), 
+                        listw_style = listw$style, 
+                        maxlagW = maxlagW), 
                    class = c("spsur"))
   
   if (zero.policy) {
@@ -335,6 +382,8 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
     if (length(zero.regs) > 0L) 
       attr(ret, "zero.regs") <- zero.regs
   }
-  if (!is.null(na.act)) ret$na.action <- na.act
+  if(exists("na.act")) { # It could not exist with data matrices
+    if (!is.null(na.act)) ret$na.action <- na.act
+  } 
   ret  
 }

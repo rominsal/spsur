@@ -11,8 +11,8 @@ get_array_E <- function(G){
 }
 
 #######################################################
-get_Sigma <- function(resids,N,G,Tm){
-  RR <- array(resids,dim=c(N,G,Tm))
+get_Sigma <- function(resids, N, G, Tm) {
+  RR <- array(resids, dim = c(N, G, Tm))
   Sigma <- diag(rep(1,G))
   for (i in 1:G){
     for (j in 1:G){
@@ -21,24 +21,24 @@ get_Sigma <- function(resids,N,G,Tm){
     }
   }
   Sigma_inv <- try(chol2inv(chol(Sigma)))
-  if(class(Sigma_inv)=="try-error")
-    Sigma_inv <- MASS::ginv(as.matrix(Sigma),tol=1e-40)
+  if (inherits(Sigma_inv, "try-error"))
+    Sigma_inv <- MASS::ginv(as.matrix(Sigma), tol = 1e-40)
 
-  Sigma_corr <- diag(rep(1,G))
-  for (i in 1:G){
-    for (j in 1:G){
-      Sigma_corr[i,j] <- cor(matrix(RR[,i,],ncol=1),
-                             matrix(RR[,j,],ncol=1))
+  Sigma_corr <- diag(rep(1, G))
+  for (i in 1:G) {
+    for (j in 1:G) {
+      Sigma_corr[i,j] <- cor(matrix(RR[,i,], ncol = 1),
+                             matrix(RR[,j,], ncol = 1))
     }
   }
   Sigma_corr_inv <- try(solve(Sigma_corr))
-  if(class(Sigma_corr_inv)=="try-error")
+  if (inherits(Sigma_corr_inv, "try-error"))
     Sigma_corr_inv <- MASS::ginv(as.matrix(Sigma_corr),
-                                 tol=1e-40)
-  res <- list(Sigma=as.matrix(Sigma),
-              Sigma_inv=as.matrix(Sigma_inv),
-              Sigma_corr=as.matrix(Sigma_corr),
-              Sigma_corr_inv=as.matrix(Sigma_corr_inv))
+                                 tol = 1e-40)
+  res <- list(Sigma = as.matrix(Sigma),
+              Sigma_inv = as.matrix(Sigma_inv),
+              Sigma_corr = as.matrix(Sigma_corr),
+              Sigma_corr_inv = as.matrix(Sigma_corr_inv))
   res
 }
 
