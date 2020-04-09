@@ -1,0 +1,37 @@
+\documentclass[10pt,a4paper]{article}
+  \usepackage[utf8]{inputenc}
+  \usepackage{amsmath,amsfonts,amsthm,bm,mathtools}
+
+\begin{document}
+
+\begin{align}
+ {\bf y}_{tg} &= \lambda_{g} {\bf W}{\bf y}_{tg} + {\bf X}_{tg} {\boldsymbol \beta}_{g} + 
+ {\bf W} {\bf X}_{tg}^* {\boldsymbol \gamma}_{g} + {\bf u}_{tg}   \\
+{\bf u}_{tg} &= \rho_{g} {\bf W} {\bf u}_{tg} + {\boldsymbol \varepsilon}_{tg}  \nonumber  
+\end{align}
+\begin{equation*}
+\begin{array}{cc} 
+E \left[ {\boldsymbol \varepsilon}_{tg} \right] = 0 & 
+E \left[ {\boldsymbol \varepsilon}_{tg} {\boldsymbol \varepsilon}'_{sh} \right] =
+\left\{ \begin{array}{cc} 
+\sigma_{gh} {\bf I}_{N} & t = s \\ 
+{\bf 0}_{N} & t \ne s 
+\end{array} \right.
+\end{array}
+\end{equation*}
+
+\begin{equation}
+\left.\begin{array}{lll}
+{\mathop{{\bf y}}\nolimits_{tg} =\mathop{\lambda }\nolimits_{g} {\bf W} \mathop{{\bf y}}\nolimits_{tg} +\mathop{{\bf X}}\nolimits_{tg} {\boldsymbol \beta}_{g}+{\bf W} {\bf X}_{tg}^* {\boldsymbol \gamma}_{g}+\mathop{{\bf u}}\nolimits_{tg} } \\
+{\mathop{{\bf u}}\nolimits_{tg} =\mathop{\rho }\nolimits_{g} {\bf W} \mathop{{\bf u}}\nolimits_{tg} +\mathop{{\boldsymbol \varepsilon}}\nolimits_{tg} }\\
+\begin{array}{cc} 
+{E\left[\mathop{{\boldsymbol \varepsilon}}\nolimits_{tg} \right]=0} & {E\left[\mathop{{\boldsymbol \varepsilon}}\nolimits_{\mathop{tg}} \mathop{{\boldsymbol \varepsilon}'}\nolimits_{\mathop{sh}} \right]=}
+\end{array}
+\left\{ \begin{array}{cc} {\mathop{\sigma}\nolimits_{gh} {\bf I}_{N}} & {\mathop{t} = \mathop{s}} \\ {{\bf 0}_{N} } & {\mathop{t} \ne \mathop{s} }
+\end{array}\right. 
+\end{array}\right.
+(\#eq:sure)
+\end{equation}
+
+
+\end{document}

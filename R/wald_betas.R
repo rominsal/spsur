@@ -79,7 +79,7 @@
 #' data(spc)
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #' ## Estimate SUR-SLM model
-#' spcsur.slm <- spsurml(Form = Tformula, data = spc, type = "slm", W = Wspc)
+#' spcsur.slm <- spsur3sls(Form = Tformula, data = spc, type = "slm", W = Wspc)
 #' summary(spcsur.slm)
 #' ## H_0: equality between SMSA coefficients in both equations.
 #' R1 <- matrix(c(0,0,0,1,0,0,0,-1), nrow=1)
@@ -91,12 +91,13 @@
 #'              nrow = 2, ncol = 8, byrow = TRUE)
 #' b2 <- matrix(c(0,0),ncol=1)
 #' wald_betas(results = spcsur.slm, R = R2, b = b2)
-#'
 #' ####################################
 #' ########  G=1; Tm>1         ########
 #' ####################################
 #'
 #' #### Example 2: Homicides + Socio-Economics (1960-90)
+#' \donttest{
+#' ## Usually takes 1-2 minutes maximum
 #' data(NCOVR)
 #' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
 #' #################################
@@ -106,27 +107,32 @@
 #' R1 <- matrix(c(0,1,0,0,-1,0), nrow=1)
 #' b1 <- matrix(0, ncol=1)
 #' wald_betas(results = NCOVRSUR.slm, R = R1, b = b1)
+#' }
 #' @export
- wald_betas <- function(results , R , b){
-  z <- results # OBJETO QUE INCLUYE ESTIMACIÓN EN Rbetas <- z$betas
-  betas <- Matrix::Matrix(matrix(z$betas,ncol=1))
-  rownames(betas) <- names(z$betas)
-  cov_betas <- Matrix::Matrix(z$cov[rownames(betas),rownames(betas)])
+ wald_betas <- function(object , R , b){
+  z <- object 
+  betas <- Matrix::Matrix(matrix(z$coefficients, ncol = 1))
+  rownames(betas) <- names(z$coefficients)
+  cov_betas <- Matrix::Matrix(z$resvar[rownames(betas),
+                                    rownames(betas)])
   R <- Matrix::Matrix(R)
   colnames(R) <- rownames(betas)
-  b <- Matrix::Matrix(matrix(b,ncol=1))
-  holg <- R %*% betas - b
-  q <- nrow(as.matrix(R))
-  Wald <- as.numeric( Matrix::t(holg) %*%
-                Matrix::solve(R %*% cov_betas %*% Matrix::t(R),holg) )
-  p_val <- pchisq(Wald,df=q,lower.tail=FALSE)
-  # cat("\n statistical discrepancies: "); print(as.matrix(holg))
-  cat("Wald stat.: ",round(Wald,3)," p-value: (",round(p_val,3),") \n",
-       sep = "")
-  res <- list(stat = Wald,
-              p_val = p_val,
-              q = q,
-              R = as.matrix(R),
-              b = as.matrix(b),
-              discr = as.matrix(holg) )
-}
+  b <- Matrix::Matrix(matrix(b, ncol=1))
+  holg <- (R %*% betas) - b
+  parameter <- nrow(as.matrix(R))
+  attr(parameter, "names") <- "df"
+  statistic <- as.numeric( Matrix::t(holg) %*%
+        Matrix::solve(R %*% cov_betas %*% Matrix::t(R),holg) )
+  attr(statistic, "names") <- "Wald test"
+  method <- paste("Wald test on beta parameters")
+  p.value <- pchisq(statistic, df = parameter, 
+                    lower.tail = FALSE)
+  estimate <- as.numeric(betas)
+  names(estimate) <- rownames(betas)
+  data.name <- z$call[[3]]
+  res <- list(statistic = statistic, parameter = parameter, 
+              p.value = p.value, estimate = estimate, 
+              method = method, data.name = data.name)
+  class(res) <- "htest"
+  res  
+ }

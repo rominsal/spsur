@@ -245,8 +245,8 @@ Wald_beta <- wald_betas(results=spcSUR.slm,R=R1,b=b1)
 ```{r}
 Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 R1 <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
-r1 <- matrix(0,ncol=1)
-spcSUR.sar.restring <- spsurml(Form=Tformula, data=spc, type="sar", W=Wspc,R=R1,r=r1)
+b1 <- matrix(0,ncol=1)
+spcSUR.sar.restring <- spsurml(Form=Tformula, data=spc, type="slm", W=Wspc,R=R1,b=b1)
 summary(spcSUR.sar.restring)
 ``` 
 
@@ -263,25 +263,25 @@ In this case the null is:
 > $H_{A}: \lambda_{83} \neq \lambda_{81}$    
 ```{r}
 # Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
-# spcSUR.sar <-spsurml(Form=Tformula,data=spc,type="sar",W=Wspc,trace=F)
+# spcSUR.slm <-spsurml(Form=Tformula,data=spc,type="slm",W=Wspc,trace=F)
 R1 <- matrix(c(1,-1),nrow=1)
-r1 <- matrix(0,ncol=1)
-res1 <- wald_deltas(results=spcSUR.sar,R=R1,r=r1)
+b1 <- matrix(0,ncol=1)
+res1 <- wald_deltas(results=spcSUR.slm,R=R1,b=b1)
 ```
 ### 3.3.3 Likekihood ratio tests `lr_betas_spsur`
 Alternatively to wald test, the Likelihoo Ration (LR) tests can be obtain using the `lr_betas_spsur` function.  
 
 ```{r}
 Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
-R <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
-r <- matrix(0,ncol=1)
-LR_SMSA <-  lr_betas_spsur(Form=Tformula,data=spc,W=Wspc,type="sar",R=R,r=r,trace=F,printmodels=F)
+R1 <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
+b1 <- matrix(0,ncol=1)
+LR_SMSA <-  lr_betas_spsur(Form=Tformula,data=spc,W=Wspc,type="slm",R=R1,b=b1,trace=F,printmodels=F)
 ```
 
 # 4. Step 4: Marginal Effects: `impacts`
 The marginal effects `impacts` of spatial autoregressive models (SUR-SAR; SUR-SDM; SUR-SARAR) has been calculated following the propose of LeSage and Pace (2009).  
 ```{r}
-eff.spcSUR.sar <-impacts(spcSUR.sar,nsim=299)
+eff.spcSUR.sar <-impacts(spcSUR.slm,nsim=299)
 ```
 # 5. Step 5: The `spSUR` in a panel data framework
 
@@ -299,14 +299,14 @@ By example with NAT data set:
 > * G = 2 (Two equations with different numbers of independent variables)  
 > * R = 3085 (Spatial observations)  
 
-A **SUR-SAR-PANEL** model  
+A **SUR-SLM-PANEL** model  
 $y_{gt} = \lambda_{g} Wy_{gt} + X_{gt} \beta_{g} + \epsilon_{gt};$   
 $\ g=1,...,G; \ t=1,...,T$  
 $Corr(\epsilon_{gt},\epsilon_{g't})=Corr(\epsilon_{g},\epsilon_{g'}) \neq 0$ for $(\forall t)$
 
 ```{r}
-Tformula <- HR | HC ~ UE + RD | UE
-spSUR.sar.panel <- spsurml(Form = Tformula,data=NATpanel,W=W,type="sar",nR=3085,nG=2,nT=4)
+Tformula <- HR80 | HC80 ~ UE80 + RD80 | UE80
+spSUR.sar.panel <- spsurml(Form = Tformula,data=NCOVR,W=W,type="slm",N=3085,G=2,Tm=4)
 summary(spSUR.sar.panel)
 ```
 ### 5.1.1 Unobserved effects: The `demaining` option
@@ -316,8 +316,8 @@ The most popular transformation is demeaning the data:
 To subtract the sampling averages of each individual, in every equation, from the corresponding observation.
 
 ```{r}
-Tformula <- HR | HC ~ UE + RD | UE
-spSUR.sar.panel <- spsurml(Form = Tformula,data=NATpanel,W=W,type="sar",nR=3085,nG=2,nT=4,demean = T)
+Tformula <- HR80 | HC80 ~ UE80 + RD80 | UE80
+spSUR.sar.panel <- spsurml(Form = Tformula,data=NCOVR,W=W,type="slm",N=3085,G=2,Tm=4,demean = T)
 summary(spSUR.sar.panel)
 ```
 

@@ -138,37 +138,31 @@
 #' @seealso
 #' \code{\link{spsurml}}, \code{\link{spsur3sls}}, \code{\link{spsurtime}}
 #' @examples
-#'
 #' ####################################
 #' ######## CROSS SECTION DATA ########
 #' ####################################
 #'
 #' ####################################
-#' #### Example 1: DGP SDM model
+#' #### Example 1: DGP SLM model
 #' ####################################
 #' rm(list = ls()) # Clean memory
 #' Tm <- 1 # Number of time periods
 #' G <- 3 # Number of equations
-#' N <- 500 # Number of spatial elements
+#' N <- 50 # Number of spatial elements
 #' p <- 3 # Number of independent variables
 #' Sigma <- matrix(0.3, ncol = G, nrow = G)
 #' diag(Sigma) <- 1
 #' Betas <- c(1,2,3,1,-1,0.5,1,-0.5,2)
-#' Thetas <- c(1,-1,0.5,-0.5,1,0)
 #' lambda <- 0.5 # level of spatial dependence
 #' rho <- 0.0 # spatial autocorrelation error term = 0
 #' #  random coordinates
 #' co <- cbind(runif(N,0,1),runif(N,0,1))
 #' W <- spdep::nb2mat(spdep::knn2nb(spdep::knearneigh(co, k = 5,
 #'                                                    longlat = FALSE)))
-#'
-#' DGP <- dgp_spsur(Sigma = Sigma, Betas = Betas, Thetas = Thetas,
+#' DGP <- dgp_spsur(Sigma = Sigma, Betas = Betas,
 #'                  rho = rho, lambda = lambda, Tm = Tm,
 #'                  G = G, N = N, p = p, W = W)
-#' SDM <- spsurml(W = W, X = DGP$X, Y = DGP$Y, Tm = Tm, N = N, G = G,
-#'                p = c(3,3,3), type = "sdm")
-#' summary(SDM)
-#' SLM <- spsurml(W = W, X = DGP$X, Y = DGP$Y, Tm = Tm, N = N, G = G,
+#' SLM <- spsur3sls(W = W, X = DGP$X, Y = DGP$Y, Tm = Tm, N = N, G = G,
 #'                p = c(3,3,3), type = "slm")
 #' summary(SLM)
 #'
@@ -176,6 +170,8 @@
 #' ### Example 2: DGP SEM model with Tm>1; G=1 and
 #' ### different p for each equation
 #' ####################################
+#' \donttest{
+#' ## It usually requires 1-2 minutes maximum
 #' rm(list = ls()) # Clean memory
 #' Tm <- 3 # Number of time periods
 #' G <- 1 # Number of equations
@@ -202,6 +198,7 @@
 #' ####################################
 #' #### Example with G>1 and Tm>>1
 #' ####################################
+#' ## It usually requires 1-2 minutes maximum
 #' rm(list = ls()) # Clean memory
 #' Tm <- 10 # Number of time periods
 #' G <- 3 # Number of equations
@@ -227,6 +224,7 @@
 #' SLM3_dem  <-spsurml(Y= DGP3$Y, X = DGP3$X, G = G, N = N, Tm = Tm,
 #'                   p = p, W = W, type = "slm", demean = TRUE)
 #' summary(SLM3_dem)
+#' }
 #'
 #' @export
 dgp_spsur <- function(Sigma, Tm = 1, G, N, Betas,
@@ -322,9 +320,11 @@ dgp_spsur <- function(Sigma, Tm = 1, G, N, Betas,
   IGR <- Matrix::Diagonal(G*N)
 
   # CAMBIA MATRIZ X Y COEFICIENTES EN EL CASO DURBIN
+  ## mMODIFICAR CÓDIGO....
   if (durbin) {
     WX <- (IT %x% IG %x% W) %*% X
-    dimnames(WX)[[2]] <- paste0("W_",colnames(X))
+    #dimnames(WX)[[2]] <- paste0("W_",colnames(X))
+    dimnames(WX)[[2]] <- paste0("lag.",colnames(X))
     Xdurbin <- NULL
     pdurbin <- p - 1 # Sin intercepto
     for (i in 1:length(p))

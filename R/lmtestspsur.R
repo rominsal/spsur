@@ -22,7 +22,7 @@
 #'  of the \emph{SUR} model: \cr
 #'
 #'     \deqn{y_{tg} = X_{tg} \beta_{g} + u_{tg}}
-#'     \deqn{E[u_{tg}u_{th}']= \sigma_{gh}I_{N} & E[u_{tg}u_{sh}']= 0 if t ne s}
+#'     \deqn{E[u_{tg}u_{th}']= \sigma_{gh}I_{N}  \quad E[u_{tg}u_{sh}']= 0 \mbox{ if } t ne s}
 #'
 #' where \eqn{y_{tg}} and \eqn{u_{tg}} are \emph{(Nx1)} vectors, corresponding to the g-th equation and time period t;
 #' \eqn{X_{tg}} is the matrix of exogenous variables, of order\emph{\eqn{(Nxp_{g})}}. Moreover, \eqn{\beta_{g}} is an unknown
@@ -101,17 +101,20 @@
 #' \code{\link{spsurml}}, \code{\link{lrtestspsur}}
 #'
 #' @examples
+#'
 #' #################################################
-#' ######## CROSS SECTION DATA (G>1; Tm=1) ########
+#' ######## CROSS SECTION DATA (G>1; Tm=1) # #######
 #' #################################################
 #'
 #' #### Example 1: Spatial Phillips-Curve. Anselin (1988, p. 203)
+#' rm(list = ls()) # Clean memory
 #' data("spc")
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #' LMs <- lmtestspsur(Form = Tformula, data = spc, W = Wspc)
 #'
+#' \dontrun{
 #' #################################################
-#' ######## PANEL DATA (G>1; Tm>1)         ########
+#' ######## PANEL DATA (G>1; Tm>1)          ########
 #' #################################################
 #'
 #' #### Example 2: Homicides & Socio-Economics (1960-90)
@@ -119,20 +122,20 @@
 #' # continental U.S. counties.
 #' # Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' # https://geodacenter.github.io/data-and-lab/ncovr/
-#' data("NCOVR")
-#' Tformula <- HR70 | HR80  | HR90 ~ PS70 + UE70 |PS80 + UE80 | PS90 + UE90
-#' LMs <- lmtestspsur(Form = Tformula, data = NCOVR, W = W)
 #'
+#' data("NCOVR")
 #' # With different number of exogenous variables in each equation
 #' Tformula <- HR70 | HR80  | HR90 ~ PS70 + UE70 | PS80 + UE80 +RD80 |
 #'             PS90 + UE90 + RD90 + PO90
 #' LMs <- lmtestspsur(Form = Tformula, data = NCOVR, W = W)
+#' }
 #'
 #' ################################################################
 #' ######## PANEL DATA: TEMPORAL CORRELATIONS (G=1; Tm>1) ########
 #' ################################################################
-#'
+#' \donttest{
 #' #### Example 3: NCOVR in panel data form
+#' ## Takes less than 1 minute
 #' data("NCOVR")
 #' Year <- as.numeric(kronecker(c(1960,1970,1980,1990),matrix(1,nrow = dim(NCOVR)[1])))
 #' HR <- c(NCOVR$HR60,NCOVR$HR70,NCOVR$HR80,NCOVR$HR90)
@@ -141,73 +144,118 @@
 #' NCOVRpanel <- as.data.frame(cbind(Year,HR,PS,UE))
 #' Tformula <- HR ~ PS + UE
 #' LM_time <- lmtestspsur(Form = Tformula, data = NCOVRpanel, time = Year, W = W)
+#' }
 #'
 #' @export
-lmtestspsur <- function(Form = NULL, data = NULL, W = NULL,
+#'
+lmtestspsur <- function(formula = NULL, data = NULL, na.action,
+                        listw = NULL, zero.policy = NULL,
                         X = NULL, Y = NULL, time = NULL,
-                        G = NULL, N = NULL, Tm = NULL,
-                        print_table = TRUE) {
-  if (is.null(W)) stop("W matrix is needed")
-  #check for row-standardization of W
-  if (!is.null(W)){
-    if (class(W) != "matrix") W <- as.matrix(W)
-    rsumW <- rowSums(W)
-    rsumW[rsumW == 0] <- 1
-    nW <- dim(W)[1]
-    W <- W / matrix(rep(rsumW, each = nW),
-                    nrow = nW, ncol = nW, byrow = TRUE)
-    W <- Matrix::Matrix(W)
+                        G = NULL, N = NULL, Tm = NULL, 
+                        p = NULL) {
+  if (is.null(listw) || !inherits(listw,c("listw","Matrix","matrix")))
+    stop("listw format unknown or NULL")
+  if (inherits(listw, "listw")) {
+    if (is.null(formula) || is.null(data)) {
+      W <- Matrix::Matrix(spdep::listw2mat(listw))
+    }  
   }
-
-  if (is.null(time)) {  # G > 1 (no temporal correlations are modelled)
-    if(!is.null(Form) && !is.null(data)){
-      # Lectura datos
-      if (!any(class(Form) == "Formula")) Form <- Formula::Formula(Form)
-      get_XY <- get_data_spsur(formula=Form,data=data,W=W)
+  if (inherits(listw, "matrix")) {
+    W <- Matrix::Matrix(listw)
+    listw <- spdep::mat2listw(W)
+  }  
+  if (inherits(listw, "Matrix")) {
+    W <- listw
+    listw <- spdep::mat2listw(as.matrix(W))
+  }
+  if (is.null(listw) || !inherits(listw,c("listw","Matrix","matrix")))
+    stop("listw format unknown or NULL")
+  if (inherits(listw, "listw")) {
+    if (is.null(formula) || is.null(data)) {
+      W <- Matrix::Matrix(spdep::listw2mat(listw))
+    }  
+  }
+  if (inherits(listw, "matrix")) {
+    W <- Matrix::Matrix(listw)
+    listw <- spdep::mat2listw(W)
+  }  
+  if (inherits(listw, "Matrix")) {
+    W <- listw
+    listw <- spdep::mat2listw(as.matrix(W))
+  } 
+  if (!is.null(Tm) && !is.null(G) && Tm > 1 && G == 1){
+    # Change dimensions in this case with matrix Data
+    G <- Tm
+    Tm <- 1
+  }
+  if (!is.null(formula) && !any(class(formula) == "Formula")) 
+    formula <- Formula::Formula(formula)
+  cl <- match.call()
+  
+  if (is.null(time)) { 
+    if (!is.null(formula) && !is.null(data)) {
+      mt <- terms(formula, data = data)
+      mf <- lm(formula, data = data, na.action = na.action, 
+               method = "model.frame")
+      mf$drop.unused.levels <- TRUE
+      na.act <- attr(mf, "na.action")
+      if (!is.null(na.act)) {
+        subset <- !(1:length(listw$neighbours) %in% na.act)
+        listw <- subset(listw, subset, zero.policy = zero.policy)
+      }
+      W <- Matrix::Matrix(spdep::listw2mat(listw))
+      get_XY <- get_data_spsur(formula = formula, mf = mf, 
+                               Durbin = FALSE,
+                               listw = listw, 
+                               zero.policy = zero.policy, 
+                               N = N)
       Y <- get_XY$Y
       X <- get_XY$X
       G <- get_XY$G
       N <- get_XY$N
       Tm <- get_XY$Tm
       p <- get_XY$p
-      rm(get_XY)
-    } else { ## Entry in matrix form.
-      if(G == 1 && Tm > 1){  ## If G == 1 and Tm > 1 change values...
+      dvars <- get_XY$dvars
+      if (Tm > 1 && G == 1){
+        # Change dimensions in this case with Matrix Data
         G <- Tm
         Tm <- 1
       }
+      rm(get_XY)
+      if (length(p) == 1) p <- rep(p,G)
     }
-  } else { #G = 1 and Tm > 1 (temporal correlations are modelled)
-    if (class(time) != "factor") time <- as.factor(time)
-    time <- droplevels(time)
-    if (length(time) != nrow(data)) stop("time must have same length than the
-                                         number of rows in data")
-    mt <- terms(Form)
-    G <- length(levels(time))
-    Ylist <- vector("list",G)
-    Xlist <- vector("list",G)
-    p <- NULL
-    namesX <- NULL
-    levels_time <- levels(time)
-    for (i in 1:G) {
-      data_i <- model.frame(mt,data=data[time==levels_time[i],])
-      Ylist[[i]] <- data_i[,1]
-      Xlist[[i]] <- model.matrix(mt,data=data[time==levels_time[i],])
-      p <- c(p,ncol(Xlist[[i]]))
-      namesX <- c(namesX,paste(colnames(Xlist[[i]]),i,sep="_"))
-    }
-    Y <- matrix(unlist(Ylist),ncol=1)
-    X <- as.matrix(Matrix::bdiag(Xlist))
-    colnames(X) <- namesX
-    N <- length(Ylist[[1]]); Tm <- 1
+  } else {  #G = 1 and Tm > 1 
+      if (class(time) != "factor") time <- as.factor(time)
+      time <- droplevels(time)
+      if (length(time) != nrow(data)) 
+        stop("time must have same length than the
+              number of rows in data")
+      mt <- terms(formula)
+      G <- length(levels(time))
+      Ylist <- vector("list", G)
+      Xlist <- vector("list", G)
+      p <- NULL
+      namesX <- NULL
+      levels_time <- levels(time)
+      for (i in 1:G) {
+        data_i <- model.frame(mt, data = data[time == 
+                                            levels_time[i],])
+        Ylist[[i]] <- data_i[, 1]
+        Xlist[[i]] <- model.matrix(mt, data = data[time==levels_time[i],])
+        p <- c(p,ncol(Xlist[[i]]))
+        namesX <- c(namesX, paste(colnames(Xlist[[i]]), 
+                                  i, sep="_"))
+      }
+      Y <- matrix(unlist(Ylist), ncol=1)
+      X <- as.matrix(Matrix::bdiag(Xlist))
+      colnames(X) <- namesX
+      N <- length(Ylist[[1]]); Tm <- 1
   }
-  res <- sur3_spdiag(Tm=Tm,G=G,N=N,Y=Y,X=X,W=W)
-  # cat(" \n\n")
-  table_results <- cbind( res$stat, res$df,
-                          pchisq(res$stat,res$df,lower.tail = FALSE) )
-  rownames(table_results) <- res$stat_names
-  colnames(table_results) <- c("LM-Stat.", "DF", "p-value")
-  if(print_table)  printCoefmat(table_results, P.values = TRUE,
-                                has.Pvalue = TRUE, digits = 4)
+  res <- sur3_spdiag(Tm = Tm, G = G, N = N, Y = Y,
+                     X = X, W = W)
+  cl <- match.call()
+  for (i in 1:length(res)) {
+    res[[i]]$data.name <- cl[[3]]
+  }
   return(res)
 }

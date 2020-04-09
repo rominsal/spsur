@@ -1,6 +1,6 @@
 
-fit_spsurslm_3sls <- function(Tm,G,N,Y,X,W,p,
-                            type,maxlagW=2,trace=TRUE){
+fit_spsurslm_3sls <- function(Tm, G, N, Y, X, W, p,
+                              type, maxlagW = 2){
   ## Crear matriz instrumentos para retardo espacial Wy
   IT <- Matrix::Diagonal(Tm)
   IG <- Matrix::Diagonal(G)
@@ -66,7 +66,7 @@ fit_spsurslm_3sls <- function(Tm,G,N,Y,X,W,p,
   OMEinv <- kronecker(IT,kronecker(Sigmainv,IR))
   full_3SLS <- Matrix::solve(Matrix::crossprod(Z_hat,OMEinv %*% Z_hat),
                         Matrix::crossprod(Z_hat,OMEinv %*% Y))
-  rownames(full_3SLS) <- sub("Wy","lambda",rownames(full_3SLS))
+  rownames(full_3SLS) <- sub("Wy","rho",rownames(full_3SLS))
   full_3SLS <- as.matrix(full_3SLS)
   cov_3SLS <- Matrix::solve( Matrix::t(Z_hat) %*%
                                      OMEinv %*% Z_hat )
@@ -80,21 +80,17 @@ fit_spsurslm_3sls <- function(Tm,G,N,Y,X,W,p,
   Yhat <- Z %*% full_3SLS ## OJO: USAMOS REGRESORES ORIGINALES
   Res <- Y - Yhat
 
-  betas_3SLS <- full_3SLS[!grepl("lambda",rownames(full_3SLS)),]
-  se_betas_3SLS <- se_full_3SLS[!grepl("lambda",names(se_full_3SLS))]
+  betas_3SLS <- full_3SLS[!grepl("rho",rownames(full_3SLS)),]
+  se_betas_3SLS <- se_full_3SLS[!grepl("rho",names(se_full_3SLS))]
 
-  deltas_3SLS <- full_3SLS[grepl("lambda",rownames(full_3SLS)),]
-  se_deltas_3SLS <- se_full_3SLS[grepl("lambda",names(se_full_3SLS))]
-
-
+  deltas_3SLS <- full_3SLS[grepl("rho",rownames(full_3SLS)),]
+  se_deltas_3SLS <- se_full_3SLS[grepl("rho",names(se_full_3SLS))]
    res <- list(deltas = deltas_3SLS,
-              se_deltas = se_deltas_3SLS,
-              betas = betas_3SLS,
-              se_betas = se_betas_3SLS,
-              cov = as.matrix(cov_3SLS),
+              deltas.se = se_deltas_3SLS,
+              coefficients = betas_3SLS,
+              rest.se = se_betas_3SLS,
+              resvar = as.matrix(cov_3SLS),
               Sigma = as.matrix(Sigma),
-              Sigma_inv = as.matrix(Sigmainv),
-              Sigma_corr = Sigmas$Sigma_corr,
               residuals = as.vector(Res),
               fitted.values = as.vector(Yhat)
   )

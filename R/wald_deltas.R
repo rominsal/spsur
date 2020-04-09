@@ -58,17 +58,19 @@
 #' rm(list = ls()) # Clean memory
 #' data(spc)
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
+#'
 #' #################################
 #' ## Estimate SUR-SLM model
-#' spcsur.slm <-spsurml(Form = Tformula, data = spc, type = "slm", W= Wspc)
+#' spcsur.slm <-spsur3sls(Form = Tformula, data = spc, type = "slm", W= Wspc)
 #' summary(spcsur.slm)
 #' ## H_0: equality of the lambda parameters of both equations.
 #' R1 <- matrix(c(1,-1), nrow=1)
 #' b1 <- matrix(0, ncol=1)
 #' wald_deltas(results = spcsur.slm, R = R1, b = b1)
-#'
+#' \donttest{
 #' #################################
 #' ## Estimate SUR-SEM model
+#' #' ## It usually requires 1-2 minutes maximum
 #' spcsur.sem <-spsurml(Form = Tformula, data = spc, type = "sem", W = Wspc)
 #' summary(spcsur.sem)
 #' ## H_0: equality of the rho parameters of both equations.
@@ -78,6 +80,7 @@
 #'
 #' #################################
 #' ## Estimate SUR-SARAR model
+#' ## It usually requires 2-3 minutes maximum
 #' spcsur.sarar <-spsurml(Form = Tformula, data = spc,
 #'                        type = "sarar", W = Wspc)
 #' summary(spcsur.sarar)
@@ -90,12 +93,12 @@
 #' ########  G=1; Tm>1         ########
 #' ####################################
 #'
-#' #### Example 2: Homicides + Socio-Economics (1960-90)
-#' \dontrun{
-#' # It could make an error out-of-memory in some computers
+#' #' #### Example 2: Homicides + Socio-Economics (1960-90)
+#' #' # It could make an error out-of-memory in some computers
 #' rm(list = ls()) # Clean memory
 #' data(NCOVR)
 #' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
+#'
 #' #################################
 #' ## A SUR-SLM model
 #' NCOVRSUR.slm <-spsurml(Form = Tformula, data = NCOVR, type = "slm", W = W)
@@ -104,6 +107,7 @@
 #' R1 <- matrix(c(1,-1), nrow=1)
 #' b1 <- matrix(0, ncol=1)
 #' wald_deltas(results = NCOVRSUR.slm, R = R1, b = b1)
+#'
 #' #################################
 #' ## Estimate SUR-SEM model
 #' NCOVRSUR.sem <-spsurml(Form = Tformula, data = NCOVR, type = "sem", W = W)
@@ -114,25 +118,30 @@
 #' wald_deltas(results = NCOVRSUR.sem, R = R2, b = b2)
 #' }
 #' @export
-wald_deltas <- function(results , R , b){
-  z <- results # OBJETO QUE INCLUYE ESTIMACIÓN EN Rbetas <- z$betas
-  deltas <- Matrix::Matrix(matrix(z$deltas,ncol=1))
+wald_deltas <- function(object , R , b){
+  z <- object 
+  deltas <- Matrix::Matrix(matrix(z$deltas, ncol = 1))
   rownames(deltas) <- names(z$deltas)
-  cov_deltas <- Matrix::Matrix(z$cov[rownames(deltas),rownames(deltas)])
+  cov_deltas <- Matrix::Matrix(z$resvar[rownames(deltas),
+                                        rownames(deltas)])
   R <- Matrix::Matrix(R)
-  colnames(R) <- rownames(deltas)
   b <- Matrix::Matrix(matrix(b,ncol=1))
-  holg <- R %*% deltas - b
-  q <- nrow(as.matrix(R))
-  Wald <- as.numeric(Matrix::t(holg) %*%
-                    Matrix::solve(R %*% cov_deltas %*% Matrix::t(R),holg)  )
-  p_val <- pchisq(Wald,df=q,lower.tail=FALSE)
-  #cat("\n statistical discrepancies: "); print(as.matrix(holg))
-  cat("\n Wald stat.: ",round(Wald,3)," (",round(p_val,3),")",sep="")
-  res <- list(stat = Wald,
-              p_val = p_val,
-              q = q,
-              R = as.matrix(R),
-              b = as.matrix(b),
-              discr = as.matrix(holg) )
+  holg <- (R %*% deltas) - b
+  parameter <- nrow(as.matrix(R))
+  attr(parameter, "names") <- "df"
+  statistic <- as.numeric(Matrix::t(holg) %*%
+                 Matrix::solve(R %*% cov_deltas %*% 
+                                 Matrix::t(R),holg)  )
+  attr(statistic, "names") <- "Wald test"
+  method <- paste("Wald test on spatial delta parameters")
+  p.value <- pchisq(statistic, df = parameter, 
+                    lower.tail = FALSE)
+  estimate <- as.numeric(deltas)
+  names(estimate) <- rownames(deltas)
+  data.name <- z$call[[3]]
+  res <- list(statistic = statistic, parameter = parameter, 
+              p.value = p.value, estimate = estimate, 
+              method = method, data.name = data.name)
+  class(res) <- "htest"
+  res  
 }

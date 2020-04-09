@@ -164,85 +164,89 @@
 #' NCOVRSUR.slm.3sls <-spsur3sls(Form = Tformula, data = NCOVR, type = "slm",
 #'                             W = W, maxlagW = 2)
 #' summary(NCOVRSUR.slm.3sls)
+#'
 #' @export
-spsur3sls <- function(Form = NULL, data = NULL, R = NULL, b = NULL,
-                      W = NULL, X = NULL, Y = NULL, G = NULL, N = NULL,
-                      Tm = NULL, p = NULL, demean = FALSE, type = "slm",
+spsur3sls <- function(formula = NULL, data = NULL, na.action, 
+                      R = NULL, b = NULL, listw = NULL,
+                      quiet = NULL, zero.policy = NULL, 
+                      X = NULL, Y = NULL, G = NULL, N = NULL,
+                      Tm = NULL, p = NULL, demean = FALSE, 
+                      type = "slm",
                       maxlagW = 2) {
-
   # Función para estimar models SUR-SLM o SUR-SDM espaciales.
   # a través de Mínimos Cuadrados Tres Etapas (3SLS)
   # Spatial Models:  slm, sdm
-
-  #check for row-standardization of W
-  if (!is.null(W)){
-    if (class(W) != "matrix") W <- as.matrix(W)
-    rsumW <- rowSums(W)
-    rsumW[rsumW == 0] <- 1
-    nW <- dim(W)[1]
-    W <- W / matrix(rep(rsumW, each = nW),
-                    nrow = nW, ncol = nW, byrow = TRUE)
-    W <- Matrix::Matrix(W)
+  
+  if (!((type=="slm") || (type=="sdm")))
+    stop("3sls can only be used with slm or sdm models")
+  
+  if (is.null(listw) || 
+      !inherits(listw,c("listw","Matrix","matrix")))
+    stop("listw format unknown or NULL")
+  if (inherits(listw, "listw")) {
+    if (is.null(formula) || is.null(data)) {
+      W <- Matrix::Matrix(spdep::listw2mat(listw))
+    }  
   }
-
+  if (inherits(listw, "matrix")) {
+    W <- Matrix::Matrix(listw)
+    listw <- spdep::mat2listw(W)
+  }  
+  if (inherits(listw, "Matrix")) {
+    W <- listw
+    listw <- spdep::mat2listw(as.matrix(W))
+  } 
+  
+  if (is.null(zero.policy))
+    zero.policy <- spatialreg::get.ZeroPolicyOption()
+  
   if (!is.null(Tm) && !is.null(G) && Tm > 1 && G == 1){
     #Change dimensions in this case with Matrix Data
     G <- Tm
     Tm <- 1
   }
-  if (!((type=="slm") || (type=="sdm")))
-  {
-    stop("3sls can only be used with slm or sdm models")
-  }
-  if(is.null(W) && !type=="ls") stop("W matrix is needed")
-  if(!is.null(W)) W <- Matrix::Matrix(W)
+  if (!is.null(formula) && !any(class(formula) == "Formula")) 
+    formula <- Formula::Formula(formula)
   cl <- match.call()
-  if(!is.null(Form) && !is.null(data)){
-    if (!any(class(Form) == "Formula")) Form <- Formula::Formula(Form)
-    mf <- match.call(expand.dots = FALSE)
-    m <- match(c("Formula", "data", "subset",
-                 "weights", "na.action",
-                 "offset"), names(mf), 0L)
-    mf <- mf[c(1L, m)]
+  if (!is.null(formula) && !is.null(data)) {
+    mt <- terms(formula, data = data)
+    mf <- lm(formula, data = data, na.action = na.action, 
+             method = "model.frame")
     mf$drop.unused.levels <- TRUE
-    mf[[1L]] <- quote(stats::model.frame)
-    mf <- eval(mf, parent.frame())
-    # Obtener Datos
-    if(!is.null(Form) & !any(class(Form)=="Formula")) {
-      Form <- Formula::Formula(Form)
+    na.act <- attr(mf, "na.action")
+    if (!is.null(na.act)) {
+      subset <- !(1:length(listw$neighbours) %in% na.act)
+      listw <- subset(listw, subset, zero.policy = zero.policy)
     }
-    get_XY <- get_data_spsur(formula=Form,data=data,W=W)
+    W <- Matrix::Matrix(spdep::listw2mat(listw))
+    if (type == "sdm") {
+      Durbin <- TRUE 
+      } else { 
+      Durbin <- FALSE 
+    }
+    get_XY <- get_data_spsur(formula = formula, mf = mf, 
+                             Durbin = Durbin,
+                             listw = listw, 
+                             zero.policy = zero.policy, 
+                             N = N)
     Y <- get_XY$Y
     X <- get_XY$X
     G <- get_XY$G
     N <- get_XY$N
     Tm <- get_XY$Tm
     p <- get_XY$p
-    rm(get_XY)
-    if (length(p)==1) p <- rep(p,G)
-  }
-  if (length(p)==1) p <- rep(p,G)
-  names(p) <- NULL
-  # CAMBIA MATRIZ X EN EL CASO DURBIN
-  if (type == "sdm") {
-    IT <- Matrix::Diagonal(Tm)
-    IG <- Matrix::Diagonal(G)
-    WX <- (IT %x% IG %x% W) %*% X
-    colnames(WX) <- paste0("W_",colnames(X))
-    Xdurbin <- NULL
-    for (i in 1:length(p))
-    {
-      if(i==1){
-        Xdurbin <- cbind(X[,1:p[i]],WX[,2:p[i]])
-      } else {
-        Xdurbin <- cbind(Xdurbin,
-                         X[,(cumsum(p)[i-1]+1):cumsum(p)[i]],
-                         WX[,(cumsum(p)[i-1]+2):cumsum(p)[i]]) # Sin intercepto
-      }
+    dvars <- get_XY$dvars
+    if (Tm > 1 && G == 1){
+      # Change dimensions in this case with Matrix Data
+      G <- Tm
+      Tm <- 1
     }
-    X <- as.matrix(Xdurbin); rm(Xdurbin)
-    p <- p + (p-1)  # Para el caso sdm cambia el p (ojo Intercepto)
+    rm(get_XY)
+    if (length(p) == 1) p <- rep(p,G)
   }
+  if (length(p) == 1) p <- rep(p,G)
+  names(p) <- NULL
+  
   #VIP: CAMBIA MATRIZ R SI HAY RESTRICCIONES DADAS POR R Y b
   # REDUCE EL VALOR DE p EN LA ÚLTIMA ECUACIÓN
   if (!is.null(R) & !is.null(b)) {
@@ -260,24 +264,37 @@ spsur3sls <- function(Form = NULL, data = NULL, R = NULL, b = NULL,
   }
   start_fit <- proc.time()[3]
   # Fits using 3sls
-  z <- fit_spsurslm_3sls(Tm=Tm,G=G,N=N,Y=Y,X=X,W=W,p=p,
-            type=type,maxlagW=maxlagW,trace=trace)
+  z <- fit_spsurslm_3sls(Tm = Tm, G = G, N = N, Y = Y,
+                         X = X, W = W, p = p,
+                         type = type, maxlagW = maxlagW)
   end_fit <- proc.time()[3]
   cat("Time to fit the model: ",
        end_fit-start_fit," seconds\n\n")
-  z$call <- cl
-  if(!is.null(Form) && !is.null(data)){
-    z$model <- mf
+  coefficients <- z$coefficients
+  deltas <- z$deltas
+  Sigma <- z$Sigma
+  names_sigma <- NULL
+  for (i in 1:G){
+    new_name <- paste0("sigma",i,sep="")
+    names_sigma <- c(names_sigma,new_name)
   }
-  z$type <- type
-  z$df.residual <- G*N*Tm -
-    (length(z$betas) + length(z$deltas) + G*(G+1)/2)
+  colnames(Sigma) <- rownames(Sigma) <- names_sigma
+  parameters <- length(coefficients) + 
+    length(deltas) + G*(G + 1)/2
+  df.residual <- G*N*Tm - parameters
   dn <- colnames(X)
-  if (is.null(dn)) dn <- paste0("x", 1L:(G*sum(p)),sep="")
-  names(z$betas) <- dn
-  z$LMM <- NULL
-  z$BP <- NULL
-  z$llsur <- NULL
+  if (is.null(dn)) dn <- paste0("x", 1L:(G*sum(p)), sep = "")
+  names(coefficients) <- dn
+  names_deltas <- NULL
+  for (i in 1:G) {
+    names_deltas[i] <- paste("rho", i, sep = "_")
+  }  
+  names(deltas) <- names_deltas
+  rest.se <- z$rest.se
+  names(rest.se) <- names(coefficients)
+  deltas.se <- z$deltas.se
+  names(deltas.se) <- names(deltas)
+  resvar <- z$resvar
   # Compute R^2 general and for each equation
   Yhat <- z$fitted.values
   R2_pool <- as.numeric((cor(Y,Yhat))^2)
@@ -291,14 +308,33 @@ spsur3sls <- function(Form = NULL, data = NULL, R = NULL, b = NULL,
   }
   names(R2_eq) <- paste0("R2_eq",1:G)
   z$R2 <- c(R2_pool,R2_eq)
-  z$p <- p
-  z$G <- G
-  z$N <- N
-  z$Tm <- Tm
-  z$Y <- Y
-  z$X <- X
-  z$W <- W
-  z$demean <- demean
-  class(z) <- c("spsur")
-  z
+  ret <- structure(list(call = cl, type = type, 
+                        G = G, N = N, Tm = Tm, 
+                        deltas = deltas, 
+                        deltas.se = deltas.se,  
+                        coefficients = coefficients, 
+                        rest.se = rest.se,
+                        resvar = resvar, 
+                        p = p, dvars = dvars,
+                        parameters = parameters,
+                        R2 = c(R2_pool,R2_eq),
+                        Sigma = Sigma, 
+                        residuals = z$residuals, 
+                        df.residual = df.residual,
+                        fitted.values = z$fitted.values, 
+                        se.fit = NULL,
+                        y = Y, X = X, W = W, 
+                        demean = demean,   
+                        zero.policy = zero.policy, 
+                        listw_style = listw$style), 
+                   class = c("spsur"))
+  
+  if (zero.policy) {
+    zero.regs <- attr(listw$neighbours, "region.id")[which(
+      spdep::card(listw$neighbours) == 0)]
+    if (length(zero.regs) > 0L) 
+      attr(ret, "zero.regs") <- zero.regs
+  }
+  if (!is.null(na.act)) ret$na.action <- na.act
+  ret  
 }

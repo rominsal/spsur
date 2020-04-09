@@ -1,104 +1,92 @@
-f_sur_sim <- function(Tm,G,N,Y,X,Sigma)
-{
-  # Log-lik SUR-SIM Spatio-Temporal Model
-  # (No Spatial Effects)
-  IT <- Matrix::Diagonal(Tm)
-  IR <- Matrix::Diagonal(N)
-  # OME <- kronecker(IT, kronecker(Sigma,IR))
-  Sigma_Inv <- solve(Sigma)
-  YY <- matrix(Y,nrow = N)
-  ITKSI <- kronecker(IT,Sigma_Inv)
-  IOME <- kronecker(ITKSI,IR)
-  YYOME <- matrix(YY%*%ITKSI,ncol = 1)
-  B_sim <- Matrix::solve(Matrix::crossprod(X,IOME%*%X),
-                         Matrix::crossprod(X,YYOME))
-  # B_sim <- Matrix::solve(Matrix::crossprod(X,Matrix::solve(OME,X)),
-  #                        Matrix::crossprod(X,Matrix::solve(OME,Y)))
-  Res <- matrix(Y - X%*%B_sim,ncol=1)
-  ldet_Sigma <- determinant(Sigma,logarithm=TRUE)$modulus
-  RES <- matrix(Res,nrow = N)
-  IOMER<-matrix(RES%*%kronecker(IT,Sigma_Inv),ncol = 1)
-  # chol_Sigma <- chol(Sigma)
-  # ldet_Sigma <- sum(2*log(diag(chol_Sigma)))
-  # llike <- as.numeric(-(Tm*G*N/2)*log(2*pi) -
-  #                     (N*Tm/2)*ldet_Sigma  -
-  #                    (1/2)*Matrix::crossprod(Res,Matrix::solve(OME,Res)))
-  llike <- as.numeric(-(Tm*G*N/2)*log(2*pi) -
-                        (N*Tm/2)*ldet_Sigma  -
-                        (1/2)*Matrix::crossprod(Res,IOMER))
-  return((-1)*llike)
-
-}
-######################################################
-
-f_sur_lag <- function(deltag,Tm,G,N,Y,X,W,Sigma){
-  W <- as(W,"dgCMatrix")
+f_sur_sim <- function(env) {
+  # Log-lik SUR-SIM Spatio-Temporal Model (No Spatial Effects)
+  G <- env$G; N <- env$N; Tm <- env$Tm
+  Y <- env$Y; X <- env$X; Sigma <- env$Sigma
+  Sigmainv <- Matrix::solve(Sigma)
   # Log-lik SUR-SLM Spatio-Temporal Model
   IT <- Matrix::Diagonal(Tm)
   IR <- Matrix::Diagonal(N)
-  IG <- Matrix::Diagonal(G)
-  IGR <- Matrix::Diagonal(G*N)
+  OMEinv <- kronecker(kronecker(IT,Sigmainv),IR)
+  B_sim <- Matrix::solve(Matrix::crossprod(X, OMEinv %*% X),
+                         Matrix::crossprod(X, OMEinv %*% Y))
+  Res <- Y - X %*% B_sim
+  ldet_Sigma <- Matrix::determinant(Sigma, logarithm=TRUE)$modulus
+  llike <- as.numeric( -(Tm*G*N/2)*log(2*pi) - (N*Tm/2)*ldet_Sigma
+                       - (1/2)*Matrix::crossprod(Res, OMEinv %*% Res) )
+  return((-1)*llike)
+}
+
+######################################################
+
+f_sur_lag <- function(deltag, env){
+  # Log-lik SUR-SLM Spatio-Temporal Model
+  if(!is.null(env$W)) W <- env$W else W <- as(env$listw, "CsparseMatrix")
+  G <- env$G; N <- env$N; Tm <- env$Tm
+  Y <- env$Y; X <- env$X; Sigma <- env$Sigma
+  Sigmainv <- Matrix::solve(Sigma)
+  IT <- Matrix::Diagonal(Tm)
+  IR <- Matrix::Diagonal(N)
+  IGR <- Matrix::Diagonal(N*G)
   lDAg <- Matrix::Matrix(0,nrow=length(deltag),ncol=1)
   for (i in 1:G)
   {
-    #lDAg[i] <- log(det(as.matrix(IR-deltag[i]*W)))
-    lDAg[i]  <- Matrix::determinant(IR-deltag[i]*W,logarithm=TRUE)$modulus
+    lDAg[i] <- spatialreg::do_ldet(deltag[i], env)
   }
-  delta <- Matrix::Matrix(diag(as.vector(deltag)))
-  # A <- as(kronecker(IT,(IGR - kronecker(delta,W))),"dgCMatrix")
-  YY <- matrix(Y,nrow = G*N)
-  AY <- matrix((IGR - kronecker(delta,W))%*%YY,ncol=1)
-  OME <- as(kronecker(kronecker(IT,Sigma),IR),"dgCMatrix")
-  B_slm <- Matrix::solve(Matrix::crossprod(X,Matrix::solve(OME,X)),
-                         Matrix::crossprod(X,Matrix::solve(OME,AY)))
-  Res <- matrix(AY - X%*%B_slm,nrow=nrow(Y))
-  ldet_Sigma <- determinant(Sigma,logarithm=TRUE)$modulus
-  #chol_Sigma <- chol(Sigma)
-  #ldet_Sigma <- sum(2*log(diag(chol_Sigma)))
-  llike <- as.numeric(-(Tm*G*N/2)*log(2*pi) - (N*Tm/2)*ldet_Sigma
-                      + Tm*sum(lDAg) - (1/2)*Matrix::crossprod(Res,Matrix::solve(OME,Res)))
+  delta <- Matrix::Diagonal(length(deltag),deltag)
+  AY <- (IGR - Matrix::kronecker(delta, W)) %*% matrix(Y, ncol=1)
+  OMEinv <- Matrix::kronecker(Matrix::kronecker(IT,Sigmainv),IR)
+  B_slm <- Matrix::solve(Matrix::crossprod(X, OMEinv %*% X),
+                         Matrix::crossprod(X, OMEinv %*% AY))
+  Res <- AY - X %*% B_slm
+  ldet_Sigma <- Matrix::determinant(Sigma,logarithm=TRUE)$modulus
+  llike <- as.numeric( -(Tm*G*N/2)*log(2*pi) - (N*Tm/2)*ldet_Sigma
+                      + Tm*sum(lDAg)
+                     - (1/2)*Matrix::crossprod(Res, OMEinv %*% Res) )
   # Minimize function
   return((-1)*llike)
 }
 
 ######################################################
 
-f_sur_sem <- function(deltag,Tm,G,N,Y,X,W,Sigma){
-  W <- as(W,"dgCMatrix")
+f_sur_sem <- function(deltag, env){
   # Log-lik SUR-SEM Spatio-Temporal Model
+  if(!is.null(env$W)) W <- env$W else W <- as(env$listw, "CsparseMatrix")
+  G <- env$G; N <- env$N; Tm <- env$Tm
+  Y <- env$Y; X <- env$X; Sigma <- env$Sigma
+  Sigmainv <- Matrix::solve(Sigma)
   IT <- Matrix::Diagonal(Tm)
   IR <- Matrix::Diagonal(N)
-  IG <- Matrix::Diagonal(G)
-  IGR <- Matrix::Diagonal(G*N)
+  IGR <- Matrix::Diagonal(N*G)
   lDBg <- Matrix::Matrix(0,nrow=length(deltag),ncol=1)
   for (i in 1:G)
   {
-    #lDBg[i] <- log(det(as.matrix(IR-deltag[i]*W)))
-    lDBg[i]  <- Matrix::determinant(IR-deltag[i]*W,logarithm=TRUE)$modulus
+    lDBg[i] <- spatialreg::do_ldet(deltag[i], env)
   }
-  delta <- Matrix::Matrix(diag(as.vector(deltag)))
+  delta <- Matrix::Diagonal(length(deltag),deltag)
   B <- kronecker(IT,(IGR - kronecker(delta,W)))
-  YY <- matrix(Y,nrow = G*N)
-  BY <- matrix((IGR - kronecker(delta,W))%*%YY,ncol=1)
-  OME <- as(kronecker(kronecker(IT,Sigma),IR),"dgCMatrix")
-  BX <- B%*%X
-  B_sem <-Matrix::solve(Matrix::crossprod(BX,Matrix::solve(OME,BX)),
-                        Matrix::crossprod(BX,Matrix::solve(OME,BY)))
-  rm(BX)
-  Res <- Y - X%*%B_sem
-  BRes <- B%*%Res
-  ldet_Sigma <- determinant(Sigma,logarithm=TRUE)$modulus
-  llike <- as.numeric(-(Tm*G*N/2)*log(2*pi)
-                      - (N*Tm/2)*ldet_Sigma
-                      + Tm*sum(lDBg)
-                      - (1/2)*Matrix::crossprod(BRes,Matrix::solve(OME,BRes)))
+  BY <- (IGR - Matrix::kronecker(delta,W)) %*% Y
+  BX <- (IGR - Matrix::kronecker(delta,W)) %*% X
+  OMEinv <- Matrix::kronecker(Matrix::kronecker(IT,Sigmainv),IR)
+  B_sem <-Matrix::solve(Matrix::crossprod(BX, OMEinv %*% BX),
+                        Matrix::crossprod(BX, OMEinv %*% BY))
+  Res <- Y - (X %*% B_sem)
+  BRes <- (IGR - kronecker(delta,W)) %*% Res
+  ldet_Sigma <- Matrix::determinant(Sigma,logarithm=TRUE)$modulus
+  llike <- as.numeric( -(Tm*G*N/2)*log(2*pi)
+                       - (N*Tm/2)*ldet_Sigma
+                       + Tm*sum(lDBg)
+                       - (1/2)*Matrix::crossprod(BRes, OMEinv %*% BRes) )
   return((-1)*llike)
 }
 
 ######################################################
 
-f_sur_sarar <- function(DELTA,Tm,G,N,Y,X,W,Sigma){
-  W <- as(W,"dgCMatrix")
+f_sur_sarar <- function(DELTA, env){
+  # Log-lik SUR-SARAR Spatio-Temporal Model
+  if(!is.null(env$W)) W <- env$W else W <- as(env$listw, "CsparseMatrix")
+  G <- env$G; N <- env$N; Tm <- env$Tm
+  Y <- env$Y; X <- env$X; Sigma <- env$Sigma
+  Sigmainv <- Matrix::solve(Sigma)
   IT <- Matrix::Diagonal(Tm)
   IR <- Matrix::Diagonal(N)
   IG <- Matrix::Diagonal(G)
@@ -111,27 +99,27 @@ f_sur_sarar <- function(DELTA,Tm,G,N,Y,X,W,Sigma){
     #lDAg[i] <- log(det(as.matrix(IR-deltag[i]*W)))
     lDAg[i] <- Matrix::determinant(IR-deltag[i]*W,logarithm=TRUE)$modulus
   }
-  lDBg <- matrix(0,nrow=length(deltah),ncol=1)
+  lDBg <- Matrix::Matrix(0,nrow=length(deltah),ncol=1)
   for (i in 1:G)
   {
     #lDBg[i] <- log(det(as.matrix(IR-deltah[i]*W)))
     lDBg[i] <- Matrix::determinant(IR-deltah[i]*W,logarithm=TRUE)$modulus
   }
-  deltaG <- Matrix::Matrix(diag(as.vector(deltag)))
-  deltaH <- Matrix::Matrix(diag(as.vector(deltah)))
+  deltaG <- Matrix::Diagonal(length(deltag),deltag)
+  deltaH <- Matrix::Diagonal(length(deltah),deltah)
   # A <- as(kronecker(IT,(IGR - kronecker(deltaG,W))),"dgCMatrix")
-  YY <- matrix(Y,nrow = G*N)
-  AY <- matrix((IGR - kronecker(deltaG,W))%*%YY,ncol=1)
-  B <- kronecker(IT,IGR - kronecker(deltaH,W))
-  OME <- as(kronecker(IT,kronecker(Sigma,IR)),"dgCMatrix")
-  BX <- B%*%X
+  AY <- matrix((IGR - kronecker(deltaG,W)) %*% Y, ncol=1)
+  #B <- kronecker(IT, IGR - kronecker(deltaH,W))
+  OME <- kronecker(IT,kronecker(Sigma,IR))
+  BX <- kronecker(IT, IGR - kronecker(deltaH,W)) %*% X
+  BAY <- kronecker(IT, IGR - kronecker(deltaH,W)) %*% AY
   # Sigma_inv <- solve(Sigma)
   B_sarar <- Matrix::solve(Matrix::crossprod(BX,Matrix::solve(OME,BX)),
-                           Matrix::crossprod(BX,Matrix::solve(OME,B%*%AY)))
+                           Matrix::crossprod(BX,Matrix::solve(OME,BAY)))
   rm(BX)
-  Res <- AY - X%*%B_sarar
-  BRes <- B%*%Res
-  ldet_Sigma <- determinant(Sigma,logarithm=TRUE)$modulus
+  Res <- AY - (X %*% B_sarar)
+  BRes <- kronecker(IT, IGR - kronecker(deltaH,W)) %*% Res
+  ldet_Sigma <- Matrix::determinant(Sigma,logarithm=TRUE)$modulus
   llike <- as.numeric(-(Tm*G*N/2)*log(2*pi)
                       - (N*Tm/2)*ldet_Sigma
                       + Tm*sum(lDAg) + Tm*sum(lDBg)

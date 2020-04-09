@@ -55,7 +55,7 @@
 #'
 #' @examples
 #' #################################################
-#' ######## CROSS SECTION DATA (G>1; Tm=1) ########
+#' ######## CROSS SECTION DATA (G>1; Tm=1)  ########
 #' #################################################
 #'
 #' #### Example 1: Spatial Phillips-Curve. Anselin (1988, p. 203)
@@ -66,32 +66,20 @@
 #' R <- matrix(c(0,0,0,1,0,0,0,-1),nrow=1)
 #' b <- matrix(0,ncol=1)
 #' LR_SMSA <-  lr_betas_spsur(Form = Tformula, data = spc, W = Wspc,
-#'                            type = "slm", R = R, b = b, trace = TRUE,
+#'                            type = "sim", R = R, b = b, trace = TRUE,
 #'                            printmodels = TRUE)
 #'
+#' ################################################
+#' ####### PANEL DATA (G>1; Tm>1)          ########
+#' ################################################
 #'
-#################################################
-######## PANEL DATA (G>1; Tm>1)         ########
-#################################################
-#'
-#### Example 2: Homicides + Socio-Economics (1960-90)
-# Homicides and selected socio-economic characteristics for continental
-# U.S. counties.
-# Data for four decennial census years: 1960, 1970, 1980 and 1990.
-# \url{https://geodacenter.github.io/data-and-lab/ncovr/}
-#'
-#'
-#################################################
-######## PANEL DATA (G>1; Tm>1)         ########
-#################################################
-#'
-#'#### Example 2: Homicides + Socio-Economics (1960-90)
-#'# Homicides and selected socio-economic characteristics for continental
-#'# U.S. counties.
-#'# Data for four decennial census years: 1960, 1970, 1980 and 1990.
-#'# \url{https://geodacenter.github.io/data-and-lab/ncovr/}
-#' \dontrun{
-#' ### Only execute if you have enough memory...
+#' #### Example 2: Homicides + Socio-Economics (1960-90)
+#' # Homicides and selected socio-economic characteristics for continental
+#' # U.S. counties.
+#' # Data for four decennial census years: 1960, 1970, 1980 and 1990.
+#' # \url{https://geodacenter.github.io/data-and-lab/ncovr/}
+#' \donttest{
+#' ## It usually requires 1-2 minutes maximum
 #' rm(list = ls()) # Clean memory
 #' data(NCOVR)
 #' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
@@ -99,14 +87,15 @@
 #' R <- matrix(c(0,1,0,0,-1,0),nrow=1)
 #' b <- matrix(0,ncol=1)
 #' LR_PS <-  lr_betas_spsur(Form = Tformula, data = NCOVR, W = W,
-#'                         type = 'slm', R = R, b = b, printmodels = TRUE)
-#' }
+#'                         type = 'slm', R = R, b = b, printmodels = FALSE)
+#'
+#'}
 #' ################################################################
 #' ######## PANEL DATA: TEMPORAL CORRELATIONS (nG=1; nT>1) ########
 #' ################################################################
 #' ## Example 3: with classical panel data set. Database is
 #' ##            a spatio-temporal panel
-#' \dontrun{
+#' \donttest{
 #' ### Only execute if you have enough memory...
 #' rm(list = ls()) # Clean memory
 #' data(NCOVR)
@@ -132,70 +121,27 @@
 #'                                printmodels = FALSE)
 #' }
 #' @export
-lr_betas_spsur <- function(Form = NULL, data = NULL, R = NULL, b = NULL,
-                          W = NULL, time = NULL, X = NULL, Y = NULL,
-                          G = NULL, N = NULL, Tm = NULL, p = NULL,
-                          type = "sim", printmodels = FALSE,
-                          cov = FALSE, trace = FALSE) {
-
-  if (is.null(R) || is.null(b)) stop("R and b must be specified as arguments")
-  if (printmodels) cov <- TRUE
-
-  start_fit <- proc.time()[3]
-  cat("\n Fitting unrestricted model ... \n")
-  if (is.null(time)){
-    spcsur_unr <-spsurml(Form = Form, data = data, type = type, W = W,
-                         cov = cov, control = list(tol = 1e-3,
-                                                   maxit = 200,
-                                                   trace = trace) )
-  } else {
-    spcsur_unr <-spsurtime(Form = Form, data =data, type = type, W = W,
-                           time = time, method = "ml", cov = cov,
-                           trace = trace)
-  }
-  ll_unr <- spcsur_unr$llsur
-  # betas_unr <-  spcsur_unr$betas
-  # holg <- R %*% matrix(betas_unr,ncol=1) - b
-  end_fit <- proc.time()[3]
-  cat("\n Time to fit unrestricted model: ",end_fit-start_fit," seconds\n")
-
-  start_fit <- proc.time()[3]
-  cat("\n Fitting restricted model ... \n")
-  if (is.null(time)){
-    spcsur_res <-spsurml(Form = Form, data = data, R = R, b = b,
-                         type = type, W = W, cov = cov,
-                         control = list(tol = 0.05, maxit = 200,
-                                        trace = trace) )
-  } else {
-    spcsur_res <-spsurtime(Form = Form, data = data, R = R, b = b,
-                           type = type, W = W, time = time,
-                           method = "ml", cov = cov, trace = trace)
-  }
-  ll_res <- spcsur_res$llsur
-  end_fit <- proc.time()[3]
-  cat("Time to fit restricted model: ",end_fit-start_fit," seconds\n")
-
-  lr_stat <- -2*(ll_res-ll_unr)
-  lr_df <- nrow(R)
-  lr_pval <- pchisq(lr_stat,df=lr_df,lower.tail=FALSE)
-
-  cat("\n LR-Test \n")
-  cat("\n Log-likelihood unrestricted model: ",round(ll_unr,3))
-  cat("\n Log-likelihood restricted model: ",round(ll_res,3))
-  cat("\n LR statistic: ",round(lr_stat,3)," degrees of freedom: ",round(lr_df,4),
-      " p-value: (",lr_pval,")")
-  if (printmodels) {
-    cat("\n\n UNRESTRICTED MODEL \n")
-    print(summary(spcsur_unr))
-    cat("\n\n RESTRICTED MODEL \n")
-    print(summary(spcsur_res))
-  }
-  res <- list(statistic=lr_stat,
-              p_val=lr_pval,
-              df=lr_df,
-              llik_unr=ll_unr,
-              llik_res=ll_res,
-              R=R,
-              b=b,
-              type=type)
+lr_betas <- function(object, R, b) {
+  modelu <- object 
+  lliku <- logLik(modelu)
+  cat("\n Fitting restricted model...\n")
+  modelr <- update(modelu, R = R, b = b) 
+  llikr <- logLik(modelr)
+  statistic <- -2*(llikr-lliku)
+  attr(statistic, "names") <- "Likelihood ratio"
+  parameter <- abs(attr(llikr, "df") - attr(lliku, "df"))
+  if (parameter < 1) 
+    stop("non-positive degrees of freedom: no test possible")
+  attr(parameter, "names") <- "df"
+  p.value <- 1 - pchisq(abs(statistic), parameter)
+  estimate <- c(llikr, lliku)
+  attr(estimate, "names") <- c("Log likelihood of restricted model", 
+                               "Log likelihood of unrestricted model")
+  method <- "Likelihood ratio on beta parameters"
+  data.name <- modelu$call[[3]]
+  res <- list(statistic = statistic, parameter = parameter, 
+              p.value = p.value, estimate = estimate, 
+              method = method, data.name = data.name)
+  class(res) <- "htest"
+  res
 }

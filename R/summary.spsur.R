@@ -34,18 +34,23 @@
 summary.spsur <- function(object, ...) {
   z <- object
   stopifnot(inherits(z, "spsur"))
-  G <- z$G; N <- z$N; Tm <- z$Tm; p <- z$p
+  G <- z$G; N <- z$N; Tm <- z$Tm; p <- z$p 
   rdf <- z$df.residual
   r <- z$residuals
   f <- z$fitted.values
   rss <- sum(r^2)
   resvar <- rss/rdf
-  betas <- z$betas
-  se_betas <- z$se_betas
+  betas <- z$coefficients
+  se_betas <- z$rest.se
   t_betas <- betas / se_betas
   deltas <- z$deltas
-  se_deltas <- z$se_deltas
+  se_deltas <- z$deltas.se
   t_deltas <- deltas / se_deltas
+  Sigma <- z$Sigma
+  allSigmas <- get_Sigma(r, N, G, Tm)
+  z$Sigma_corr <- allSigmas$Sigma_corr
+  z$Sigma_inv <- allSigmas$Sigma_inv
+  rm(allSigmas)
   z$coef_table <- list(NULL)
  # Build coefficients table by Equation
   for (i in 1:G)

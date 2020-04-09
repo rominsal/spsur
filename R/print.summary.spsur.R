@@ -40,7 +40,7 @@ print.summary.spsur <- function(x, digits = max(3L, getOption("digits") - 3L),
   cat("Variance-Covariance Matrix of inter-equation residuals:")
   prmatrix(x$Sigma,digits=5,
         rowlab=rep("",nrow(x$Sigma)), collab=rep("",ncol(x$Sigma)))
-
+  
   cat("Correlation Matrix of inter-equation residuals:")
   prmatrix(x$Sigma_corr,digits=3,
            rowlab=rep("",nrow(x$Sigma)), collab=rep("",ncol(x$Sigma)))

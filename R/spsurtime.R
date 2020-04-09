@@ -112,6 +112,24 @@
 #'
 #' ## Example 1:
 #' rm(list = ls()) # Clean memory
+#' N <- nrow(spc)
+#' Tm <- 2
+#' index_time <- rep(1:Tm, each = N)
+#' index_indiv <- rep(1:N, Tm)
+#' WAGE <- c(spc$WAGE83, spc$WAGE81)
+#' UN <- c(spc$UN83, spc$UN80)
+#' NMR <- c(spc$NMR83, spc$NMR80)
+#' SMSA <- c(spc$SMSA, spc$SMSA)
+#' pspc <- data.frame(index_indiv,index_time,WAGE,UN,NMR,SMSA)
+#' form_pspc <- WAGE ~ UN + NMR + SMSA
+#'
+#' # SLM by 3SLS
+#' pspc_slm <- spsurtime(Form = form_pspc, data = pspc, W = Wspc,
+#'                       time = pspc$index_time, type = "slm", method = "3sls")
+#'                       summary(pspc_slm)
+#' \donttest{
+#' ## Example 2:
+#' rm(list = ls()) # Clean memory
 #' data(NCOVR,package="spsur")
 #' N <- nrow(NCOVR)
 #' Tm <- 4
@@ -127,9 +145,9 @@
 #'
 #' # SIM by ML
 #'
-#' pHR_sim <- spsurtime(Form = form_pHR, data = pNCOVR, W = W,
-#'                      time = pNCOVR$time, type = "sim", method = "ml")
-#' summary(pHR_sim)
+#' ## pHR_sim <- spsurtime(Form = form_pHR, data = pNCOVR, W = W,
+#' ##                    time = pNCOVR$time, type = "sim", method = "ml")
+#' ## summary(pHR_sim)
 #'
 #' # SLM by 3SLS
 #'
@@ -137,8 +155,9 @@
 #'                      time = pNCOVR$time, type = "slm", method = "3sls")
 #' summary(pHR_slm)
 #'
-#'
 #' ############################ LR tests about betas in spatio-temporal models
+#'
+#' ## Usually takes less than 1 minute
 #' ## H0: equal PS and UE beta in equations 3 and 4 al
 #' R <- matrix(0,nrow=2,ncol=12)
 #' R[1,8] <- 1; R[1,11] <- -1
@@ -160,6 +179,8 @@
 #' R2[1,1] <- 1; R2[1,2] <- -1
 #' b2 <- matrix(0, nrow = 1, ncol = 1)
 #' wald_deltas(pHR_slm, R = R2, b = b2)
+#' }
+#'
 #' @export
 spsurtime <- function(Form, data, time, type = "sim",  method = "ml",
                       maxlagW = 2, W = NULL, cov = TRUE,
