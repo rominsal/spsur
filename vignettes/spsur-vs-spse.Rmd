@@ -5,7 +5,7 @@ author:
   - Román Mínguez, Universidad de Castilla la Mancha (Spain) 
   - Fernando A. López, Universidad Politécnica de Cartagena (Spain) 
   - Jesús Mur, Universidad de Zaragoza (Spain) <br> <br> <br>
-date: "2020-04-09 14:26:27 <br>  <br> <br>"
+date: "2020-04-10 11:30:33 <br>  <br> <br>"
 output: 
   html_document:
     df_print: kable
@@ -354,7 +354,7 @@ list.spse.N52.slm[[i]] <- spse::spseml(formula_spse, data = data.spse.N52[[i]], 
 ```
 
 ```
-## Error in loadNamespace(name): there is no package called 'spse'
+## Loading required package: nlme
 ```
 
 ```r
@@ -363,13 +363,6 @@ list.spse.N52.slm[[i]] <- spse::spseml(formula_spse, data = data.spse.N52[[i]], 
  for (i in 1:it){
    results.spse.N52[i,] <- c(as.vector(list.spse.N52.slm[[i]]$coefficients),list.spse.N52.slm[[i]]$rho)
  }
-```
-
-```
-## Error in list.spse.N52.slm[[i]]: subíndice fuera de  los límites
-```
-
-```r
  colnames(results.spse.N52) <- c("b10.spse","b11.spse","b12.spse","b20.spse","b21.spse","b22.spse","rho1.spse","rho2.spse")
 ```
 
@@ -383,25 +376,11 @@ formula_spse <- list(tp1 = eq1,tp2 = eq2)
 list.spse.N525.slm[[i]] <- spse::spseml(formula_spse, data = data.spse.N525[[i]], w = listw, model = "lag",
                               method = "Matrix", quiet = TRUE)
 }
-```
-
-```
-## Error in loadNamespace(name): there is no package called 'spse'
-```
-
-```r
  # save coefficients
  results.spse.N525 <- matrix(0, ncol = 8,nrow = it)
  for (i in 1:it){
    results.spse.N525[i,] <- c(as.vector(list.spse.N525.slm[[i]]$coefficients),list.spse.N525.slm[[i]]$rho)
  }
-```
-
-```
-## Error in list.spse.N525.slm[[i]]: subíndice fuera de  los límites
-```
-
-```r
  colnames(results.spse.N525) <- c("b10.spse","b11.spse","b12.spse","b20.spse","b21.spse","b22.spse","rho1.spse","rho2.spse")
 ```
 
@@ -699,25 +678,11 @@ formula_spse <- list(tp1 = eq1,tp2 = eq2)
 list.spse.sem.N52[[i]] <- spse::spseml(formula_spse, data = data.spse.sem.N52[[i]], w = listw, model = "error",
                               method = "Matrix", quiet = TRUE)
 }
-```
-
-```
-## Error in loadNamespace(name): there is no package called 'spse'
-```
-
-```r
  # save coefficients
  results.spse.sem.N52 <- matrix(0, ncol = 8,nrow = it)
  for (i in 1:it){
    results.spse.sem.N52[i,] <- c(as.vector(list.spse.sem.N52[[i]]$coefficients),list.spse.sem.N52[[i]]$rho)
  }
-```
-
-```
-## Error in list.spse.sem.N52[[i]]: subíndice fuera de  los límites
-```
-
-```r
  colnames(results.spse.sem.N52) <- c("b10.spse","b11.spse","b12.spse","b20.spse","b21.spse","b22.spse","rho1.spse","rho2.spse")
 ```
 
@@ -731,25 +696,11 @@ formula_spse <- list(tp1 = eq1,tp2 = eq2)
 list.spse.sem.N525[[i]] <- spse::spseml(formula_spse, data = data.spse.sem.N525[[i]], w = listw, model = "error",
                               method = "Matrix", quiet = TRUE)
 }
-```
-
-```
-## Error in loadNamespace(name): there is no package called 'spse'
-```
-
-```r
  # save coefficients
  results.spse.sem.N525<-matrix(0, ncol = 8,nrow = it)
  for (i in 1:it){
    results.spse.sem.N525[i,] <- c(as.vector(list.spse.sem.N525[[i]]$coefficients),list.spse.sem.N525[[i]]$rho)
  }
-```
-
-```
-## Error in list.spse.sem.N525[[i]]: subíndice fuera de  los límites
-```
-
-```r
  colnames(results.spse.sem.N525) <- c("b10.spse","b11.spse","b12.spse","b20.spse","b21.spse","b22.spse","rho1.spse","rho2.spse")
 ```
 
