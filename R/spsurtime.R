@@ -221,7 +221,7 @@ spsurtime <- function(formula, data, time, na.action,
   if (fit_method == "ml") {
     res <- spsurml(X = X, Y = Y, listw = listw, method = method,
                    G = G, N = N, Tm = Tm, na.action = na.act,
-                   p = p, R = R, b = b, type = type, R = R, b = b,
+                   p = p, R = R, b = b, type = type, 
                    control = control)
   }
   if (fit_method == "3sls") {
