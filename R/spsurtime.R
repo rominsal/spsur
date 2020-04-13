@@ -221,13 +221,14 @@ spsurtime <- function(formula, data, time, na.action,
   if (fit_method == "ml") {
     res <- spsurml(X = X, Y = Y, listw = listw, method = method,
                    G = G, N = N, Tm = Tm, na.action = na.act,
-                   p = p, R = R, b = b, type = type, 
+                   p = p, R = R, b = b, type = type, R = R, b = b,
                    control = control)
   }
   if (fit_method == "3sls") {
     res <- spsur3sls(X = X, Y = Y, listw = listw, na.action = na.act,
                      G = G, N = N, Tm = Tm,
-                     p = p, type = type, maxlagW = maxlagW)
+                     p = p, type = type, maxlagW = maxlagW,
+                     R = R, b = b)
   }
   res$call <- match.call()
   res
