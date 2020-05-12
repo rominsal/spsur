@@ -46,7 +46,7 @@
 #' The Lagrange Multipliers reported by this function are the followings:
 #'
 #'   \itemize{
-#'     \item \strong{LM-SUR-LAG}: Tests for the omission of a spatial lag of 
+#'     \item \strong{LM-SUR-SLM}: Tests for the omission of a spatial lag of 
 #'      the explained variable in the right hand side of the "sim" equation. 
 #'      The model of the alternative is: \cr
 #'
@@ -57,7 +57,7 @@
 #'          \eqn{H_{0}: \rho_{g}=0 (forall g)} vs  
 #'          \eqn{H_{A}: \rho_{g} ne 0 (exist g)}
 #'
-#'      \item \strong{LM-SUR-ERR}: Tests for the omission of spatial 
+#'      \item \strong{LM-SUR-SEM}: Tests for the omission of spatial 
 #'       dependence in the equation of the errors of the "sim" model. The 
 #'       model of the alternative is:
 #'
