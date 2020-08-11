@@ -4,7 +4,7 @@ author:
 - Román Mínguez, University of Castilla-La Mancha (Spain)
 - Fernando A. López, Technical University of Cartagena (Spain)
 - Jesús Mur, University of Zaragoza, (Spain) <br> <br> <br>
-date: '2020-04-07 16:36:49 <br>  <br> <br>'
+date: '2020-07-30 13:03:03 <br>  <br> <br>'
 output:
   bookdown::html_document2:
     number_sections: yes
@@ -93,17 +93,14 @@ knitr::kable(
 |Ferry             |Washington |53019 |     0| 0.000000| 0.000000|
 |Stevens           |Washington |53065 |     0| 1.863863| 1.915158|
 
-Whereas the geometry of the USA counties is shown in Figure  \@ref(fig:plotgeom):
-
-
+Whereas the geometry of the USA counties is shown in Figure 1:
+ 
 ```r
 plot(st_geometry(NCOVR.sf))
 ```
-
-<img src="figure/plotgeom-1.png" title="Geometry of the USA counties" alt="Geometry of the USA counties" style="display: block; margin: auto;" />
+![Figure 1: Geometry of the USA counties](plotgeom-1.png "Figure 1: Geometry of the USA counties") 
 
 Following @Baller2001, we consider a **W** matrix based on the criterion of 10 nearest-neighbourhood, which is inmediate to obtain using the **spdep** package, @BivandPedesma2013. The resulting weighting matrix can be obtained using *lwncovr* object. Note that this matrix is non-symmetric.
-
 
 
 ```r
@@ -112,7 +109,7 @@ co <- sf::st_coordinates(sf::st_centroid(NCOVR.sf))
 lwncovr <- spdep::nb2listw(spdep::knn2nb(spdep::knearneigh(co, k = 10,longlat = TRUE)))
 ```
 
-Figure \@ref(fig:quantilemap) shows the Quantile map for the Homicide Rate in the year 1960. Apparently there exist a strong structure of positive spatial autocorrelation. We observe a big cluster of the type High-High in the South East and South West counties, which evolves to Low-Low as we move to the North.
+Figure 2 shows the Quantile map for the Homicide Rate in the year 1960. Apparently there exist a strong structure of positive spatial autocorrelation. We observe a big cluster of the type High-High in the South East and South West counties, which evolves to Low-Low as we move to the North.
 
 
 ```r
@@ -122,7 +119,8 @@ plot(NCOVR.sf["qm"], pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"),
      main = "")
 ```
 
-<img src="figure/quantilemap-1.png" title="Quantile Map; Variable HR60" alt="Quantile Map; Variable HR60" style="display: block; margin: auto;" />
+![Figure 2: Quantile Map; Variable HR60](quantilemap-1.png "Figure 2: Quantile Map; Variable HR60") 
+
 
 @Baller2001 specify a single linear model to explain the case of HR in the year 1960 with the results shown in the Table below, identical to those in Table 1 of @Baller2001.
 
@@ -165,7 +163,7 @@ summary(lm_60)
 #> F-statistic: 216.3 on 6 and 3078 DF,  p-value: < 2.2e-16
 ```
 
-Figure \@ref(fig:quantilemap) points to the existence of cross-sectional dependence in the spatial distribution of HR60 but the model in \@ref(eq:ols) does not contain elements of spatial interaction. The consequence is a scattermap of the LS residuals, \@ref(fig:quantilemap) ,  with a strong structure of clusters, similar to that of HR60 in Figure \@ref(fig:residualquantilemap).
+Figure 2 points to the existence of cross-sectional dependence in the spatial distribution of HR60 but the model in \@ref(eq:ols) does not contain elements of spatial interaction. The consequence is a scattermap of the LS residuals, Figure 3, with a strong structure of clusters, similar to that of HR60 in Figure 2.
 
 
 ```r
@@ -174,7 +172,7 @@ NCOVR.sf$qmr <- (lm_60$residuals > q[2]) + (lm_60$residuals > q[3]) + (lm_60$res
 plot(NCOVR.sf["qmr"], pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"), main = "")
 ```
 
-<img src="figure/residualquantilemap-1.png" title="Quantile Map of LS residuals" alt="Quantile Map of LS residuals" style="display: block; margin: auto;" />
+![Figure 3: Quantile Map of LS residuals](residualquantilemap-1.png "Figure 3: Quantile Map of LS residuals")
 
 The battery of LM tests for omitted spatial structure, supplied by **spdep** @BivandPedesma2013, confirms the misspecification of \@ref(eq:ols). According to these results, the most adequate specification is a spatial lag model. Similar results are obtained for the years 1970, 1980 and 1990, which we omit for reasons of space.
 
@@ -262,8 +260,8 @@ sur.sim <- spsurml(formula = formula_sur, type = "sim", data = NCOVR.sf)
 #> log_lik:  -18908.66 
 #> Iteration:  1  log_lik:  -18908.64 
 #> Iteration:  2  log_lik:  -18908.64 
-#> Time to fit the model:  0.09  seconds
-#> Time to compute covariances:  0.04  seconds
+#> Time to fit the model:  0.13  seconds
+#> Time to compute covariances:  0.03  seconds
 ```
 
 ```r
@@ -315,7 +313,7 @@ summary(sur.sim)
 
 The signs of the variables are as expected and, more interesting, the SUR estimation detects a strong positive dependence between the errors for the year 1960 and those of the year 1970, 0.2616 according to the data in the *Correlation Matrix of inter-equation residuals*. The Breusch-Pagan diagonality test that appears at the end of the Table confirms that this dependence is statistically significant and should not be avoided.
 
-Figure \@ref(fig:residualsurquantilemap) shows the quantile maps of the SUR residuals corresponding to the years 1960 and 1970. The maps reveal that time dependence was only part of the problem. Indeed, there remain a strong spatial structure in the SUR residuals which is apparently stable across time.
+Figure 4 shows the quantile maps of the SUR residuals corresponding to the years 1960 and 1970. The maps reveal that time dependence was only part of the problem. Indeed, there remain a strong spatial structure in the SUR residuals which is apparently stable across time.
 
 
 ```r
@@ -328,7 +326,8 @@ plot(NCOVR.sf[c("SUR_residuals_1960","SUR_residuals_1970")],
      pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"))
 ```
 
-<img src="figure/residualsurquantilemap-1.png" title="Quantile Map of LS residuals for SUR-SIM model" alt="Quantile Map of LS residuals for SUR-SIM model" style="display: block; margin: auto;" />
+![Figure 4: Quantile Map of LS residuals for SUR-SIM model](residualsurquantilemap-1.png "Figure 4: Quantile Map of LS residuals for SUR-SIM model")
+
 
 The battery of Lagrange Multipliers that appear below are obtained with the function `lmtestspsur()`. The output is a list of 5 elements each one of the class `htest`. They are the traditional LM misspecification tests [@anselinbera1998] for omitted spatial elements, adapted to a SUR framework by [@Mur2010]. All the Multipliers are statistically significant, both the raw and robust LMs as well as the joint LM for SARMA processes.
 
@@ -394,8 +393,9 @@ As said, **spsur** is an R package whose main objective is to estimate and test 
 * SUR-SDM. SUR model with lags of the endogenous and of the X variables, or Spatial Durbin.
 * SUR-SDEM. SUR model with with lags of the X variables and spatial errors.
 * SUR-SARAR. SUR model with lags of the of the endogenous variables and spatial errors.
+* SUR-GNM. SUR model with lags of the of the endogenous variables, lags of the X variables and lags spatial errors. This specification nest the rest of models.
 
-The common estimation procedure for the six cases is maximum-likelihood, ML, whereas the SUR-SLM and SUR-SDM can also be estimated by Three Stage-Least-Squares, 3SLS. @BivandPiras2015 offer an excellent revision of estimation methods in spatial econometrics, whereas @Lopez2019 focus specifically in the comparison of ML against 3SLS. First, we discuss the maximum likelihood approach and finish the Section with a few comments in relation to 3SLS.
+The common estimation procedure for the seven cases is maximum-likelihood, ML, whereas the SUR-SLM and SUR-SDM can also be estimated by Three Stage-Least-Squares, 3SLS. @BivandPiras2015 offer an excellent revision of estimation methods in spatial econometrics, whereas @Lopez2019 focus specifically in the comparison of ML against 3SLS. First, we discuss the maximum likelihood approach and finish the Section with a few comments in relation to 3SLS.
 
 ## SUR-SLX model {#model-surslx}
 
@@ -412,8 +412,8 @@ sur.slx <- spsurml(formula = formula_sur, listw = lwncovr,
 #> log_lik:  -18855.23 
 #> Iteration:  1  log_lik:  -18855.21 
 #> Iteration:  2  log_lik:  -18855.21 
-#> Time to fit the model:  0.08  seconds
-#> Time to compute covariances:  0.01  seconds
+#> Time to fit the model:  0.07  seconds
+#> Time to compute covariances:  0.22  seconds
 ```
 
 ```r
@@ -492,7 +492,7 @@ sur.slx2 <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  1  log_lik:  -18884.85 
 #> Iteration:  2  log_lik:  -18884.85 
 #> Time to fit the model:  0.08  seconds
-#> Time to compute covariances:  0.02  seconds
+#> Time to compute covariances:  0.01  seconds
 ```
 
 ```r
@@ -575,9 +575,9 @@ sur.slm <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  1   log_lik:  -18761.49  rhos:  0.346 0.393 
 #> Iteration:  2   log_lik:  -18761.48  rhos:  0.347 0.393 
 #> Iteration:  3   log_lik:  -18761.48  rhos:  0.347 0.393 
-#> Time to fit the model:  8.64  seconds
+#> Time to fit the model:  8.66  seconds
 #> Computing numerical covariances... 
-#> Time to compute covariances:  2.25  seconds
+#> Time to compute covariances:  2.15  seconds
 ```
 
 ```r
@@ -630,6 +630,43 @@ summary(sur.slm)
 #>  Breusch-Pagan: 132.9  p-value: (9.63e-31)
 ```
 
+The `plot()` function allows the user to plot both beta and spatial coefficients for all equations of the spsur model. The argument *viewplot* is used to choose between interactive or non-interactive plots.
+
+
+```r
+# Interactive plot
+plot(sur.slm)
+```
+
+![](unnamed-chunk-2-1.png)
+![](unnamed-chunk-2-2.png)
+![](unnamed-chunk-2-3.png)
+
+The `print()` function is used to print short tables including the values of beta and spatial coefficients as well as p-values of significance test for each coefficient. This can be used as an alternative to `summary()` when a brief output is needed. The *NA* values indicate that the coefficient has not been fitted in the corresponding equation.
+
+
+```r
+print(sur.slm)
+```
+
+```
+#>             coeff_1 pval_1 coeff_2 pval_2
+#> (Intercept)  5.6077  0.000  5.1575      0
+#> RD60         1.3344  0.000      NA     NA
+#> PS60         0.2745  0.002      NA     NA
+#> MA60        -0.1668  0.000      NA     NA
+#> DV60         0.8794  0.000      NA     NA
+#> UE60        -0.0304  0.364      NA     NA
+#> SOUTH        1.5061  0.000  1.6169      0
+#> RD70             NA     NA  2.2014      0
+#> PS70             NA     NA  0.6485      0
+#> MA70             NA     NA -0.1219      0
+#> DV70             NA     NA  0.9875      0
+#> UE70             NA     NA -0.1690      0
+#> rho          0.3467  0.000  0.3933      0
+```
+
+
 ## SUR-SEM model {#model-sursem}
 
 The corresponding specification is the following: 
@@ -658,9 +695,9 @@ sur.sem <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  1  log_lik:  -18769.69  lambdas:  0.347 0.43 
 #> Iteration:  2  log_lik:  -18769.67  lambdas:  0.348 0.43 
 #> Iteration:  3  log_lik:  -18769.67  lambdas:  0.348 0.43 
-#> Time to fit the model:  12.14  seconds
+#> Time to fit the model:  11.62  seconds
 #> Computing numerical covariances... 
-#> Time to compute covariances:  2.89  seconds
+#> Time to compute covariances:  2.82  seconds
 ```
 
 ```r
@@ -713,6 +750,18 @@ summary(sur.sem)
 #>  Breusch-Pagan: 134.5  p-value: (4.33e-31)
 ```
 
+
+```r
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.sem, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+![](unnamed-chunk-4-1.png)
+
 ## SUR-SDEM model {#model-sursdem} 
 
 The specification of a spatial Durbin model with spatial errors and a SUR framework is the following 
@@ -742,9 +791,9 @@ sur.sdem <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  1  log_lik:  -18755.77  lambdas:  0.337 0.411 
 #> Iteration:  2  log_lik:  -18755.76  lambdas:  0.338 0.411 
 #> Iteration:  3  log_lik:  -18755.76  lambdas:  0.338 0.411 
-#> Time to fit the model:  11.93  seconds
+#> Time to fit the model:  12.02  seconds
 #> Computing numerical covariances... 
-#> Time to compute covariances:  2.9  seconds
+#> Time to compute covariances:  2.8  seconds
 ```
 
 ```r
@@ -801,6 +850,17 @@ summary(sur.sdem)
 ```
 
 
+```r
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.sdem, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+![](unnamed-chunk-5-1.png)
+
 ## SUR-SDM model {#model-sursdm} 
 
 To estimate a full spatial Durbin model set the argument type to *type = "sdm"*. Moreover, the same as in other previous cases, we can restrict the list of lags of the X variables that we want to appear in the equations, by using the argument *Durbin =*.
@@ -819,8 +879,8 @@ sur.sdm <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  1   log_lik:  -18747.79  rhos:  0.338 0.431 
 #> Iteration:  2   log_lik:  -18747.77  rhos:  0.339 0.431 
 #> Iteration:  3   log_lik:  -18747.77  rhos:  0.339 0.431 
-#> Time to fit the model:  8.58  seconds
-#> Time to compute covariances:  15.11  seconds
+#> Time to fit the model:  9.85  seconds
+#> Time to compute covariances:  21.21  seconds
 ```
 
 ```r
@@ -881,6 +941,19 @@ summary(sur.sdm)
 #>  LMM: 124.48  p-value: (6.63e-29)
 ```
 
+
+
+```r
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.sdm, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+![](unnamed-chunk-6-1.png)
+
 ## SUR-SARAR model {#model-sursarar}
 
 The key argument to build a SARAR model from a single SUR specification, like that in of \@ref(eq:sur), is *type = "sarar"*.
@@ -902,9 +975,9 @@ sur.sarar <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  4  log_lik:  -18722.42  rhos:  0.76 0.485  lambdas:  -0.92 -0.131 
 #> Iteration:  5  log_lik:  -18722.42  rhos:  0.76 0.485  lambdas:  -0.922 -0.132 
 #> Iteration:  6  log_lik:  -18722.42  rhos:  0.761 0.485  lambdas:  -0.922 -0.132 
-#> Time to fit the model:  239.51  seconds
+#> Time to fit the model:  247.33  seconds
 #> Computing numerical covariances... 
-#> Time to compute covariances:  16.46  seconds
+#> Time to compute covariances:  16.03  seconds
 ```
 
 ```r
@@ -959,6 +1032,121 @@ summary(sur.sarar)
 #>  Breusch-Pagan: 134.3  p-value: (4.63e-31)
 ```
 
+
+```r
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.sarar, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+![](unnamed-chunk-7-1.png)
+
+
+## SUR-GNM model {#model-surgnm}
+
+This is the most general specification of a spatial SUR model. It needs to be chosen as *type = "gnm"*.
+
+
+```r
+sur.gnm <- spsurml(formula = formula_sur, listw = lwncovr,
+                     type = "gnm", method = "LU", 
+                     control= control, 
+                     data = NCOVR.sf)
+```
+
+```
+#> sparse matrix LU decomposition
+#> Initial point:   log_lik:  -18720.21  rhos:  -0.69 0.542  lambdas:  0.685 -0.239 
+#> Iteration:  1  log_lik:  -18687.14  rhos:  -0.917 0.645  lambdas:  0.773 -0.426 
+#> Iteration:  2  log_lik:  -18683.28  rhos:  -0.992 0.669  lambdas:  0.797 -0.476 
+#> Iteration:  3  log_lik:  -18682.89  rhos:  -1 0.675  lambdas:  0.802 -0.49 
+#> Iteration:  4  log_lik:  -18682.88  rhos:  -1 0.677  lambdas:  0.802 -0.494 
+#> Iteration:  5  log_lik:  -18682.88  rhos:  -1 0.678  lambdas:  0.802 -0.495 
+#> Time to fit the model:  194.16  seconds
+#> Computing numerical covariances... 
+#> Time to compute covariances:  16.59  seconds
+```
+
+```r
+summary(sur.gnm)
+```
+
+```
+#> Call:
+#> spsurml(formula = formula_sur, data = NCOVR.sf, listw = lwncovr, 
+#>     type = "gnm", method = "LU", control = control)
+#> 
+#>  
+#> Spatial SUR model type:  gnm 
+#> 
+#> Equation  1 
+#>                Estimate Std. Error  t value  Pr(>|t|)    
+#> (Intercept)_1 17.637671   0.762287  23.1378 < 2.2e-16 ***
+#> RD60_1         1.558080   0.178061   8.7503 < 2.2e-16 ***
+#> PS60_1         0.376947   0.124103   3.0374  0.002397 ** 
+#> MA60_1        -0.180938   0.026815  -6.7476 1.641e-11 ***
+#> DV60_1         0.746906   0.114355   6.5315 7.035e-11 ***
+#> UE60_1         0.046907   0.041110   1.1410  0.253915    
+#> SOUTH_1        0.523163   0.760957   0.6875  0.491790    
+#> lag.RD60_1     2.403661   0.231207  10.3961 < 2.2e-16 ***
+#> lag.PS60_1     0.154981   0.168389   0.9204  0.357415    
+#> lag.MA60_1    -0.323422   0.035598  -9.0855 < 2.2e-16 ***
+#> lag.DV60_1     2.115808   0.166330  12.7206 < 2.2e-16 ***
+#> lag.UE60_1    -0.286290   0.063278  -4.5243 6.173e-06 ***
+#> lag.SOUTH_1    3.652172   0.813929   4.4871 7.352e-06 ***
+#> rho_1         -1.000000   0.064391 -15.5300 < 2.2e-16 ***
+#> lambda_1       0.801956   0.020253  39.5978 < 2.2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> R-squared: 0.4652 
+#>   Equation  2 
+#>                Estimate Std. Error t value  Pr(>|t|)    
+#> (Intercept)_2  4.388868   1.013975  4.3284 1.526e-05 ***
+#> RD70_2         2.570551   0.207109 12.4116 < 2.2e-16 ***
+#> PS70_2         0.651371   0.159736  4.0778 4.604e-05 ***
+#> MA70_2        -0.077525   0.028820 -2.6900 0.0071643 ** 
+#> DV70_2         1.064836   0.126071  8.4463 < 2.2e-16 ***
+#> UE70_2        -0.048163   0.063024 -0.7642 0.4447766    
+#> SOUTH_2        0.014559   0.986988  0.0148 0.9882313    
+#> lag.RD70_2    -1.722619   0.286084 -6.0214 1.829e-09 ***
+#> lag.PS70_2    -0.387912   0.217997 -1.7794 0.0752177 .  
+#> lag.MA70_2    -0.033303   0.042225 -0.7887 0.4303147    
+#> lag.DV70_2    -0.629841   0.186557 -3.3761 0.0007397 ***
+#> lag.UE70_2    -0.096449   0.091567 -1.0533 0.2922402    
+#> lag.SOUTH_2    1.233415   1.064744  1.1584 0.2467401    
+#> rho_2          0.677561   0.035178 19.2607 < 2.2e-16 ***
+#> lambda_2      -0.494567   0.083217 -5.9431 2.951e-09 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> R-squared: 0.4614 
+#>   
+#> Variance-Covariance Matrix of inter-equation residuals:                    
+#>  17.454940  4.444949
+#>   4.444949 29.269587
+#> Correlation Matrix of inter-equation residuals:                    
+#>  1.0000000 0.1966524
+#>  0.1966524 1.0000000
+#> 
+#>  R-sq. pooled: 0.4725 
+#>  Breusch-Pagan: 119.3  p-value: (8.99e-28)
+```
+
+
+```r
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.gnm, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+![](unnamed-chunk-8-1.png)
+
+
 ##  3SLS estimation of SUR-SLM and SUR-SDM models
 
 We finish this Section by discussing briefly how to estimate a SUR-SLM model using a 3SLS approach (the same applies for the case of a SUR-SDM). The advantage of 3SLS over ML is time computing, because the first consists of a quasi-linear algorithm whereas the second may be highly non-linear and time consuming.
@@ -974,7 +1162,7 @@ sur.slm.3sls <- spsur3sls(formula = formula_sur,
 ```
 
 ```
-#> Time to fit the model:  0.22  seconds
+#> Time to fit the model:  0.27  seconds
 ```
 
 ```r
@@ -1038,7 +1226,7 @@ sur.sdm.3sls <- spsur3sls(formula = formula_sur,
 ```
 
 ```
-#> Time to fit the model:  0.26  seconds
+#> Time to fit the model:  0.35  seconds
 ```
 
 ```r
@@ -1149,8 +1337,8 @@ sur.slm1 <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  1   log_lik:  -18761.49  rhos:  0.346 0.393 
 #> Iteration:  2   log_lik:  -18761.48  rhos:  0.347 0.393 
 #> Iteration:  3   log_lik:  -18761.48  rhos:  0.347 0.393 
-#> Time to fit the model:  8.31  seconds
-#> Time to compute covariances:  14.16  seconds
+#> Time to fit the model:  8.59  seconds
+#> Time to compute covariances:  15.02  seconds
 ```
 
 ```r
@@ -1235,13 +1423,6 @@ print(waldbeta1)
 #> 
 #> data:  NCOVR.sf
 #> Wald test = 0.12143, df = 1, p-value = 0.7275
-#> sample estimates:
-#> (Intercept)_1        RD60_1        PS60_1        MA60_1        DV60_1 
-#>     5.6076727     1.3344194     0.2745309    -0.1668389     0.8794034 
-#>        UE60_1       SOUTH_1 (Intercept)_2        RD70_2        PS70_2 
-#>    -0.0304452     1.5060564     5.1574842     2.2013531     0.6485283 
-#>        MA70_2        DV70_2        UE70_2       SOUTH_2 
-#>    -0.1218510     0.9874704    -0.1689799     1.6169489
 ```
 
 The test confirms our suspicious that both coefficients are not statistically different. Therefore, the user would be surely interested in the restricted version where the two coefficients are indeed the same. That is
@@ -1273,8 +1454,8 @@ sur.slm.r <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  1   log_lik:  -18761.54  rhos:  0.344 0.396 
 #> Iteration:  2   log_lik:  -18761.53  rhos:  0.345 0.396 
 #> Iteration:  3   log_lik:  -18761.53  rhos:  0.345 0.396 
-#> Time to fit the model:  3.31  seconds
-#> Time to compute covariances:  14.47  seconds
+#> Time to fit the model:  3.28  seconds
+#> Time to compute covariances:  13.44  seconds
 ```
 
 ```r
@@ -1310,7 +1491,7 @@ summary(sur.slm.r)
 #> MA70_2        -0.121543   0.021865 -5.5588 2.831e-08 ***
 #> DV70_2         0.988142   0.100342  9.8477 < 2.2e-16 ***
 #> UE70_2        -0.170805   0.046532 -3.6707 0.0002439 ***
-#> NA                   NA         NA      NA        NA    
+#> SOUTH_2        1.546569   0.206496  7.4896 7.882e-14 ***
 #> rho_2          0.396384   0.026442 14.9909 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1333,7 +1514,7 @@ The same technique applies for the other spatial SUR models estimated by `spsurm
 More complex hypotheses can be tested; for example, now including two restrictions:
 
 \begin{equation}
-H_0:\beta_{10}=\beta_{20} \ and \ \beta_{16}=\beta_{26} \\ \ H_A:\beta_{10} \neq \beta_{20} \ or \  \beta_{16} \neq \beta_{26}
+H_0:\beta_{10}=\beta_{20} \ and \ \beta_{16}=\beta_{26} \\ \ H_A:\beta_{10} \neq \beta_{20} \ \text{and/or} \  \beta_{16} \neq \beta_{26}
 \end{equation}
 
 
@@ -1356,13 +1537,6 @@ print(waldbeta2)
 #> 
 #> data:  NCOVR.sf
 #> Wald test = 0.12143, df = 1, p-value = 0.7275
-#> sample estimates:
-#> (Intercept)_1        RD60_1        PS60_1        MA60_1        DV60_1 
-#>     5.6076727     1.3344194     0.2745309    -0.1668389     0.8794034 
-#>        UE60_1       SOUTH_1 (Intercept)_2        RD70_2        PS70_2 
-#>    -0.0304452     1.5060564     5.1574842     2.2013531     0.6485283 
-#>        MA70_2        DV70_2        UE70_2       SOUTH_2 
-#>    -0.1218510     0.9874704    -0.1689799     1.6169489
 ```
 
 The corresponding restricted model can be estimated as before
@@ -1382,8 +1556,8 @@ sur.slm.r2 <- spsurml(formula = formula_sur, listw = lwncovr,
 #> Iteration:  1   log_lik:  -18761.65  rhos:  0.347 0.392 
 #> Iteration:  2   log_lik:  -18761.63  rhos:  0.348 0.393 
 #> Iteration:  3   log_lik:  -18761.63  rhos:  0.348 0.393 
-#> Time to fit the model:  3.55  seconds
-#> Time to compute covariances:  14.51  seconds
+#> Time to fit the model:  3.53  seconds
+#> Time to compute covariances:  13.61  seconds
 ```
 
 ```r
@@ -1412,14 +1586,15 @@ summary(sur.slm.r2)
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> R-squared: 0.3396 
 #>   Equation  2 
-#>         Estimate Std. Error t value  Pr(>|t|)    
-#> RD70_2  2.223552   0.144979 15.3371 < 2.2e-16 ***
-#> PS70_2  0.646027   0.110415  5.8509 5.140e-09 ***
-#> MA70_2 -0.128197   0.016815 -7.6240 2.832e-14 ***
-#> DV70_2  0.986949   0.100295  9.8405 < 2.2e-16 ***
-#> UE70_2 -0.177353   0.044704 -3.9673 7.353e-05 ***
-#> NA            NA         NA      NA        NA    
-#> rho_2   0.392920   0.025567 15.3681 < 2.2e-16 ***
+#>                Estimate Std. Error t value  Pr(>|t|)    
+#> (Intercept)_2  5.423289   0.528372 10.2641 < 2.2e-16 ***
+#> RD70_2         2.223552   0.144979 15.3371 < 2.2e-16 ***
+#> PS70_2         0.646027   0.110415  5.8509 5.140e-09 ***
+#> MA70_2        -0.128197   0.016815 -7.6240 2.832e-14 ***
+#> DV70_2         0.986949   0.100295  9.8405 < 2.2e-16 ***
+#> UE70_2        -0.177353   0.044704 -3.9673 7.353e-05 ***
+#> SOUTH_2        1.550475   0.206478  7.5092 6.797e-14 ***
+#> rho_2          0.392920   0.025567 15.3681 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> R-squared: 0.4154 
@@ -1460,13 +1635,6 @@ print(waldbeta3)
 #> 
 #> data:  NCOVR.sf
 #> Wald test = 0.69014, df = 1, p-value = 0.4061
-#> sample estimates:
-#> (Intercept)_1        RD60_1        PS60_1        MA60_1        DV60_1 
-#>   3.699143102   1.012664564   0.220792137  -0.119285350   0.679424020 
-#>        UE60_1       SOUTH_1 (Intercept)_2        RD70_2        PS70_2 
-#>  -0.002529414   0.630556757   4.611479774   2.078946247   0.621482443 
-#>        MA70_2        DV70_2        UE70_2       SOUTH_2 
-#>  -0.110960462   0.934966392  -0.146392132   1.356495031
 ```
 
 The estimation of the restricted model, by 3SLS produces exactly the same results as with the ML algorithm.
@@ -1508,14 +1676,15 @@ summary(sur.slm.3sls.r)
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> R-squared: 0.3431 
 #>   Equation  2 
-#>          Estimate Std. Error t value  Pr(>|t|)    
-#> RD70_2   2.191341   0.175413 12.4924 < 2.2e-16 ***
-#> PS70_2   0.685723   0.118665  5.7786 7.900e-09 ***
-#> MA70_2  -0.097262   0.019404 -5.0126 5.520e-07 ***
-#> DV70_2   0.995512   0.109084  9.1261 < 2.2e-16 ***
-#> UE70_2  -0.132163   0.047192 -2.8005  0.005118 ** 
-#> SOUTH_2  1.921206   0.454551  4.2266 2.407e-05 ***
-#> rho_2    0.363183   0.063745  5.6974 1.273e-08 ***
+#>                Estimate Std. Error t value  Pr(>|t|)    
+#> (Intercept)_2  4.269568   0.677692  6.3002 3.179e-10 ***
+#> RD70_2         2.191341   0.175413 12.4924 < 2.2e-16 ***
+#> PS70_2         0.685723   0.118665  5.7786 7.900e-09 ***
+#> MA70_2        -0.097262   0.019404 -5.0126 5.520e-07 ***
+#> DV70_2         0.995512   0.109084  9.1261 < 2.2e-16 ***
+#> UE70_2        -0.132163   0.047192 -2.8005  0.005118 ** 
+#> SOUTH_2        1.921206   0.454551  4.2266 2.407e-05 ***
+#> rho_2          0.363183   0.063745  5.6974 1.273e-08 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> R-squared: 0.4126 
@@ -1556,9 +1725,6 @@ wald_deltas(sur.slm, R = R1, b = b1)
 #> 
 #> data:  NCOVR.sf
 #> Wald test = 1.5751, df = 1, p-value = 0.2095
-#> sample estimates:
-#>     rho_1     rho_2 
-#> 0.3466950 0.3932717
 ```
 
 In the case of the SUR-SEM model of Section 4.3, we are interested in
@@ -1581,9 +1747,6 @@ wald_deltas(sur.sem, R = R1, b = b1)
 #> 
 #> data:  NCOVR.sf
 #> Wald test = 4.2004, df = 1, p-value = 0.04041
-#> sample estimates:
-#>  lambda_1  lambda_2 
-#> 0.3476493 0.4304802
 ```
 
 In the case of a SUR-SARAR model, Section 4.6, we must consider that there are four spatial coefficients, for which we can test two equality constraints:
@@ -1610,31 +1773,12 @@ wald_deltas(sur.sarar, R = R3, b = b3)
 #> 
 #> data:  NCOVR.sf
 #> Wald test = 40.508, df = 2, p-value = 1.599e-09
-#> sample estimates:
-#>      rho_1      rho_2   lambda_1   lambda_2 
-#>  0.7605363  0.4851404 -0.9221280 -0.1321697
 ```
 
 The same as before, `wald_deltas()` operates with ML or with 3SLS estimates.
 
 Finally, note that if we have the ML estimation of a collection of models, some of which are nested in the others, it is immediate to obtain the corresponding Likelihood Ratios as an additional procedure to test linear constraints. Firts, let us note that the function `logLik()` shows the value of the estimated log-likelihood for the corresponding ML estimation
 
-
-```r
-logLik(sur.sim)
-```
-
-```
-#> 'log Lik.' -18908.64 (df=17)
-```
-
-```r
-logLik(sur.slx)
-```
-
-```
-#> 'log Lik.' -18855.21 (df=29)
-```
 
 ```r
 logLik(sur.sarar)
@@ -1644,37 +1788,37 @@ logLik(sur.sarar)
 #> 'log Lik.' -18722.42 (df=21)
 ```
 
-Then the function `lrtestspsur()` computes the LR corresponding to two nested SUR models, distributed as a $\chi^2$ with degrees of freedom equal to the number of restrictions involved in the nesting sequence.
+The `anova()` function shows information criteria (AIC and BIC), log-likelihood and degrees of freedom of each fitted model. When the argument *lrtest = TRUE* this function also computes the LR corresponding to nested SUR models. Under the null hypothesis, the statistics is distributed as a $\chi^2$ with degrees of freedom equal to the number of restrictions involved in the nesting sequence. 
 
 
 ```r
-lrtestspsur(sur.sim, sur.slx)
+anova(sur.sim, sur.slx, lrtest = TRUE)
 ```
 
 ```
-#>           Model df   AIC logLik Test L.Ratio p-value
-#> sim model     1 17 37851 -18909    1                
-#> slx model     2 29 37768 -18855    2  106.87       0
-```
-
-```r
-lrtestspsur(sur.slm, sur.sarar)
-```
-
-```
-#>             Model df   AIC logLik Test L.Ratio p-value
-#> slm model       1 19 37561 -18762    1                
-#> sarar model     2 21 37487 -18722    2  78.111       0
+#>              logLik df   AIC   BIC LRtest     p.val
+#> model 1: sim -18909 17 37851 37829                 
+#> model 2: slx -18855 29 37768 37731 106.87 2.483e-17
 ```
 
 ```r
-lrtestspsur(sur.slm.r2, sur.slm)
+anova(sur.slm, sur.sarar, lrtest = TRUE)
 ```
 
 ```
-#>           Model df   AIC logLik Test L.Ratio p-value
-#> slm model     1 17 37557 -18762    1                
-#> slm model     2 19 37561 -18762    2 0.31287 0.85519
+#>                logLik df   AIC   BIC LRtest      p.val
+#> model 1: slm   -18762 19 37561 37536                  
+#> model 2: sarar -18722 21 37487 37459 78.111 1.0925e-17
+```
+
+```r
+anova(sur.slm.r2, sur.slm, lrtest = TRUE)
+```
+
+```
+#>              logLik df   AIC   BIC  LRtest   p.val
+#> model 1: slm -18762 17 37557 37535                
+#> model 2: slm -18762 19 37561 37536 0.31287 0.85519
 ```
 
 The LR can be applied both in the case of linear restrictions on the $\beta$ parameters and in the case of the spatial coefficients.
@@ -1719,41 +1863,41 @@ summary(sur.sdm.impacts[[1]], zstats = TRUE, short = TRUE)
 ```
 #> Impact measures (lag, trace):
 #>              Direct    Indirect       Total
-#> RD60_1   1.35214933  0.69041812  2.04256745
-#> PS60_1   0.27817844  0.14204011  0.42021855
-#> MA60_1  -0.16905566 -0.08632115 -0.25537681
-#> DV60_1   0.89108763  0.45499638  1.34608401
-#> UE60_1  -0.03084971 -0.01575211 -0.04660181
-#> SOUTH_1  1.52606677  0.77922173  2.30528850
+#> RD60_1   1.35213975  0.69042771  2.04256745
+#> PS60_1   0.27817647  0.14204208  0.42021855
+#> MA60_1  -0.16905446 -0.08632235 -0.25537681
+#> DV60_1   0.89108131  0.45500269  1.34608401
+#> UE60_1  -0.03084949 -0.01575232 -0.04660181
+#> SOUTH_1  1.52605595  0.77923255  2.30528850
 #> ========================================================
 #> Simulation results ( variance matrix):
 #> ========================================================
 #> Simulated standard errors
 #>             Direct   Indirect      Total
-#> RD60_1  0.12225563 0.11054733 0.20910050
-#> PS60_1  0.08733548 0.04891067 0.13368900
-#> MA60_1  0.01985141 0.01495089 0.03199482
-#> DV60_1  0.09450122 0.07590308 0.15510677
-#> UE60_1  0.03466190 0.01798422 0.05249868
-#> SOUTH_1 0.22672564 0.15179343 0.35610908
+#> RD60_1  0.11703831 0.10448274 0.19901068
+#> PS60_1  0.08940017 0.04840224 0.13563805
+#> MA60_1  0.01871509 0.01412591 0.03019991
+#> DV60_1  0.09273968 0.07466478 0.15383048
+#> UE60_1  0.03282561 0.01681956 0.04950094
+#> SOUTH_1 0.22889434 0.14842343 0.35699832
 #> 
 #> Simulated z-values:
-#>             Direct   Indirect      Total
-#> RD60_1  11.0602926  6.2889407  9.7915053
-#> PS60_1   3.2313014  2.9676600  3.1966543
-#> MA60_1  -8.4950330 -5.7959382 -7.9791903
-#> DV60_1   9.4688499  6.0585981  8.7338814
-#> UE60_1  -0.8741281 -0.8668797 -0.8740999
-#> SOUTH_1  6.7340744  5.1672770  6.4899945
+#>             Direct   Indirect     Total
+#> RD60_1  11.4815668  6.5829830 10.208453
+#> PS60_1   3.0716621  2.9009683  3.059764
+#> MA60_1  -9.0599755 -6.1415086 -8.487197
+#> DV60_1   9.6135076  6.1138683  8.763180
+#> UE60_1  -0.9354442 -0.9319543 -0.936984
+#> SOUTH_1  6.6935936  5.2795053  6.486664
 #> 
 #> Simulated p-values:
 #>         Direct     Indirect   Total     
-#> RD60_1  < 2.22e-16 3.1964e-10 < 2.22e-16
-#> PS60_1  0.0012323  0.0030008  0.0013903 
-#> MA60_1  < 2.22e-16 6.7940e-09 1.5543e-15
-#> DV60_1  < 2.22e-16 1.3731e-09 < 2.22e-16
-#> UE60_1  0.3820485  0.3860079  0.3820638 
-#> SOUTH_1 1.6498e-11 2.3753e-07 8.5840e-11
+#> RD60_1  < 2.22e-16 4.6110e-11 < 2.22e-16
+#> PS60_1  0.0021287  0.0037201  0.0022151 
+#> MA60_1  < 2.22e-16 8.1741e-10 < 2.22e-16
+#> DV60_1  < 2.22e-16 9.7245e-10 < 2.22e-16
+#> UE60_1  0.3495594  0.3513601  0.3487668 
+#> SOUTH_1 2.1775e-11 1.2953e-07 8.7758e-11
 ```
 
 ```r
@@ -1763,41 +1907,41 @@ summary(sur.sdm.impacts[[2]], zstats = TRUE, short = TRUE)
 ```
 #> Impact measures (lag, trace):
 #>             Direct    Indirect      Total
-#> RD70_2   2.2405138  1.38772195  3.6282358
-#> PS70_2   0.6600652  0.40882900  1.0688942
-#> MA70_2  -0.1240186 -0.07681425 -0.2008329
-#> DV70_2   1.0050369  0.62249638  1.6275333
-#> UE70_2  -0.1719859 -0.10652406 -0.2785100
-#> SOUTH_2  1.6457133  1.01931643  2.6650298
+#> RD70_2   2.2404848  1.38775098  3.6282358
+#> PS70_2   0.6600567  0.40883756  1.0688942
+#> MA70_2  -0.1240170 -0.07681585 -0.2008329
+#> DV70_2   1.0050239  0.62250940  1.6275333
+#> UE70_2  -0.1719837 -0.10652629 -0.2785100
+#> SOUTH_2  1.6456920  1.01933775  2.6650298
 #> ========================================================
 #> Simulation results ( variance matrix):
 #> ========================================================
 #> Simulated standard errors
 #>             Direct   Indirect      Total
-#> RD70_2  0.13989337 0.17475114 0.27377246
-#> PS70_2  0.11170197 0.08143837 0.18528376
-#> MA70_2  0.02258014 0.01661759 0.03789590
-#> DV70_2  0.09846267 0.09180210 0.17423538
-#> UE70_2  0.04859881 0.03258316 0.07980454
-#> SOUTH_2 0.27752088 0.20677020 0.46533429
+#> RD70_2  0.14643676 0.17648186 0.28280140
+#> PS70_2  0.11364985 0.08239305 0.18802458
+#> MA70_2  0.02225844 0.01624519 0.03715816
+#> DV70_2  0.09969887 0.09373538 0.17813204
+#> UE70_2  0.04851033 0.03250015 0.07962182
+#> SOUTH_2 0.26315022 0.19921014 0.44205944
 #> 
 #> Simulated z-values:
 #>            Direct  Indirect     Total
-#> RD70_2  16.098997  8.024256 13.348278
-#> PS70_2   5.933084  5.063355  5.802389
-#> MA70_2  -5.481499 -4.641499 -5.301459
-#> DV70_2  10.218080  6.824284  9.369986
-#> UE70_2  -3.594755 -3.337160 -3.551628
-#> SOUTH_2  5.888240  4.922144  5.698833
+#> RD70_2  15.271393  7.876525 12.822981
+#> PS70_2   5.870699  5.028814  5.752138
+#> MA70_2  -5.516492 -4.698497 -5.358620
+#> DV70_2  10.041132  6.640642  9.114321
+#> UE70_2  -3.532639 -3.275616 -3.489338
+#> SOUTH_2  6.253998  5.135172  6.037015
 #> 
 #> Simulated p-values:
 #>         Direct     Indirect   Total     
-#> RD70_2  < 2.22e-16 1.1102e-15 < 2.22e-16
-#> PS70_2  2.9730e-09 4.1194e-07 6.5376e-09
-#> MA70_2  4.2174e-08 3.4589e-06 1.1488e-07
-#> DV70_2  < 2.22e-16 8.8365e-12 < 2.22e-16
-#> UE70_2  0.0003247  0.00084639 0.00038286
-#> SOUTH_2 3.9033e-09 8.5601e-07 1.2063e-08
+#> RD70_2  < 2.22e-16 3.3307e-15 < 2.22e-16
+#> PS70_2  4.3396e-09 4.9352e-07 8.8122e-09
+#> MA70_2  3.4583e-08 2.6208e-06 8.3860e-08
+#> DV70_2  < 2.22e-16 3.1232e-11 < 2.22e-16
+#> UE70_2  0.00041143 0.0010543  0.00048422
+#> SOUTH_2 4.0008e-10 2.8189e-07 1.5699e-09
 ```
 
 Finally, an example of the impacts estimated for the case of the SUR-SLX model of Section \@ref(model-surslx) is given below (remark: in this case it is necessary to use `print` instead of `summary` method to check the output),
@@ -1889,8 +2033,8 @@ sur.slm.time <- spsurtime(formula = formula_sur_time,
 #> Iteration:  1   log_lik:  -18761.49  rhos:  0.346 0.393 
 #> Iteration:  2   log_lik:  -18761.48  rhos:  0.347 0.393 
 #> Iteration:  3   log_lik:  -18761.48  rhos:  0.347 0.393 
-#> Time to fit the model:  2.92  seconds
-#> Time to compute covariances:  14.41  seconds
+#> Time to fit the model:  2.81  seconds
+#> Time to compute covariances:  13.44  seconds
 ```
 
 ```r
@@ -1963,9 +2107,9 @@ sur.slm.panel.demean <- spsurml(formula = formula.panel,
 #> Iteration:  2   log_lik:  -23814.76  rhos:  0.543 0.894 
 #> Iteration:  3   log_lik:  -23814.73  rhos:  0.543 0.894 
 #> Iteration:  4   log_lik:  -23814.73  rhos:  0.543 0.894 
-#> Time to fit the model:  15.83  seconds
+#> Time to fit the model:  15.89  seconds
 #> Computing numerical covariances... 
-#> Time to compute covariances:  2.25  seconds
+#> Time to compute covariances:  2.18  seconds
 ```
 
 ```r
@@ -2042,9 +2186,9 @@ sur.slm.panel <- spsurml(formula = formula.panel,
 #> Iteration:  2   log_lik:  -23814.76  rhos:  0.543 0.894 
 #> Iteration:  3   log_lik:  -23814.73  rhos:  0.543 0.894 
 #> Iteration:  4   log_lik:  -23814.73  rhos:  0.543 0.894 
-#> Time to fit the model:  16.28  seconds
+#> Time to fit the model:  15.62  seconds
 #> Computing numerical covariances... 
-#> Time to compute covariances:  2.25  seconds
+#> Time to compute covariances:  2.38  seconds
 ```
 
 ```r
@@ -2156,44 +2300,44 @@ summary(sdm_dgp)
 #> 
 #> Equation  1 
 #>            Estimate Std. Error t value  Pr(>|t|)    
-#> Intercep_1 0.980714   0.059790  16.403 < 2.2e-16 ***
-#> X1_1       2.012288   0.039379  51.101 < 2.2e-16 ***
-#> X1_2       3.018326   0.038852  77.688 < 2.2e-16 ***
-#> rho_1      0.514515   0.015664  32.846 < 2.2e-16 ***
+#> Intercep_1 0.959207   0.055699  17.221 < 2.2e-16 ***
+#> X1_1       2.026348   0.046773  43.323 < 2.2e-16 ***
+#> X1_2       3.067916   0.042537  72.124 < 2.2e-16 ***
+#> rho_1      0.506645   0.015327  33.055 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> R-squared: 0.9478 
+#> R-squared: 0.9441 
 #>   Equation  2 
 #>             Estimate Std. Error t value  Pr(>|t|)    
-#> Intercep_2  0.896686   0.080949  11.077 < 2.2e-16 ***
-#> X2_1       -0.981111   0.043996 -22.300 < 2.2e-16 ***
-#> X2_2        0.483948   0.042903  11.280 < 2.2e-16 ***
-#> rho_2       0.517286   0.036741  14.079 < 2.2e-16 ***
+#> Intercep_2  1.121547   0.092200  12.164 < 2.2e-16 ***
+#> X2_1       -1.079978   0.045058 -23.968 < 2.2e-16 ***
+#> X2_2        0.473361   0.044973  10.526 < 2.2e-16 ***
+#> rho_2       0.444652   0.040186  11.065 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> R-squared: 0.6083 
+#> R-squared: 0.6164 
 #>   Equation  3 
 #>             Estimate Std. Error t value  Pr(>|t|)    
-#> Intercep_3  1.049057   0.068920  15.221 < 2.2e-16 ***
-#> X3_1       -0.546376   0.037833 -14.442 < 2.2e-16 ***
-#> X3_2        1.977669   0.039515  50.049 < 2.2e-16 ***
-#> rho_3       0.465066   0.028234  16.472 < 2.2e-16 ***
+#> Intercep_3  0.997241   0.072371  13.780 < 2.2e-16 ***
+#> X3_1       -0.501703   0.040879 -12.273 < 2.2e-16 ***
+#> X3_2        2.042920   0.042384  48.200 < 2.2e-16 ***
+#> rho_3       0.486816   0.025774  18.888 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> R-squared: 0.8454 
+#> R-squared: 0.8453 
 #>   
 #> Variance-Covariance Matrix of inter-equation residuals:                              
-#>  0.9428267 0.3714890 0.2588153
-#>  0.3714890 1.1157795 0.2544692
-#>  0.2588153 0.2544692 0.8231212
+#>  1.0668570 0.2677292 0.3455255
+#>  0.2677292 1.0861678 0.2622235
+#>  0.3455255 0.2622235 1.0375186
 #> Correlation Matrix of inter-equation residuals:                              
-#>  1.0000000 0.3621936 0.2937935
-#>  0.3621936 1.0000000 0.2655303
-#>  0.2937935 0.2655303 1.0000000
+#>  1.0000000 0.2487106 0.3284196
+#>  0.2487106 1.0000000 0.2470160
+#>  0.3284196 0.2470160 1.0000000
 #> 
-#>  R-sq. pooled: 0.8915 
-#>  Breusch-Pagan:   144  p-value: (5.18e-31) 
-#>  LMM:  1.554  p-value: (0.67)
+#>  R-sq. pooled: 0.8886 
+#>  Breusch-Pagan: 115.4  p-value: (7.68e-25) 
+#>  LMM: 2.8434  p-value: (0.416)
 ```
 
 Indeed, the ML estimates of the parameters are very close to the values specified in `dgp_spsur()`.

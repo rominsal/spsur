@@ -5,7 +5,7 @@ author:
 - Román Mínguez, University of Castilla-La Mancha (Spain)
 - Fernando A. López, Technical University of Cartagena (Spain)
 - Jesús Mur, University of Zaragoza, (Spain) <br> <br> <br>
-date: "2020-04-07 16:56:19 <br>  <br> <br>"
+date: "2020-07-30 10:44:58 <br>  <br> <br>"
 output: 
   bookdown::html_document2:
     df_print: kable
@@ -90,14 +90,14 @@ knitr::kable(
 |Ferry             |Washington |53019 |     0| 0.000000| 0.000000|
 |Stevens           |Washington |53065 |     0| 1.863863| 1.915158|
 
-Whereas the geometry of the USA counties is shown in Figure  \@ref(fig:plotgeom):
+Whereas the geometry of the USA counties is shown in Figure 1:
 
 
-```r
+```r 
 plot(st_geometry(NCOVR.sf))
 ```
 
-<img src="figure/plotgeom-1.png" title="Geometry of the USA counties" alt="Geometry of the USA counties" style="display: block; margin: auto;" />
+![Figure 1: Geometry of the USA counties](plotgeom-1.png "Figure 1: Geometry of the USA counties")
 
 Following @Baller2001, we consider a **W** matrix based on the criterion of 10 nearest-neighbourhood, which is immediate to obtain using the **spdep** package (@BivandPedesma2013; @BivandWong2018). The resulting weighting matrix will be called *listw*. Note that this matrix is non-symmetric and it is row-standardized.
 
@@ -195,7 +195,7 @@ ols.spsur <- spsurml(formula = formula_60, type = "sim",
 #> Initial point:  
 #> log_lik:  -9176.338 
 #> Iteration:  1  log_lik:  -9176.338 
-#> Time to fit the model:  0.03  seconds
+#> Time to fit the model:  0.07  seconds
 #> Time to compute covariances:  0  seconds
 ```
 
@@ -364,8 +364,8 @@ slm.spsur <- spsur::spsurml(formula = formula_60, type = "slm",
 #> Initial point:   log_lik:  -9101.721  rhos:  0.364 
 #> Iteration:  1   log_lik:  -9098.57  rhos:  0.37 
 #> Iteration:  2   log_lik:  -9098.569  rhos:  0.37 
-#> Time to fit the model:  0.95  seconds
-#> Time to compute covariances:  4.64  seconds
+#> Time to fit the model:  1.18  seconds
+#> Time to compute covariances:  5.68  seconds
 ```
 
 ```r
@@ -454,17 +454,17 @@ logLik(slm.spsur)
 #> 'log Lik.' -9098.569 (df=9)
 ```
 
-The log-likelihood corresponding to the SIM model is much lower, -9176.338, which points to a severe misspecification in the last model. More formally, the LR, obtained with the function `lrtestspsur` of **spsur** strongly rejects the SIM model in favour of the SLM alternative; the AIC statistic indicates the same.
+The log-likelihood corresponding to the SIM model is much lower, -9176.338, which points to a severe misspecification in the last model. More formally, the LR, obtained with the function `anova` of **spsur** strongly rejects the SIM model in favour of the SLM alternative; the AIC and BIC statistics indicates the same.
 
 
 ```r
-lrtestspsur(ols.spsur, slm.spsur)
+anova(ols.spsur, slm.spsur)
 ```
 
 ```
-#>           Model df   AIC  logLik Test L.Ratio p-value
-#> sim model     1  8 18369 -9176.3    1                
-#> slm model     2  9 18215 -9098.6    2  155.54       0
+#>               logLik df   AIC   BIC LRtest      p.val
+#> model 1: sim -9176.3  8 18369 18353                  
+#> model 2: slm -9098.6  9 18215 18197 155.54 1.0684e-35
 ```
 
 The SLM model can also be estimate by Three Stages-Least-Squares (3SLS) by both R-packages. The function for **spsur** is `spsur3sls()`
@@ -476,7 +476,7 @@ slm.3sls.spsur <- spsur3sls(formula = formula_60, type = "slm",
 ```
 
 ```
-#> Time to fit the model:  0.04  seconds
+#> Time to fit the model:  0.05  seconds
 ```
 
 ```r
@@ -610,8 +610,8 @@ sem.spsur <- spsurml(formula = formula_60, type = "sem",
 #> Initial point:   log_lik:  -9108.886  lambdas:  0.375 
 #> Iteration:  1  log_lik:  -9106.101  lambdas:  0.382 
 #> Iteration:  2  log_lik:  -9106.1  lambdas:  0.382 
-#> Time to fit the model:  1.85  seconds
-#> Time to compute covariances:  65.04  seconds
+#> Time to fit the model:  2.52  seconds
+#> Time to compute covariances:  97.7  seconds
 ```
 
 
@@ -645,20 +645,20 @@ summary(sem.spsur)
 #>  LMM:  1.193  p-value: (0.275)
 ```
 
-The LR test for nested models, in this case SIM vs SEM, can be obtained as before using the function `lrtestspsur()`
+The LR test for nested models, in this case SIM vs SEM, can be obtained as before using the function `anova()`
 
 
 ```r
-lrtestspsur(ols.spsur, sem.spsur)
+anova(ols.spsur, sem.spsur)
 ```
 
 ```
-#>           Model df   AIC  logLik Test L.Ratio p-value
-#> sim model     1  8 18369 -9176.3    1                
-#> sem model     2  9 18230 -9106.1    2  140.48       0
+#>               logLik df   AIC   BIC LRtest      p.val
+#> model 1: sim -9176.3  8 18369 18353                  
+#> model 2: sem -9106.1  9 18230 18212 140.48 2.0951e-32
 ```
 
-Clearly, the SEM model is preferable to the SIM specification because there is spatial dependence in the data, which has been effectively captured by the SEM mechanism. Moreover, according to the LMM test below (this is a Marginal Lagrange Multiplier of the type $LM(\rho|\lambda)$; see the *spsur User's Guide*), once the spatial errors are introduced in the equation, the spatial lag of the endogenous variable, $WHR_{60}$ is not statistically significant.
+Clearly, the SEM model is preferable to the SIM specification because there is spatial dependence in the data, which has been effectively captured by the SEM mechanism. Moreover, according to the LMM test below (this is a Marginal Lagrange Multiplier of the type $LM(\rho|\lambda)$; see the *spsur user guide*), once the spatial errors are introduced in the equation, the spatial lag of the endogenous variable, $WHR_{60}$ is not statistically significant.
 
 
 ```r
@@ -700,8 +700,8 @@ sarar.spsur <- spsurml(formula = formula_60, listw = listw,
 #> Iteration:  4  log_lik:  -9060.259  rhos:  0.777  lambdas:  -0.93 
 #> Iteration:  5  log_lik:  -9060.257  rhos:  0.777  lambdas:  -0.932 
 #> Iteration:  6  log_lik:  -9060.256  rhos:  0.778  lambdas:  -0.932 
-#> Time to fit the model:  43.53  seconds
-#> Time to compute covariances:  9.9  seconds
+#> Time to fit the model:  46.67  seconds
+#> Time to compute covariances:  9.31  seconds
 ```
 
 ```r
@@ -781,27 +781,27 @@ summary(sarar.spatialreg)
 
 The same as before, the differences between the two codes are minimal.
 
-Finally, according to the `lrtestspsur()` function of **spsur**, the SARAR model is preferable to the SLM and SEM alternatives, which are nested in the SARAR, in spite of the high value estimated for the parameter $\lambda$, -0.93327, close to a unit root case. The LR and the AIC statistics coincide in this point.
+Finally, according to the `anova()` function of **spsur**, the SARAR model is preferable to the SLM and SEM alternatives, which are nested in the SARAR, in spite of the high value estimated for the parameter $\lambda$, -0.93327, close to a unit root case. The LR and both AIC and BIC statistics reach the same conclusion.
 
 
 ```r
-lrtestspsur(slm.spsur,sarar.spsur)
+anova(slm.spsur,sarar.spsur)
 ```
 
 ```
-#>             Model df   AIC  logLik Test L.Ratio p-value
-#> slm model       1  9 18215 -9098.6    1                
-#> sarar model     2 10 18141 -9060.3    2  76.625       0
+#>                 logLik df   AIC   BIC LRtest      p.val
+#> model 1: slm   -9098.6  9 18215 18197                  
+#> model 2: sarar -9060.3 10 18141 18121 76.625 2.0666e-18
 ```
 
 ```r
-lrtestspsur(sem.spsur,sarar.spsur)
+anova(sem.spsur,sarar.spsur)
 ```
 
 ```
-#>             Model df   AIC  logLik Test L.Ratio p-value
-#> sem model       1  9 18230 -9106.1    1                
-#> sarar model     2 10 18141 -9060.3    2  91.687       0
+#>                 logLik df   AIC   BIC LRtest      p.val
+#> model 1: sem   -9106.1  9 18230 18212                  
+#> model 2: sarar -9060.3 10 18141 18121 91.687 1.0151e-21
 ```
 
 
