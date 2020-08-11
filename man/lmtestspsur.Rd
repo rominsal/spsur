@@ -2,15 +2,31 @@
 % Please edit documentation in R/lmtestspsur.R
 \name{lmtestspsur}
 \alias{lmtestspsur}
+\alias{lmtestspsur.formula}
+\alias{lmtestspsur.default}
 \title{Testing for the presence of spatial effects in Seemingly 
  Unrelated Regressions}
 \usage{
-lmtestspsur (formula = NULL, data = NULL, na.action, 
-                    listw = NULL, zero.policy = NULL, X = NULL, 
-                    Y = NULL, time = NULL, G = NULL, N = NULL, 
-                    Tm = NULL, p = NULL)
+lmtestspsur(...)
+
+\method{lmtestspsur}{formula}(
+  formula,
+  data,
+  listw,
+  na.action,
+  time = NULL,
+  Tm = 1,
+  zero.policy = NULL,
+  R = NULL,
+  b = NULL,
+  ...
+)
+
+\method{lmtestspsur}{default}(Y, X, G, N, Tm = 1, listw, p, R = NULL, b = NULL, ...)
 }
 \arguments{
+\item{...}{further arguments passed to the method.}
+
 \item{formula}{An object type \code{\link[Formula]{Formula}} 
 similar to objects created with the package \pkg{Formula} 
 describing the equations to be estimated in the model. 
@@ -19,12 +35,6 @@ variables) and a varying number of regressors in each equation.}
 
 \item{data}{An object of class data.frame or a matrix.}
 
-\item{na.action}{A function (default \code{options("na.action")}),
-can also be \code{na.omit} or \code{na.exclude} with consequences 
- for residuals and fitted values. It may be necessary to set 
- \code{zero.policy} to \code{TRUE} because this subsetting may 
- create no-neighbour observations.}
-
 \item{listw}{A \code{listw} object created for example by 
 \code{\link[spdep]{nb2listw}} from \pkg{spatialreg} package; if 
 \code{\link[spdep]{nb2listw}} not given, set to 
@@ -32,11 +42,38 @@ the same spatial weights as the \code{listw} argument. It can
 also be a spatial weighting matrix of order \emph{(NxN)} instead of
 a \code{listw} object. Default = \code{NULL}.}
 
+\item{na.action}{A function (default \code{options("na.action")}),
+can also be \code{na.omit} or \code{na.exclude} with consequences 
+ for residuals and fitted values. It may be necessary to set 
+ \code{zero.policy} to \code{TRUE} because this subsetting may 
+ create no-neighbour observations.}
+
+\item{time}{time index for the spatial panel SUR data.}
+
+\item{Tm}{Number of time periods.}
+
 \item{zero.policy}{Similar to the corresponding parameter of 
 \code{\link[spatialreg]{lagsarlm}} function in \pkg{spatialreg} package. 
 If \code{TRUE} assign zero to the lagged value of zones without 
 neighbours, if \code{FALSE} assign \code{NA} - causing 
 \code{spsurml()} to terminate with an error. Default = \code{NULL}.}
+
+\item{R}{A row vector of order \emph{(1xpr)} with  the set of 
+\emph{r} linear constraints on the \emph{beta} parameters. The 
+\emph{first} restriction appears in the first \emph{p} terms,
+the second restriction in the next \emph{p} terms and so on. 
+Default = \code{NULL}.}
+
+\item{b}{A column vector of order \emph{(rx1)} with the values of 
+the linear restrictions on the \emph{beta} parameters. 
+Default = \code{NULL}.}
+
+\item{Y}{A column vector of order \emph{(NTmGx1)}, with the 
+observations of the explained variables. The ordering of the data 
+must be (first) equation, (second) time dimension and (third) 
+cross-sectional/spatial units. The specification of \emph{Y} is 
+only necessary if not available a \code{\link[Formula]{Formula}}
+and a data frame. Default = \code{NULL}.}
 
 \item{X}{A data matrix of order \emph{(NTmGxp)} with the observations
 of the regressors. The number of covariates in the SUR model is 
@@ -46,20 +83,9 @@ of regressors (including the intercept) in the g-th equation,
 necessary if not available a \code{\link[Formula]{Formula}} and a 
 data frame. Default = \code{NULL}.}
 
-\item{Y}{A column vector of order \emph{(NTmGx1)}, with the 
-observations of the explained variables. The ordering of the data 
-must be (first) equation, (second) time dimension and (third) 
-cross-sectional/spatial units. The specification of \emph{Y} is 
-only necessary if not available a \code{\link[Formula]{Formula}}
-and a data frame. Default = \code{NULL}.}
-
-\item{time}{Time variable for the spatial panel SUR model.}
-
 \item{G}{Number of equations.}
 
 \item{N}{Number of cross-section or spatial units}
-
-\item{Tm}{Number of time periods.}
 
 \item{p}{Number of regressors by equation, including the intercept. 
 \emph{p} can be a row vector of order \emph{(1xG)}, if the number 
@@ -159,7 +185,6 @@ The Lagrange Multipliers reported by this function are the followings:
     }
 }
 \examples{
-
 #################################################
 ######## CROSS SECTION DATA (G>1; Tm=1) # #######
 #################################################
@@ -169,16 +194,12 @@ rm(list = ls()) # Clean memory
 data("spc")
 Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 lwspc <- spdep::mat2listw(Wspc, style = "W")
-lmtestspsur(formula = Tformula, data = spc, 
-             listw = lwspc)
-
-## VIP: If you want to examine a particular example eliminate '#' and 
-## execute the code of the example (they have been commented to 
-## pass the checking time in CRAN)
+lmtestspsur(formula = Tformula, data = spc, listw = lwspc)
 
 ## VIP: The output of the whole set of the examples can be examined 
 ## by executing demo(demo_lmtestspsur, package="spsur")
 
+\donttest{
 #################################################
 ######## PANEL DATA (G>1; Tm>1)          ########
 #################################################
@@ -188,30 +209,32 @@ lmtestspsur(formula = Tformula, data = spc,
 # continental U.S. counties.
 # Data for four decennial census years: 1960, 1970, 1980 and 1990.
 # https://geodacenter.github.io/data-and-lab/ncovr/
-#data(NCOVR, package="spsur")
-#nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+data(NCOVR, package="spsur")
+nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 ### Some regions with no links...
-#lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
 ### With different number of exogenous variables in each equation
-#Tformula <- HR70 | HR80  | HR90 ~ PS70 + UE70 | PS80 + UE80 +RD80 |
-#            PS90 + UE90 + RD90 + PO90
-#lmtestspsur(formula = Tformula, data = NCOVR.sf, 
-#            listw = lwncovr)
+Tformula <- HR70 | HR80  | HR90 ~ PS70 + UE70 | PS80 + UE80 +RD80 |
+            PS90 + UE90 + RD90 + PO90
+lmtestspsur(formula = Tformula, data = NCOVR.sf, 
+            listw = lwncovr)
 
 #################################################################
 ######### PANEL DATA: TEMPORAL CORRELATIONS (G=1; Tm>1) ########
 #################################################################
-#
+
 ##### Example 3: NCOVR in panel data form
-#Year <- as.numeric(kronecker(c(1960,1970,1980,1990), 
-#                   matrix(1,nrow = dim(NCOVR.sf)[1])))
-#HR <- c(NCOVR.sf$HR60,NCOVR.sf$HR70,NCOVR.sf$HR80,NCOVR.sf$HR90)
-#PS <- c(NCOVR.sf$PS60,NCOVR.sf$PS70,NCOVR.sf$PS80,NCOVR.sf$PS90)
-#UE <- c(NCOVR.sf$UE60,NCOVR.sf$UE70,NCOVR.sf$UE80,NCOVR.sf$UE90)
-#NCOVRpanel <- as.data.frame(cbind(Year,HR,PS,UE))
-#Tformula <- HR ~ PS + UE
-#lmtestspsur(formula = Tformula, data = NCOVRpanel, 
-#            time = Year, listw = lwncovr)
+Year <- as.numeric(kronecker(c(1960,1970,1980,1990), 
+                   matrix(1,nrow = dim(NCOVR.sf)[1])))
+HR <- c(NCOVR.sf$HR60,NCOVR.sf$HR70,NCOVR.sf$HR80,NCOVR.sf$HR90)
+PS <- c(NCOVR.sf$PS60,NCOVR.sf$PS70,NCOVR.sf$PS80,NCOVR.sf$PS90)
+UE <- c(NCOVR.sf$UE60,NCOVR.sf$UE70,NCOVR.sf$UE80,NCOVR.sf$UE90)
+NCOVRpanel <- as.data.frame(cbind(Year,HR,PS,UE))
+Tformula <- HR ~ PS + UE
+lmtestspsur(formula = Tformula, data = NCOVRpanel, time = Year, 
+listw = lwncovr)
+}
+
 }
 \references{
 \itemize{
@@ -225,7 +248,7 @@ lmtestspsur(formula = Tformula, data = spc,
   }
 }
 \seealso{
-\code{\link{spsurml}}, \code{\link{lrtestspsur}}
+\code{\link{spsurml}}, \code{\link{anova}}
 }
 \author{
 \tabular{ll}{

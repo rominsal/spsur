@@ -8,7 +8,8 @@ spsur3sls (formula = NULL, data = NULL, na.action,
                   R = NULL, b = NULL, listw = NULL, 
                   zero.policy = NULL, X= NULL, Y = NULL, G = NULL, 
                   N = NULL, Tm = NULL, p = NULL,  
-                  type = "slm", Durbin = NULL, maxlagW = NULL)
+                  type = "slm", Durbin = NULL, maxlagW = NULL,
+                  trace = TRUE)
 }
 \arguments{
 \item{formula}{An object type \code{\link[Formula]{Formula}} 
@@ -88,6 +89,9 @@ produce spatial instruments for the spatial lags of the explained variables.
 Default = 2. Note that in case of \code{type}="sdm", the default value for 
 \code{maxlagW} is set to 3 because the first lag of the regressors, 
 \eqn{WX_{tg}}, can not be used as spatial instruments.}
+
+\item{trace}{A logical value to show intermediate results during 
+the estimation process. Default = \code{TRUE}.}
 }
 \value{
 Object of \code{spsur} class with the output of the  three-stages 
@@ -217,25 +221,42 @@ Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 spcsur_slm_3sls <-spsur3sls(formula = Tformula, data = spc,
                             type = "slm", listw = lwspc)
 summary(spcsur_slm_3sls)
+print(spcsur_slm_3sls)
 
-## VIP: If you want to examine a particular example eliminate '#' and 
-## execute the code of the example (they have been commented to 
-## pass the checking time in CRAN)
+if (require(gridExtra)) {
+  pl <- plot(spcsur_slm_3sls, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
 
 ## VIP: The output of the whole set of the examples can be examined 
 ## by executing demo(demo_spsur3sls, package="spsur")
 
+\donttest{
 ## A SUR-SDM model (3SLS Estimation)
-# spcsur_sdm_3sls <-spsur3sls(formula = Tformula, data = spc,
-#                             type = "sdm", listw = lwspc)
-# summary(spcsur_sdm_3sls)
+ spcsur_sdm_3sls <-spsur3sls(formula = Tformula, data = spc,
+                             type = "sdm", listw = lwspc)
+ summary(spcsur_sdm_3sls)
+if (require(gridExtra)) {
+  pl <- plot(spcsur_sdm_3sls, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+rm(spcsur_sdm_3sls)
 
 # A SUR-SDM model with different spatial lags in each equation
-# TformulaD <-  ~ UN83 + NMR83 + SMSA | UN80 + NMR80  
-# spcsur_sdm2_3sls <-spsur3sls(formula = Tformula, data = spc,
-#                             type = "sdm", listw = lwspc,
-#                             Durbin = TformulaD)
-# summary(spcsur_sdm2_3sls)
+ TformulaD <-  ~ UN83 + NMR83 + SMSA | UN80 + NMR80  
+ spcsur_sdm2_3sls <-spsur3sls(formula = Tformula, data = spc,
+                             type = "sdm", listw = lwspc,
+                             Durbin = TformulaD)
+ summary(spcsur_sdm2_3sls)
+if (require(gridExtra)) {
+  pl <- plot(spcsur_sdm2_3sls, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+rm(spcsur_sdm2_3sls)
+}
 
 #################################################
 ######## PANEL DATA (G>1; Tm>1)         #########
@@ -246,19 +267,28 @@ summary(spcsur_slm_3sls)
 # U.S. counties.
 # Data for four decennial census years: 1960, 1970, 1980 and 1990.
 # https://geodacenter.github.io/data-and-lab/ncovr/
-# rm(list = ls()) # Clean memory
-## Read NCOVR.sf object
-# data(NCOVR, package = "spsur")
-# nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
-## Some regions with no links...
-# lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
-# Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
-## A SUR-SLM model
-# NCOVRSUR_slm_3sls <-spsur3sls(formula = Tformula, data = NCOVR.sf, 
-#                               type = "slm", zero.policy = TRUE,
-#                               listw = lwncovr, maxlagW = 2)
-# summary(NCOVRSUR_slm_3sls)
 
+\donttest{
+rm(list = ls()) # Clean memory
+## Read NCOVR.sf object
+ data(NCOVR, package = "spsur")
+ nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+## Some regions with no links...
+ lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+ Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
+## A SUR-SLM model
+ NCOVRSUR_slm_3sls <-spsur3sls(formula = Tformula, data = NCOVR.sf, 
+                               type = "slm", zero.policy = TRUE,
+                               listw = lwncovr, maxlagW = 2, 
+                               trace = FALSE)
+ summary(NCOVRSUR_slm_3sls)
+if (require(gridExtra)) {
+  pl <- plot(NCOVRSUR_slm_3sls, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+rm(NCOVRSUR_slm_3sls)
+}
 }
 \references{
 \itemize{
