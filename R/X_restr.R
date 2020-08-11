@@ -1,5 +1,6 @@
 X_restr <- function(X,R,b,p){
   # Function to fit beta restricted imposing the restrictions in matrix X
+  if(!is.matrix(b)) b <- matrix(b, ncol = 1)
   Rt <- t(R)
   # Localizar coeficientes no nulos de Rt y b
   Rt_nonull <- Rt != 0
@@ -30,15 +31,20 @@ X_restr <- function(X,R,b,p){
   for (i in 1:nrow(b)) {
     if (rt_nonull[i]) X_star[,1] <- X_star[,1]+b[i]*X[,index_var_ref[i]]
   }
-  # Elimina variables dependientes linealmente en Xstar y adapta p de cada ecuación
+  # Elimina variables dependientes linealmente en Xstar 
+  # y adapta p de cada ecuación
   Xstar <- Xstar[,-c(index_var_del)]
   colnames(Xstar) <- colnames(X)[-c(index_var_del)]
-  pstar <- p
-  for (i in 1:length(index_var_del))
-  {
-    index_pstar_i <- which(index_var_del[i] < cumsum(p))[1]
-    pstar[index_pstar_i] <- pstar[index_pstar_i] - 1
+  pstar <- rep(0, length(p))
+  for (i in 1:length(pstar)) {
+    pattern_i <- paste("_",i,sep="")
+    pstar[i] <- sum(grepl(pattern_i, colnames(Xstar)))
   }
+  # for (i in 1:length(index_var_del))
+  # {
+  #   index_pstar_i <- which(index_var_del[i] <= cumsum(p))[1]
+  #   pstar[index_pstar_i] <- pstar[index_pstar_i] - 1
+  # }
   res <- list(Xstar = Xstar, pstar = pstar)
   return (res)
 }

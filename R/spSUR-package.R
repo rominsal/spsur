@@ -11,8 +11,8 @@
 #'   Moreover, \pkg{spsur} obtains a collection of misspecification
 #'   tests for omitted or wrongly specified spatial structure. The user will 
 #'   find spatial models more popular in applied research such as the SUR-SLX, 
-#'   SUR-SLM, SUR-SEM, SUR-SDM, SUR-SDEM
-#'   and SUR-SARAR, plus the spatially independent SUR, or SUR-SIM.
+#'   SUR-SLM, SUR-SEM, SUR-SDM, SUR-SDEM SUR-SARAR and SUR-GNM 
+#'   plus the spatially independent SUR, or SUR-SIM.
 #'
 #' @details
 #'  Some functionalities that have been included in \pkg{spsur} package are:
@@ -66,12 +66,16 @@
 #'            lags of the endogenous variable and of the regressors
 #'             \deqn{ y_{tg} = X_{tg} \beta_{g} + WX_{tg} \theta_{g} + u_{tg} }
 #'              \deqn{ u_{tg} = \lambda_{g} W u_{tg} + \epsilon_{tg} }
-#'       \item \emph{SUR-SARAR}: Spatial lag model with spatial errors
+#'      \item \emph{SUR-SARAR}: Spatial lag model with spatial errors
 #'             \deqn{ y_{tg} = \rho_{g} Wy_{tg} + X_{tg} \beta_{g} + 
 #'                              u_{tg} }
 #'              \deqn{ u_{tg} = \lambda_{g} W u_{tg} + \epsilon_{tg} }
-#'          }
-#'
+#'      \item \emph{SUR-GNM}: SUR model with spatial lags of the explained 
+#'        variables, regressors and spatial errors
+#'       \deqn{ y_{tg} = \rho_{g} Wy_{tg} + X_{tg} \beta_{g} + 
+#'                         WX_{tg} \theta_{g} + u_{tg} }
+#'       \deqn{ u_{tg} = \lambda_{g} W u_{tg} + \epsilon_{tg} }
+#'    }
 #'          where \eqn{y_{tg}}, \eqn{u_{tg}} and \eqn{\epsilon_{tg}} are 
 #'          \emph{(Nx1)} vectors; \eqn{X_{tg}} is a matrix of regressors of 
 #'          order \emph{(NxP)}; \eqn{\rho_{g}} and \eqn{\lambda_{g}} are 
@@ -146,7 +150,7 @@
 #'   characteristics of a SUR model with certain spatial structure.
 #'
 #' @section Datasets:
-#'   \pkg{spsur} includes two different datasets: spc and NCOVR. These 
+#'   \pkg{spsur} includes three different datasets: spc, NCOVR and spain.covid. These 
 #'   sets are used to 
 #'   illustrate the capabilities of different functions. Briefly, their 
 #'   main characteristics are the following \cr
@@ -154,12 +158,16 @@
 #'     \item The \emph{spc} dataset (Spatial Phillips-Curve) is a 
 #'      classical dataset taken from Anselin (1988, p. 203), of small 
 #'      dimensions.
-#'     \item The \emph{NCOVR} dataset comprises Homicides and a list of 
+#'      \item The \emph{NCOVR} dataset comprises Homicides and a list of 
 #'      selected socio-economic variables for continental U.S. counties 
 #'      in four decennial census years: 1960, 1970, 1980 and 1990. 
 #'      It is freely available from
 #'        \url{https://geodacenter.github.io/data-and-lab/ncovr/}. 
 #'        \emph{NCOVR} is a typical spatial panel dataset \emph{(G=1)}.
+#'      \item The \emph{spain.covid} dataset comprises Within and Exit mobility index 
+#'      together with the weeklly incidence COVID-19 at Spain provinces from 
+#'      February 21 to May 21 2020. 
+#'      \url{https://www.mitma.gob.es/ministerio/covid-19/evolucion-movilidad-big-data}
 #'    }
 #'
 #' @references
@@ -194,11 +202,16 @@
 #'
 #' @importFrom Formula Formula model.part
 #' @importFrom gmodels estimable
+#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 geom_pointrange
+#' @importFrom ggplot2 labs
+#' @importFrom gridExtra grid.arrange
 #' @importFrom MASS ginv
 #' @importFrom Matrix bdiag crossprod Diagonal Matrix solve t
 #' @importFrom methods as
 #' @importFrom minqa bobyqa
 #' @importFrom numDeriv hessian
+#' @importFrom rlang .data
 #' @importFrom sparseMVN rmvn.sparse
 #' @importFrom spatialreg get.ZeroPolicyOption create_WX trW  
 #' @importFrom spatialreg can.be.simmed jacobianSetup do_ldet 
@@ -208,6 +221,6 @@
 #' @importFrom stats cor cov optim pchisq pnorm pt qnorm rnorm runif
 #' @importFrom stats coefficients fitted lm residuals printCoefmat
 #' @importFrom stats model.frame model.matrix terms
-#' @importFrom stats anova coef formula logLik 
+#' @importFrom stats anova coef formula logLik AIC BIC
 #' @importFrom stats na.action napredict update
 NULL

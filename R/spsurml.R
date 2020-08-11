@@ -87,7 +87,7 @@
 #' @param Tm Number of time periods.
 #' @param type Type of spatial model specification: "sim",
 #'   "slx", "slm", "sem", "sdm", 
-#'   "sdem" or "sarar". Default = "sim".
+#'   "sdem", "sarar" or "gnm". Default = "sim".
 #' @param R A row vector of order \emph{(1xpr)} with  the set of 
 #'   \emph{r} linear constraints on the \emph{beta} parameters. The 
 #'   \emph{first} restriction appears in the first \emph{p} terms,
@@ -118,8 +118,13 @@
 #'       errors
 #'       \deqn{ y_{tg} = \rho_{g} Wy_{tg} + X_{tg} \beta_{g} + u_{tg} }
 #'       \deqn{ u_{tg} = \lambda_{g} W u_{tg} + \epsilon_{tg} }
+#'     \item "gnm": SUR model with spatial lags of the explained variables, 
+#'       regressors and spatial errors
+#'       \deqn{ y_{tg} = \rho_{g} Wy_{tg} + X_{tg} \beta_{g} + 
+#'                         WX_{tg} \theta_{g} + u_{tg} }
+#'       \deqn{ u_{tg} = \lambda_{g} W u_{tg} + \epsilon_{tg} }
 #'   }
-#'
+#'   
 #' @return Object of \code{spsur} class with the output of the  
 #'  maximum-likelihood estimation of the specified spatial SUR model. 
 #'  A list with:
@@ -260,7 +265,7 @@
 #' @seealso
 #' \code{\link{spsur3sls}}, \code{\link[spatialreg]{lagsarlm}}, 
 #' \code{\link{lmtestspsur}}, \code{\link{wald_betas}}, 
-#' \code{\link{lrtestspsur}}
+#' \code{\link{lrtest}}
 #'
 #' @examples
 #'
@@ -274,47 +279,115 @@
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #' spcsur.sim <-spsurml(formula = Tformula, data = spc, type = "sim")
 #' summary(spcsur.sim)
+#' # All the coefficients in a single table.
+#' print(spcsur.sim)
+#' # Plot of the coefficients of each equation in different graphs
+#' plot(spcsur.sim) 
 #'
 #' ## A SUR-SLX model 
 #' ## (listw argument can be either a matrix or a listw object )
 #' spcsur.slx <-spsurml(formula = Tformula, data = spc, type = "slx", 
 #'   listw = Wspc)
 #' summary(spcsur.slx)
-#' 
-#' ## VIP: If you want to examine a particular example eliminate '#' and 
-#' ## execute the code of the example (they have been commented to 
-#' ## pass the checking time in CRAN)
+#' # All the coefficients in a single table.
+#' print(spcsur.slx)
+#' # Plot of the coefficients in a single graph
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.slx, viewplot = FALSE)
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                         nrow = 2)
+#' } 
 #' 
 #' ## VIP: The output of the whole set of the examples can be examined 
 #' ## by executing demo(demo_spsurml, package="spsur")
+#'   
+#' \donttest{
+#' ### A SUR-SLM model
+#' spcsur.slm <-spsurml(formula = Tformula, data = spc, type = "slm", 
+#'                      listw = Wspc)
+#' summary(spcsur.slm)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.slm, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
 #' 
-#' ### A SUR-SEM model
-#' #spcsur.sem <-spsurml(formula = Tformula, data = spc, type = "sem", 
-#' #                     listw = Wspc)
-#' #summary(spcsur.sem)
-#' #rm(spcsur.sem) # remove
+#' #' ### A SUR-SEM model
+#' spcsur.sem <-spsurml(formula = Tformula, data = spc, type = "sem", 
+#'                      listw = Wspc)
+#' summary(spcsur.sem)                      
+#' print(spcsur.sem)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.sem, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' 
 #' ### A SUR-SDM model
-#' #spcsur.sdm <-spsurml(formula = Tformula, data = spc, type = "sdm", 
-#' #                     listw = Wspc)
-#' #summary(spcsur.sdm)
-#' #rm(spcsur.sdm) # remove
+#' spcsur.sdm <-spsurml(formula = Tformula, data = spc, type = "sdm", 
+#'                      listw = Wspc)
+#' summary(spcsur.sdm)
+#' print(spcsur.sdm)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.sdm, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' 
 #' ## A SUR-SDM model with different spatial lags in each equation
-#' #TformulaD <- ~ UN83 + NMR83 + SMSA | UN80
-#' #spcsur.sdm2 <-spsurml(formula = Tformula, data = spc, type = "sdm", 
-#' #                      listw = Wspc, Durbin = TformulaD)
-#' #summary(spcsur.sdm2)
-#' #rm(spcsur.sdm2) # remove
+#' TformulaD <- ~ UN83 + NMR83 + SMSA | UN80
+#' spcsur.sdm2 <-spsurml(formula = Tformula, data = spc, type = "sdm", 
+#'                       listw = Wspc, Durbin = TformulaD)
+#' summary(spcsur.sdm2)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.sdm2, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
 #' ### A SUR-SDEM model
-#' #spcsur.sdem <-spsurml(formula = Tformula, data = spc, type = "sdem", 
-#' #                      listw = Wspc)
-#' #summary(spcsur.sdem)
-#' #rm(spcsur.sdem) # remove
+#' spcsur.sdem <-spsurml(formula = Tformula, data = spc, type = "sdem", 
+#'                       listw = Wspc)
+#' print(spcsur.sdem)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.sdem, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' 
 #' ### A SUR-SARAR model
-#' #spcsur.sarar <-spsurml(formula = Tformula, data = spc, type = "sarar", 
-#' #                       listw = Wspc, control = list(tol = 0.1))
-#' #summary(spcsur.sarar)
-#' #rm(spcsur.sarar) # remove
-#' #
+#' spcsur.sarar <-spsurml(formula = Tformula, data = spc, type = "sarar", 
+#'                        listw = Wspc, control = list(tol = 0.1))
+#' print(spcsur.sarar)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.sarar, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' 
+#' ### A SUR-GNM model
+#' spcsur.gnm <-spsurml(formula = Tformula, data = spc, type = "gnm", 
+#'                        listw = Wspc, control = list(tol = 0.1))
+#' print(spcsur.gnm)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.gnm, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' 
+#' ## A A SUR-GNM model model with different spatial lags in each equation
+#' TformulaD <- ~ UN83 + NMR83 + SMSA | UN80
+#' spcsur.gnm2 <-spsurml(formula = Tformula, data = spc, type = "gnm", 
+#'                        listw = Wspc, Durbin = TformulaD,
+#'                        control = list(tol = 0.1))
+#' print(spcsur.gnm2)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur.gnm2, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#'
+#' }
+#' 
 #' ##################################################
 #' #########  G=1; Tm>1         ########
 #' ##################################################
@@ -324,100 +397,135 @@
 #' ## U.S. counties.
 #' ## Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' ## \url{https://geodacenter.github.io/data-and-lab/ncovr/}
-#' #
+#' 
+#'\donttest{
 #' ### It usually requires 1-2 minutes maximum...
-#' #rm(list = ls()) # Clean memory
+#' rm(list = ls()) # Clean memory
 #' ### Read NCOVR.sf object
-#' #data(NCOVR, package = "spsur")
-#' #nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+#' data(NCOVR, package = "spsur")
+#' nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 #' ### Some regions with no links...
-#' #lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
-#' #Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
-#' #
+#' lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+#' Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
 #' ### A SUR-SIM model
-#' #NCOVRSUR.sim <-spsurml(formula = Tformula, data = NCOVR.sf, type = "sim")
-#' #summary(NCOVRSUR.sim)
-#' #rm(NCOVRSUR.sim)
-#' #
+#' NCOVRSUR.sim <-spsurml(formula = Tformula, data = NCOVR.sf, type = "sim")
+#' summary(NCOVRSUR.sim)
+#' if (require(gridExtra)) {
+#'   pl <- plot(NCOVRSUR.sim, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], nrow = 3)
+#' }
 #' ### A SUR-SLX model
-#' #NCOVRSUR.slx <-spsurml(formula = Tformula, data = NCOVR.sf, type = "slx", 
-#' #                       listw = lwncovr, zero.policy = TRUE)
-#' #summary(NCOVRSUR.slx)
-#' #rm(NCOVRSUR.slx)
-#' #
+#' NCOVRSUR.slx <-spsurml(formula = Tformula, data = NCOVR.sf, type = "slx", 
+#'                        listw = lwncovr, zero.policy = TRUE)
+#' print(NCOVRSUR.slx)
+#' if (require(gridExtra)) {
+#'   pl <- plot(NCOVRSUR.slx, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], nrow = 2)
+#' }
+#' 
 #' ### A SUR-SLM model
 #' ### method = "Matrix" (Cholesky) instead of "eigen"
 #' ### (fdHess = TRUE to compute numerical covariances )
-#' #NCOVRSUR.slm <-spsurml(formula = Tformula, data = NCOVR.sf, 
-#' #                       type = "slm", listw = lwncovr, method = "Matrix", 
-#' #                       zero.policy = TRUE, control = list(fdHess = TRUE))
-#' #summary(NCOVRSUR.slm)
-#' #rm(NCOVRSUR.slm)
-#' #
+#' NCOVRSUR.slm <-spsurml(formula = Tformula, data = NCOVR.sf, 
+#'                        type = "slm", listw = lwncovr, method = "Matrix", 
+#'                        zero.policy = TRUE, control = list(fdHess = TRUE))
+#' summary(NCOVRSUR.slm)
+#' 
+#' if (require(gridExtra)) {
+#'   pl <- plot(NCOVRSUR.slm, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' 
+#' # LR test for nested models
+#' #lrtest(NCOVRSUR.sim, NCOVRSUR.slm)
+#' 
 #' ### A SUR-SDM model with different spatial lags in each equation
 #' ### Analytical covariances (default)
-#' #TformulaD <- ~ PS80 + UE80 | PS90 
-#' #NCOVRSUR.sdm <-spsurml(formula = Tformula, data = NCOVR.sf, 
-#' #                       type = "sdm", listw = lwncovr, method = "Matrix",
-#' #                       Durbin = TformulaD, zero.policy = TRUE)
-#' #summary(NCOVRSUR.sdm)
-#' #rm(NCOVRSUR.sdm)
-#' #
+#' TformulaD <- ~ PS80 + UE80 | PS90 
+#' NCOVRSUR.sdm <-spsurml(formula = Tformula, data = NCOVR.sf, 
+#'                        type = "sdm", listw = lwncovr, method = "Matrix",
+#'                        Durbin = TformulaD, zero.policy = TRUE)
+#' print(NCOVRSUR.sdm)
+#' if (require(gridExtra)) {
+#'   pl <- plot(NCOVRSUR.sdm, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
 #' ### A SUR-SEM model
-#' #NCOVRSUR.sem <- spsurml(formula = Tformula, data = NCOVR.sf, 
-#' #                        type = "sem", listw = lwncovr, method = "Matrix",
-#' #                        zero.policy = TRUE, control = list(fdHess = TRUE))
-#' #summary(NCOVRSUR.sem)
-
+#' NCOVRSUR.sem <- spsurml(formula = Tformula, data = NCOVR.sf, 
+#'                         type = "sem", listw = lwncovr, method = "Matrix",
+#'                         zero.policy = TRUE, control = list(fdHess = TRUE))
+#' print(NCOVRSUR.sem)
+#' if (require(gridExtra)) {
+#'   pl <- plot(NCOVRSUR.sem, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' 
 #' ### A SUR-SDEM model
-#' #NCOVRSUR.sdem <-spsurml(formula = Tformula, data = NCOVR.sf, 
-#' #                        type = "sdem", listw = lwncovr, method = "Matrix",
-#' #                        zero.policy = TRUE, control = list(fdHess = TRUE))
-#' #summary(NCOVRSUR.sdem)
-#' #rm(NCOVRSUR.sdem)
-#' #
-#' ### A SUR-SARAR model
-#' #NCOVRSUR.sarar <-spsurml(formula = Tformula, data = NCOVR.sf,
-#' #                         type = "sarar", listw = lwncovr, method = "Matrix",
-#' #                         zero.policy = TRUE, control = list(fdHess = TRUE))
-#' #summary(NCOVRSUR.sarar)
-#' #rm(NCOVRSUR.sarar)
-#' #
+#' NCOVRSUR.sdem <-spsurml(formula = Tformula, data = NCOVR.sf, 
+#'                         type = "sdem", listw = lwncovr, method = "Matrix",
+#'                         zero.policy = TRUE, control = list(fdHess = TRUE))
+#' print(NCOVRSUR.sdem)
+#' if (require(gridExtra)) {
+#'   pl <- plot(NCOVRSUR.sdem, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#'}
+#' 
 #' ###############################################
 #' ######### SUR with G>1; Tm>1  ###
 #' ###############################################
 #' ##### Reshape NCOVR in panel format
-#' #N <- nrow(NCOVR.sf)
-#' #Tm <- 4
-#' #index_time <- rep(1:Tm, each = N)
-#' #index_indiv <- rep(1:N, Tm)
-#' #pHR <- c(NCOVR.sf$HR60, NCOVR.sf$HR70, NCOVR.sf$HR80, NCOVR.sf$HR90)
-#' #pPS <- c(NCOVR.sf$PS60, NCOVR.sf$PS70, NCOVR.sf$PS80, NCOVR.sf$PS90)
-#' #pUE <- c(NCOVR.sf$UE60, NCOVR.sf$UE70, NCOVR.sf$UE80, NCOVR.sf$UE90)
-#' #pDV <- c(NCOVR.sf$DV60, NCOVR.sf$DV70, NCOVR.sf$DV80, NCOVR.sf$DV90)
-#' #pFP <- c(NCOVR.sf$FP59, NCOVR.sf$FP70, NCOVR.sf$FP80, NCOVR.sf$FP90)
-#' #pSOUTH <- rep(NCOVR.sf$SOUTH, Tm)
-#' #pNCOVR <- data.frame(indiv = index_indiv, time = index_time,
-#' #                     HR = pHR, PS = pPS, UE = pUE, DV = pDV,
-#' #                     FP = pFP, SOUTH = pSOUTH)
-#' #pform <- HR | DV | FP ~ PS + UE | PS + UE + SOUTH | PS
-#' #
+#' \donttest{
+#' N <- nrow(NCOVR.sf)
+#' Tm <- 4
+#' index_time <- rep(1:Tm, each = N)
+#' index_indiv <- rep(1:N, Tm)
+#' pHR <- c(NCOVR.sf$HR60, NCOVR.sf$HR70, NCOVR.sf$HR80, NCOVR.sf$HR90)
+#' pPS <- c(NCOVR.sf$PS60, NCOVR.sf$PS70, NCOVR.sf$PS80, NCOVR.sf$PS90)
+#' pUE <- c(NCOVR.sf$UE60, NCOVR.sf$UE70, NCOVR.sf$UE80, NCOVR.sf$UE90)
+#' pDV <- c(NCOVR.sf$DV60, NCOVR.sf$DV70, NCOVR.sf$DV80, NCOVR.sf$DV90)
+#' pFP <- c(NCOVR.sf$FP59, NCOVR.sf$FP70, NCOVR.sf$FP80, NCOVR.sf$FP90)
+#' pSOUTH <- rep(NCOVR.sf$SOUTH, Tm)
+#' pNCOVR <- data.frame(indiv = index_indiv, time = index_time,
+#'                      HR = pHR, PS = pPS, UE = pUE, DV = pDV,
+#'                      FP = pFP, SOUTH = pSOUTH)
+#' pform <- HR | DV | FP ~ PS + UE | PS + UE + SOUTH | PS
 #' ### SIM 
 #' ### Remark: It is necessary to provide Tm value as argument 
 #' ### when G>1 && Tm>1
-#' #pNCOVRSUR.sim <- spsurml(formula = pform, data = pNCOVR, 
-#' #                         type = "sim", Tm = Tm)
-#' #summary(pNCOVRSUR.sim)
-#' #
-#' #pNCOVRSUR.slm <- spsurml(formula = pform, data = pNCOVR, 
-#' #                         listw = lwncovr, type = "slm", method = "Matrix", Tm = Tm,
-#' #                         zero.policy = TRUE, control= list(fdHess = TRUE))
-#' #summary(pNCOVRSUR.slm)   
-#' #
-#' #pNCOVRSUR.sem <- spsurml(formula = pform, data = pNCOVR, 
-#' #                         listw = lwncovr, type = "sem", method = "Matrix", Tm = Tm,
-#' #                         zero.policy = TRUE, control= list(fdHess = TRUE))
-#' #summary(pNCOVRSUR.sem)  
+#' pNCOVRSUR.sim <- spsurml(formula = pform, data = pNCOVR, 
+#'                          type = "sim", Tm = Tm)
+#' print(pNCOVRSUR.sim)
+#' if (require(gridExtra)) {
+#'   pl <- plot(pNCOVRSUR.sim, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$lplbetas[[3]], nrow = 3)
+#' }
+#' # SLM
+#' pNCOVRSUR.slm <- spsurml(formula = pform, data = pNCOVR, 
+#'                          listw = lwncovr, type = "slm", method = "Matrix", Tm = Tm,
+#'                          zero.policy = TRUE, control= list(fdHess = TRUE))
+#' print(pNCOVRSUR.slm)
+#' if (require(gridExtra)) {
+#'   pl <- plot(pNCOVRSUR.slm, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$lplbetas[[3]], pl$pldeltas, nrow = 4)
+#' }
+#' 
+#' pNCOVRSUR.sem <- spsurml(formula = pform, data = pNCOVR, 
+#'                          listw = lwncovr, type = "sem", method = "Matrix", Tm = Tm,
+#'                          zero.policy = TRUE, control= list(fdHess = TRUE))
+#' print(pNCOVRSUR.sem) 
+#' if (require(gridExtra)) {
+#'   pl <- plot(pNCOVRSUR.sem, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$lplbetas[[3]], pl$pldeltas, nrow = 4)
+#' }
+#' }
 #' @export
 spsurml <- function(formula = NULL, data = NULL, na.action, 
                     listw = NULL, type = "sim", Durbin = NULL, 
@@ -487,7 +595,7 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
       }
       W <- Matrix::Matrix(spdep::listw2mat(listw))
     }
-    if (any(type == c("sdm", "sdem", "slx"))) {
+    if (any(type == c("gnm", "sdm", "sdem", "slx"))) {
       if(!inherits(Durbin, "formula")) Durbin <- TRUE
     } else { Durbin <- FALSE }
     get_XY <- get_data_spsur(formula = formula, mf = mf, 
@@ -518,6 +626,8 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
   if (length(p) == 1) p <- rep(p,G)
   names(p) <- NULL
   if (!is.null(R) && !is.null(b)) {
+    Xorig <- X
+    porig <- p
     restr <- X_restr(X = X, R = R, b = b, p = p)
     X <- restr$Xstar
     p <- restr$pstar
@@ -555,6 +665,7 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
   if (type == "sdm") name_fit <- "fit_spsurslm"
   if (type == "sdem") name_fit <- "fit_spsursem"
   if (type == "slx") name_fit <- "fit_spsursim"
+  if (type == "gnm") name_fit <- "fit_spsursarar"
   fit <- get(name_fit)
   if (con$trace)  start_fit <- proc.time()[3]
   # Maximize concentrate likelihood
@@ -586,7 +697,7 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
       names_deltas[i] <- paste("rho", i, sep = "_")
     if (any(type == c("sem","sdem")))
       names_deltas[i] <- paste("lambda", i, sep = "_")
-    if (type == "sarar") {
+    if (any(type == c("sarar", "gnm"))) {
       names_deltas[i] <- paste("rho", i, sep = "_")
       names_deltas[G + i] <- paste("lambda", i, sep = "_")
     }
@@ -608,6 +719,7 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
       name_cov_fit <- paste("cov_spsur", type, "_f", sep = "")
     if (type == "sdm") name_cov_fit <- "cov_spsurslm_f"
     if (type == "sdem") name_cov_fit <- "cov_spsursem_f"
+    if (type == "gnm") name_cov_fit <- "cov_spsursarar_f"
     cov_fit <- get(name_cov_fit)
     allcov <- try( cov_fit(env = env) )
     if (inherits(allcov, "try-error")) {
@@ -650,7 +762,7 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
     }
     if (any(type == c("slm","sdm"))) name_cov_fit <- "f_sur_lag"
     if (any(type == c("sem","sdem"))) name_cov_fit <- "f_sur_sem"
-    if (type == "sarar") name_cov_fit <- "f_sur_sarar"
+    if (any(type == c("sarar","gnm"))) name_cov_fit <- "f_sur_sarar"
     cov_fit <- get(name_cov_fit)
     vardeltas <- solve(numDeriv::hessian(func = cov_fit, 
                                          x = deltas, env = env))
@@ -694,8 +806,45 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
     R2_eq[i] <- cor(matrix(arrY[,i,], ncol = 1),
                     matrix(arrYhat[,i,], ncol = 1))^2
   }
-  names(R2_eq) <- paste0("R2_eq",1:G)
-  ret <- structure(list(call = cl, type = type, 
+  names(R2_eq) <- paste0("R2_eq", 1:G)
+  if (!is.null(R) && !is.null(b)) {
+    namesXorig <- colnames(Xorig)
+    coefforig <- seorig <- rep(0, ncol(Xorig))
+    names(coefforig) <- names(seorig) <- colnames(Xorig)
+    coefforig[names(coefficients)] <- coefficients
+    seorig[names(rest.se)] <- rest.se
+    b <- as.numeric(b)
+    for (i in 1:nrow(R)) {
+      lidxRi <- R[i,] != 0
+      widxRi <- which(lidxRi)
+      vidxRi <- R[i,lidxRi]
+      ## Check if the constraint is the equality between coefficients
+      if ((length(widxRi) == 2) && (sum(vidxRi) == 0) 
+          && (b[i] == 0)) {
+        coefforig[widxRi[2]] <- coefforig[widxRi[1]]
+        seorig[widxRi[2]] <- seorig[widxRi[1]]
+        # Updates covariance matrix to include constrained coefficient
+        name1 <- names(coefforig)[widxRi[1]]
+        name2 <- names(coefforig)[widxRi[2]]
+        pr1 <- rbind(resvar, resvar[name1, ])
+        rownames(pr1) <- c(rownames(resvar), name2)
+        pr2 <- cbind(pr1, c(resvar[, name1], resvar[name1, name1]))
+        colnames(pr2) <- rownames(pr2)
+        resvar <- pr2
+        rm(pr1, pr2)
+      }
+      # ## Check if the constraint is individual coefficient = 0
+      # if ((length(widxRi) == 1) && (vidxRi == 0)&& (b[i] == 0)) {
+      #   coefforig[widxRi] <- seorig[widxRi] <- 0
+      # }
+    }
+    X <- Xorig
+    p <- porig
+    coefficients <- coefforig
+    rest.se <- seorig
+  }  
+  
+  ret <- new_spsur(list(call = cl, type = type, 
                        method = method, Durbin = Durbin, 
                        G = G, N = N, Tm = Tm, 
                        deltas = deltas, deltas.se = deltas.se,  
@@ -712,8 +861,7 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
                        similar = similar, can.sim = can.sim, 
                        zero.policy = zero.policy, listw_style = listw$style, 
                        interval = interval,  
-                       insert = !is.null(trs), trs = trs), 
-                       class = c("spsur"))
+                       insert = !is.null(trs)))
   if (zero.policy) {
     zero.regs <- attr(listw$neighbours, "region.id")[which(
                       spdep::card(listw$neighbours) == 0)]

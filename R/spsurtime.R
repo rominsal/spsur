@@ -87,7 +87,7 @@
 #' @seealso
 #' \code{\link{spsurml}}, \code{\link{spsur3sls}}, 
 #' \code{\link{wald_betas}},  \code{\link{wald_deltas}},
-#' \code{\link{lmtestspsur}}, \code{\link{lrtestspsur}}
+#' \code{\link{lmtestspsur}}, \code{\link{lrtest}}
 #'
 #' @examples
 #'
@@ -118,62 +118,60 @@
 #'                       type = "slm", fit_method = "ml")
 #'summary(pspc_slm)
 #'
-#' ## VIP: If you want to examine a particular example eliminate '#' and 
-#' ## execute the code of the example (they have been commented to 
-#' ## pass the checking time in CRAN)
-#' 
 #' ## VIP: The output of the whole set of the examples can be examined 
 #' ## by executing demo(demo_spsurtime, package="spsur")
 #' 
+#' \donttest{ 
 #' ### Example 2:
-#' #rm(list = ls()) # Clean memory
+#' rm(list = ls()) # Clean memory
 #' ### Read NCOVR.sf object
-#' #data(NCOVR, package="spsur")
-#' #nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+#' data(NCOVR, package="spsur")
+#' nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 #' ### Some regions with no links...
-#' #lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
-#' #N <- nrow(NCOVR.sf)
-#' #Tm <- 4
-#' #index_time <- rep(1:Tm, each = N)
-#' #index_indiv <- rep(1:N, Tm)
-#' #pHR <- c(NCOVR.sf$HR60, NCOVR.sf$HR70, NCOVR.sf$HR80, NCOVR.sf$HR90)
-#' #pPS <- c(NCOVR.sf$PS60, NCOVR.sf$PS70, NCOVR.sf$PS80, NCOVR.sf$PS90)
-#' #pUE <- c(NCOVR.sf$UE60, NCOVR.sf$UE70, NCOVR.sf$UE80, NCOVR.sf$UE90)
-#' #pNCOVR <- data.frame(indiv = index_indiv, time = index_time,
-#' #                     HR = pHR, PS = pPS, UE = pUE)
-#' #form_pHR <- HR ~ PS + UE
+#' lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+#' N <- nrow(NCOVR.sf)
+#' Tm <- 4
+#' index_time <- rep(1:Tm, each = N)
+#' index_indiv <- rep(1:N, Tm)
+#' pHR <- c(NCOVR.sf$HR60, NCOVR.sf$HR70, NCOVR.sf$HR80, NCOVR.sf$HR90)
+#' pPS <- c(NCOVR.sf$PS60, NCOVR.sf$PS70, NCOVR.sf$PS80, NCOVR.sf$PS90)
+#' pUE <- c(NCOVR.sf$UE60, NCOVR.sf$UE70, NCOVR.sf$UE80, NCOVR.sf$UE90)
+#' pNCOVR <- data.frame(indiv = index_indiv, time = index_time,
+#'                      HR = pHR, PS = pPS, UE = pUE)
+#' form_pHR <- HR ~ PS + UE
 #'
 #' ## SIM
 #'
-#' #pHR_sim <- spsurtime(formula = form_pHR, data = pNCOVR, 
-#' #                    time = pNCOVR$time, type = "sim", fit_method = "ml")
-#' #summary(pHR_sim)
+#' pHR_sim <- spsurtime(formula = form_pHR, data = pNCOVR, 
+#'                     time = pNCOVR$time, type = "sim", fit_method = "ml")
+#' summary(pHR_sim)
 #'
 #' ## SLM by 3SLS. 
 #'
-#' #pHR_slm <- spsurtime(formula = form_pHR, data = pNCOVR, listw = lwncovr,
-#' #                     time = pNCOVR$time, type = "slm", 
-#' #                     fit_method = "3sls")
-#' #summary(pHR_slm)
+#' pHR_slm <- spsurtime(formula = form_pHR, data = pNCOVR, listw = lwncovr,
+#'                      time = pNCOVR$time, type = "slm", 
+#'                      fit_method = "3sls")
+#' summary(pHR_slm)
 #'
 #' ############################# Wald tests about betas in spatio-temporal models
 #' ### H0: equal betas for PS in equations 1, 3 and 4.
-#' #R <- matrix(0, nrow = 2, ncol = 12) 
+#' R <- matrix(0, nrow = 2, ncol = 12) 
 #' ## nrow = number of restrictions 
 #' ## ncol = number of beta parameters
-#' #R[1, 2] <- 1; R[1, 8] <- -1 # PS beta coefficient in equations 1 equal to 3
-#' #R[2, 2] <- 1; R[2, 11] <- -1 # PS beta coefficient in equations 1 equal to 4
-#' #b <- matrix(0, nrow=2, ncol=1)
-#' #wald_betas(pHR_sim , R = R , b = b) # SIM model
-#' #wald_betas(pHR_slm , R = R , b = b) # SLM model
+#' R[1, 2] <- 1; R[1, 8] <- -1 # PS beta coefficient in equations 1 equal to 3
+#' R[2, 2] <- 1; R[2, 11] <- -1 # PS beta coefficient in equations 1 equal to 4
+#' b <- matrix(0, nrow=2, ncol=1)
+#' wald_betas(pHR_sim , R = R , b = b) # SIM model
+#' wald_betas(pHR_slm , R = R , b = b) # SLM model
 
 #' ############################# Wald tests about spatial-parameters in
 #' ############################# spatio-temporal models
 #' ### H0: equal rhos in slm model for equations 1 and 2.
-#' #R2 <- matrix(0, nrow = 1, ncol = 4)
-#' #R2[1, 1] <- 1; R2[1, 2] <- -1
-#' #b2 <- matrix(0, nrow = 1, ncol = 1)
-#' #wald_deltas(pHR_slm, R = R2, b = b2)
+#' R2 <- matrix(0, nrow = 1, ncol = 4)
+#' R2[1, 1] <- 1; R2[1, 2] <- -1
+#' b2 <- matrix(0, nrow = 1, ncol = 1)
+#' wald_deltas(pHR_slm, R = R2, b = b2)
+#' }
 #' @export
 spsurtime <- function(formula, data, time, na.action,
                       listw = NULL, type = "sim", 

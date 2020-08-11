@@ -1,9 +1,16 @@
 #' @name lmtestspsur
 #' @rdname lmtestspsur
-#'
+#' @param ... further arguments passed to the methods.  
+#' @export
+#' 
+lmtestspsur <- function(...) {
+  UseMethod("lmtestspsur")
+}
+
+#' @name lmtestspsur
+#' @rdname lmtestspsur
 #' @title Testing for the presence of spatial effects in Seemingly 
 #'  Unrelated Regressions
-#'
 #' @description The function \code{\link{spsurml}}  reports a collection of 
 #'  Lagrange Multipliers designed to test  for the presence of different 
 #'  forms of spatial dependence in a \emph{SUR} model of the "sim" type. 
@@ -18,14 +25,6 @@
 #' Multiplier tests for the omission of the same spatial effects in all 
 #' the cross-sections of the \emph{G} equations.
 #' 
-#' @usage lmtestspsur (formula = NULL, data = NULL, na.action, 
-#'                     listw = NULL, zero.policy = NULL, X = NULL, 
-#'                     Y = NULL, time = NULL, G = NULL, N = NULL, 
-#'                     Tm = NULL, p = NULL) 
-#'
-#' @inheritParams spsurml
-#' @param time Time variable for the spatial panel SUR model.
-
 #' @details \code{\link{lmtestspsur}} tests for the omission of spatial 
 #'  effects in the "sim" version of the \emph{SUR} model: \cr
 #'
@@ -46,7 +45,7 @@
 #' The Lagrange Multipliers reported by this function are the followings:
 #'
 #'   \itemize{
-#'     \item \strong{LM-SUR-SLM}: Tests for the omission of a spatial lag of 
+#'     \item \strong{LM-SUR-LAG}: Tests for the omission of a spatial lag of 
 #'      the explained variable in the right hand side of the "sim" equation. 
 #'      The model of the alternative is: \cr
 #'
@@ -57,7 +56,7 @@
 #'          \eqn{H_{0}: \rho_{g}=0 (forall g)} vs  
 #'          \eqn{H_{A}: \rho_{g} ne 0 (exist g)}
 #'
-#'      \item \strong{LM-SUR-SEM}: Tests for the omission of spatial 
+#'      \item \strong{LM-SUR-ERR}: Tests for the omission of spatial 
 #'       dependence in the equation of the errors of the "sim" model. The 
 #'       model of the alternative is:
 #'
@@ -94,7 +93,10 @@
 #'       alternative hypotheses of both test are totally analogous to their
 #'       twin non robust Multipliers.
 #'     }
-#'
+#' @param time time index for the spatial panel SUR data. 
+#' @param ... further arguments passed to the method.  
+#'  Default = \code{NULL}
+#' @inheritParams spsurml 
 #' @return A list of \code{htest} objects each one including the Wald
 #'   statistic, the corresponding p-value and the degrees of
 #'   freedom.
@@ -119,10 +121,9 @@
 #'   }
 #'
 #' @seealso
-#' \code{\link{spsurml}}, \code{\link{lrtestspsur}}
+#' \code{\link{spsurml}}, \code{\link{anova}}
 #'
 #' @examples
-#'
 #' #################################################
 #' ######## CROSS SECTION DATA (G>1; Tm=1) # #######
 #' #################################################
@@ -132,16 +133,12 @@
 #' data("spc")
 #' Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
 #' lwspc <- spdep::mat2listw(Wspc, style = "W")
-#' lmtestspsur(formula = Tformula, data = spc, 
-#'              listw = lwspc)
+#' lmtestspsur(formula = Tformula, data = spc, listw = lwspc)
 #'
-#' ## VIP: If you want to examine a particular example eliminate '#' and 
-#' ## execute the code of the example (they have been commented to 
-#' ## pass the checking time in CRAN)
-#' 
 #' ## VIP: The output of the whole set of the examples can be examined 
 #' ## by executing demo(demo_lmtestspsur, package="spsur")
 #' 
+#' \donttest{
 #' #################################################
 #' ######## PANEL DATA (G>1; Tm>1)          ########
 #' #################################################
@@ -151,41 +148,108 @@
 #' # continental U.S. counties.
 #' # Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' # https://geodacenter.github.io/data-and-lab/ncovr/
-#' #data(NCOVR, package="spsur")
-#' #nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+#' data(NCOVR, package="spsur")
+#' nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 #' ### Some regions with no links...
-#' #lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+#' lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
 #' ### With different number of exogenous variables in each equation
-#' #Tformula <- HR70 | HR80  | HR90 ~ PS70 + UE70 | PS80 + UE80 +RD80 |
-#' #            PS90 + UE90 + RD90 + PO90
-#' #lmtestspsur(formula = Tformula, data = NCOVR.sf, 
-#' #            listw = lwncovr)
+#' Tformula <- HR70 | HR80  | HR90 ~ PS70 + UE70 | PS80 + UE80 +RD80 |
+#'             PS90 + UE90 + RD90 + PO90
+#' lmtestspsur(formula = Tformula, data = NCOVR.sf, 
+#'             listw = lwncovr)
 #'
 #' #################################################################
 #' ######### PANEL DATA: TEMPORAL CORRELATIONS (G=1; Tm>1) ########
 #' #################################################################
-#' #
+#' 
 #' ##### Example 3: NCOVR in panel data form
-#' #Year <- as.numeric(kronecker(c(1960,1970,1980,1990), 
-#' #                   matrix(1,nrow = dim(NCOVR.sf)[1])))
-#' #HR <- c(NCOVR.sf$HR60,NCOVR.sf$HR70,NCOVR.sf$HR80,NCOVR.sf$HR90)
-#' #PS <- c(NCOVR.sf$PS60,NCOVR.sf$PS70,NCOVR.sf$PS80,NCOVR.sf$PS90)
-#' #UE <- c(NCOVR.sf$UE60,NCOVR.sf$UE70,NCOVR.sf$UE80,NCOVR.sf$UE90)
-#' #NCOVRpanel <- as.data.frame(cbind(Year,HR,PS,UE))
-#' #Tformula <- HR ~ PS + UE
-#' #lmtestspsur(formula = Tformula, data = NCOVRpanel, 
-#' #            time = Year, listw = lwncovr)
+#' Year <- as.numeric(kronecker(c(1960,1970,1980,1990), 
+#'                    matrix(1,nrow = dim(NCOVR.sf)[1])))
+#' HR <- c(NCOVR.sf$HR60,NCOVR.sf$HR70,NCOVR.sf$HR80,NCOVR.sf$HR90)
+#' PS <- c(NCOVR.sf$PS60,NCOVR.sf$PS70,NCOVR.sf$PS80,NCOVR.sf$PS90)
+#' UE <- c(NCOVR.sf$UE60,NCOVR.sf$UE70,NCOVR.sf$UE80,NCOVR.sf$UE90)
+#' NCOVRpanel <- as.data.frame(cbind(Year,HR,PS,UE))
+#' Tformula <- HR ~ PS + UE
+#' lmtestspsur(formula = Tformula, data = NCOVRpanel, time = Year, 
+#' listw = lwncovr)
+#' }
+#' 
 #' @export
-lmtestspsur <- function(formula = NULL, data = NULL, na.action,
-                        listw = NULL, zero.policy = NULL,
-                        X = NULL, Y = NULL, time = NULL,
-                        G = NULL, N = NULL, Tm = NULL, 
-                        p = NULL) {
-  #browser()
-  if (is.null(listw) || !inherits(listw,c("listw","Matrix","matrix")))
-    stop("listw format unknown or NULL")
+lmtestspsur.formula <- function(formula, data, listw, na.action, 
+                                time = NULL, Tm = 1, zero.policy = NULL, 
+                                R = NULL, b = NULL, ...) {
+  if (!inherits(formula, "Formula")) formula <- Formula::Formula(formula)
+  cl <- match.call()
+  if (is.null(time)) {
+    mt <- terms(formula, data = data)
+    mf <- lm(formula, data = data, na.action = na.action, 
+             method = "model.frame")
+    mf$drop.unused.levels <- TRUE
+    na.act <- attr(mf, "na.action")
+    if (!is.null(na.act)) {
+      subset <- !(1:length(listw$neighbours) %in% na.act)
+      listw <- subset(listw, subset, zero.policy = zero.policy)
+    }
+    W <- Matrix::Matrix(spdep::listw2mat(listw))
+    get_XY <- get_data_spsur(formula = formula, mf = mf, 
+                             Durbin = FALSE,
+                             listw = listw, 
+                             zero.policy = zero.policy, 
+                             N = N, Tm = Tm)
+    Y <- get_XY$Y
+    X <- get_XY$X
+    G <- get_XY$G
+    N <- get_XY$N
+    Tm <- get_XY$Tm
+    p <- get_XY$p
+    dvars <- get_XY$dvars
+    rm(get_XY)
+    if (length(p) == 1) p <- rep(p,G)    
+  } else { #G = 1 and Tm > 1 (Panel data) 
+    if(!is.factor(time)) time <- as.factor(time)
+    time <- droplevels(time)
+    if (length(time) != nrow(data)) 
+      stop("time must have same length than the number of rows in data")
+    mt <- terms(formula)
+    G <- length(levels(time))
+    Ylist <- vector("list", G)
+    Xlist <- vector("list", G)
+    p <- NULL
+    namesX <- NULL
+    levels_time <- levels(time)
+    for (i in 1:G) {
+      data_i <- model.frame(mt, data = data[time == levels_time[i],])
+      Ylist[[i]] <- data_i[, 1]
+      Xlist[[i]] <- model.matrix(mt, data = data[time==levels_time[i],])
+      p <- c(p,ncol(Xlist[[i]]))
+      namesX <- c(namesX, paste(colnames(Xlist[[i]]), 
+                                i, sep="_"))
+    }
+    Y <- matrix(unlist(Ylist), ncol=1)
+    X <- as.matrix(Matrix::bdiag(Xlist))
+    colnames(X) <- namesX
+    N <- length(Ylist[[1]]); Tm <- 1
+  }
+  res <- lmtestspsur.default(Y = Y, X = X, G = G, 
+                             N = N, Tm = Tm, listw = listw, 
+                             p = p, R = R, b = b) 
+  for (i in 1:length(res)) {
+    res[[i]]$data.name <- cl[[3]]
+  }
+  return(res)
+}
+
+#' @name lmtestspsur
+#' @rdname lmtestspsur
+#' @param ... further arguments passed to the method.  
+#' @inheritParams spsurml 
+#' @export
+lmtestspsur.default <- function(Y, X, G, N, Tm = 1, listw, 
+                                p, R = NULL, b = NULL, ...) {
+  if (!inherits(listw,c("listw","Matrix","matrix")))
+    stop("listw format unknown")
   if (inherits(listw, "listw")) {
-      W <- Matrix::Matrix(spdep::listw2mat(listw))
+    W <- Matrix::Matrix(spdep::listw2mat(listw))
   }
   if (inherits(listw, "matrix")) {
     W <- Matrix::Matrix(listw)
@@ -195,81 +259,16 @@ lmtestspsur <- function(formula = NULL, data = NULL, na.action,
     W <- listw
     listw <- spdep::mat2listw(as.matrix(W))
   }
-  if (is.null(listw) || !inherits(listw,c("listw","Matrix","matrix")))
-    stop("listw format unknown or NULL")
-  if (!is.null(Tm) && !is.null(G) && Tm > 1 && G == 1){
+  if (Tm > 1 && G == 1){
     # Change dimensions in this case with matrix Data
     G <- Tm
     Tm <- 1
   }
-  if (!is.null(formula) && !inherits(formula, "Formula")) 
-    formula <- Formula::Formula(formula)
-  cl <- match.call()
-  
-  if (is.null(time)) { 
-    if (!is.null(formula) && !is.null(data)) {
-      mt <- terms(formula, data = data)
-      mf <- lm(formula, data = data, na.action = na.action, 
-               method = "model.frame")
-      mf$drop.unused.levels <- TRUE
-      na.act <- attr(mf, "na.action")
-      if (!is.null(na.act)) {
-        subset <- !(1:length(listw$neighbours) %in% na.act)
-        listw <- subset(listw, subset, zero.policy = zero.policy)
-      }
-      W <- Matrix::Matrix(spdep::listw2mat(listw))
-      get_XY <- get_data_spsur(formula = formula, mf = mf, 
-                               Durbin = FALSE,
-                               listw = listw, 
-                               zero.policy = zero.policy, 
-                               N = N)
-      Y <- get_XY$Y
-      X <- get_XY$X
-      G <- get_XY$G
-      N <- get_XY$N
-      Tm <- get_XY$Tm
-      p <- get_XY$p
-      dvars <- get_XY$dvars
-      if (Tm > 1 && G == 1){
-        # Change dimensions in this case with Matrix Data
-        G <- Tm
-        Tm <- 1
-      }
-      rm(get_XY)
-      if (length(p) == 1) p <- rep(p,G)
-    }
-  } else { #G = 1 and Tm > 1 
-      if (!inherits(time, "factor")) time <- as.factor(time)
-      time <- droplevels(time)
-      if (length(time) != nrow(data)) 
-        stop("time must have same length than the
-              number of rows in data")
-      mt <- terms(formula)
-      G <- length(levels(time))
-      Ylist <- vector("list", G)
-      Xlist <- vector("list", G)
-      p <- NULL
-      namesX <- NULL
-      levels_time <- levels(time)
-      for (i in 1:G) {
-        data_i <- model.frame(mt, data = data[time == 
-                                            levels_time[i],])
-        Ylist[[i]] <- data_i[, 1]
-        Xlist[[i]] <- model.matrix(mt, data = data[time==levels_time[i],])
-        p <- c(p,ncol(Xlist[[i]]))
-        namesX <- c(namesX, paste(colnames(Xlist[[i]]), 
-                                  i, sep="_"))
-      }
-      Y <- matrix(unlist(Ylist), ncol=1)
-      X <- as.matrix(Matrix::bdiag(Xlist))
-      colnames(X) <- namesX
-      N <- length(Ylist[[1]]); Tm <- 1
+  if (!is.null(R) && !is.null(b)) {
+    restr <- X_restr(X = X, R = R, b = b, p = p)
+    X <- restr$Xstar
+    p <- restr$pstar
   }
-  res <- sur3_spdiag(Tm = Tm, G = G, N = N, Y = Y,
-                     X = X, W = W)
-  cl <- match.call()
-  for (i in 1:length(res)) {
-    res[[i]]$data.name <- cl[[3]]
-  }
+  res <- sur3_spdiag(Tm = Tm, G = G, N = N, Y = Y, X = X, W = W)
   return(res)
 }

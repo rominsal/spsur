@@ -1,4 +1,8 @@
 # File containing auxiliary functions
+new_spsur <- function(x) {
+  res <- structure(x, class = "spsur")
+}
+
 get_array_E <- function(G){
   E <- array(0,dim=c(G,G,G,G))
   for(i in 1:G){
@@ -61,3 +65,5 @@ get_ff_cf <- function(G){
   res <- list(ff=ff,cf=cf)
   res
 }
+
+

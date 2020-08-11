@@ -76,7 +76,7 @@ summary.spsur <- function(object, ...) {
                                   cbind(deltas[i],se_deltas[i],t_deltas[i],
                                         2 * pt(abs(t_deltas[i]),rdf,
                                                lower.tail = FALSE)) )
-      if (z$typ == "sarar") {
+      if (any(z$typ == c("sarar","gnm"))) {
         z$coef_table[[i]] <-  rbind(z$coef_table[[i]],
                                     cbind(deltas[i+G],
                                           se_deltas[i+G],t_deltas[i+G],

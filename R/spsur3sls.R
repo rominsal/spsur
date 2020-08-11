@@ -15,7 +15,8 @@
 #'                   R = NULL, b = NULL, listw = NULL, 
 #'                   zero.policy = NULL, X= NULL, Y = NULL, G = NULL, 
 #'                   N = NULL, Tm = NULL, p = NULL,  
-#'                   type = "slm", Durbin = NULL, maxlagW = NULL)
+#'                   type = "slm", Durbin = NULL, maxlagW = NULL,
+#'                   trace = TRUE)
 #'     
 #' @param type Type of spatial model, restricted to cases where lags of the 
 #' explainded variable appear in the righ hand side of the equations. There 
@@ -26,7 +27,9 @@
 #' \code{maxlagW} is set to 3 because the first lag of the regressors, 
 #' \eqn{WX_{tg}}, can not be used as spatial instruments.
 #' @param Durbin If a formula object and model is type "sdm" the subset 
-#'   of explanatory variables to lag for each equation.        
+#'   of explanatory variables to lag for each equation.   
+#' @param trace A logical value to show intermediate results during 
+#'       the estimation process. Default = \code{TRUE}. 
 #' @inheritParams spsurml
 #'
 #' @details
@@ -170,26 +173,43 @@
 #' spcsur_slm_3sls <-spsur3sls(formula = Tformula, data = spc,
 #'                             type = "slm", listw = lwspc)
 #' summary(spcsur_slm_3sls)
+#' print(spcsur_slm_3sls)
 #' 
-#' ## VIP: If you want to examine a particular example eliminate '#' and 
-#' ## execute the code of the example (they have been commented to 
-#' ## pass the checking time in CRAN)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur_slm_3sls, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
 #' 
 #' ## VIP: The output of the whole set of the examples can be examined 
 #' ## by executing demo(demo_spsur3sls, package="spsur")
-#'
+#' 
+#' \donttest{
 #' ## A SUR-SDM model (3SLS Estimation)
-#' # spcsur_sdm_3sls <-spsur3sls(formula = Tformula, data = spc,
-#' #                             type = "sdm", listw = lwspc)
-#' # summary(spcsur_sdm_3sls)
+#'  spcsur_sdm_3sls <-spsur3sls(formula = Tformula, data = spc,
+#'                              type = "sdm", listw = lwspc)
+#'  summary(spcsur_sdm_3sls)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur_sdm_3sls, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' rm(spcsur_sdm_3sls)
 #' 
 #' # A SUR-SDM model with different spatial lags in each equation
-#' # TformulaD <-  ~ UN83 + NMR83 + SMSA | UN80 + NMR80  
-#' # spcsur_sdm2_3sls <-spsur3sls(formula = Tformula, data = spc,
-#' #                             type = "sdm", listw = lwspc,
-#' #                             Durbin = TformulaD)
-#' # summary(spcsur_sdm2_3sls)
-#' 
+#'  TformulaD <-  ~ UN83 + NMR83 + SMSA | UN80 + NMR80  
+#'  spcsur_sdm2_3sls <-spsur3sls(formula = Tformula, data = spc,
+#'                              type = "sdm", listw = lwspc,
+#'                              Durbin = TformulaD)
+#'  summary(spcsur_sdm2_3sls)
+#' if (require(gridExtra)) {
+#'   pl <- plot(spcsur_sdm2_3sls, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' rm(spcsur_sdm2_3sls)
+#' }
+#'
 #' #################################################
 #' ######## PANEL DATA (G>1; Tm>1)         #########
 #' #################################################
@@ -199,19 +219,28 @@
 #' # U.S. counties.
 #' # Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' # https://geodacenter.github.io/data-and-lab/ncovr/
-#' # rm(list = ls()) # Clean memory
+#' 
+#' \donttest{
+#' rm(list = ls()) # Clean memory
 #' ## Read NCOVR.sf object
-#' # data(NCOVR, package = "spsur")
-#' # nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+#'  data(NCOVR, package = "spsur")
+#'  nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 #' ## Some regions with no links...
-#' # lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
-#' # Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
+#'  lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+#'  Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
 #' ## A SUR-SLM model
-#' # NCOVRSUR_slm_3sls <-spsur3sls(formula = Tformula, data = NCOVR.sf, 
-#' #                               type = "slm", zero.policy = TRUE,
-#' #                               listw = lwncovr, maxlagW = 2)
-#' # summary(NCOVRSUR_slm_3sls)
-#'
+#'  NCOVRSUR_slm_3sls <-spsur3sls(formula = Tformula, data = NCOVR.sf, 
+#'                                type = "slm", zero.policy = TRUE,
+#'                                listw = lwncovr, maxlagW = 2, 
+#'                                trace = FALSE)
+#'  summary(NCOVRSUR_slm_3sls)
+#' if (require(gridExtra)) {
+#'   pl <- plot(NCOVRSUR_slm_3sls, viewplot = FALSE) 
+#'   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+#'                pl$pldeltas, nrow = 3)
+#' }
+#' rm(NCOVRSUR_slm_3sls)
+#' }
 #' @export
 spsur3sls <- function(formula = NULL, data = NULL, na.action, 
                       R = NULL, b = NULL, listw = NULL,
@@ -219,11 +248,10 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
                       X = NULL, Y = NULL, G = NULL, N = NULL,
                       Tm = NULL, p = NULL,  
                       type = "slm", Durbin = NULL,
-                      maxlagW = NULL) {
+                      maxlagW = NULL, trace = TRUE) {
   # Función para estimar models SUR-SLM o SUR-SDM espaciales.
   # a través de Mínimos Cuadrados Tres Etapas (3SLS)
   # Spatial Models:  slm, sdm
-  
   if (!((type == "slm") || (type == "sdm")))
     stop("3sls can only be used with slm or sdm models")
   if (is.null(maxlagW)) {
@@ -280,7 +308,7 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
                              Durbin = Durbin,
                              listw = listw, 
                              zero.policy = zero.policy, 
-                             N = N)
+                             N = N, Tm = Tm)
     Y <- get_XY$Y
     X <- get_XY$X
     G <- get_XY$G
@@ -299,6 +327,8 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
   if (length(p) == 1) p <- rep(p,G)
   names(p) <- NULL
   if (!is.null(R) & !is.null(b)) {
+    Xorig <- X
+    porig <- p
     restr <- X_restr(X = X, R = R, b = b, p = p)
     X <- restr$Xstar
     p <- restr$pstar
@@ -309,8 +339,8 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
                          X = X, W = W, p = p,
                          type = type, maxlagW = maxlagW)
   end_fit <- proc.time()[3]
-  cat("Time to fit the model: ",
-       end_fit-start_fit," seconds\n\n")
+  if (trace) 
+    cat("Time to fit the model: ", end_fit-start_fit," seconds\n\n")
   coefficients <- z$coefficients
   deltas <- z$deltas
   Sigma <- z$Sigma
@@ -353,7 +383,43 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
   Sigma_corr <- stats::cov2cor(Sigma)
   index_ltri <- lower.tri(Sigma_corr)
   BP <- N*Tm*sum(Sigma_corr[index_ltri]^2)
-  ret <- structure(list(call = cl, type = type, 
+  if (!is.null(R) && !is.null(b)) {
+    namesXorig <- colnames(Xorig)
+    coefforig <- seorig <- rep(0, ncol(Xorig))
+    names(coefforig) <- names(seorig) <- colnames(Xorig)
+    coefforig[names(coefficients)] <- coefficients
+    seorig[names(rest.se)] <- rest.se
+    b <- as.numeric(b)
+    for (i in 1:nrow(R)) {
+      lidxRi <- R[i,] != 0
+      widxRi <- which(lidxRi)
+      vidxRi <- R[i,lidxRi]
+      ## Check if the constraint is the equality between coefficients
+      if ((length(widxRi) == 2) && (sum(vidxRi) == 0) 
+          && (b[i] == 0)) {
+        coefforig[widxRi[2]] <- coefforig[widxRi[1]]
+        seorig[widxRi[2]] <- seorig[widxRi[1]]
+        # Updates covariance matrix to include constrained coefficient
+        name1 <- names(coefforig)[widxRi[1]]
+        name2 <- names(coefforig)[widxRi[2]]
+        pr1 <- rbind(resvar, resvar[name1, ])
+        rownames(pr1) <- c(rownames(resvar), name2)
+        pr2 <- cbind(pr1, c(resvar[, name1], resvar[name1, name1]))
+        colnames(pr2) <- rownames(pr2)
+        resvar <- pr2
+        rm(pr1, pr2)
+      }
+      # ## Check if the constraint is individual coefficient = 0
+      # if ((length(widxRi) == 1) && (vidxRi == 0)&& (b[i] == 0)) {
+      #   coefforig[widxRi] <- seorig[widxRi] <- 0
+      # }
+    }
+    X <- Xorig
+    p <- porig
+    coefficients <- coefforig
+    rest.se <- seorig
+  }  
+  ret <- new_spsur(list(call = cl, type = type, 
                         Durbin = Durbin, 
                         G = G, N = N, Tm = Tm, 
                         deltas = deltas, 
@@ -373,8 +439,7 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
                         Y = Y, X = X, W = W, 
                         zero.policy = zero.policy, 
                         listw_style = listw$style, 
-                        maxlagW = maxlagW), 
-                   class = c("spsur"))
+                        maxlagW = maxlagW))
   
   if (zero.policy) {
     zero.regs <- attr(listw$neighbours, "region.id")[which(

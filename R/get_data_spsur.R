@@ -53,14 +53,37 @@ get_data_spsur <- function(formula, mf, Durbin = FALSE,
       prefix <- "lag"
       if (isTRUE(Durbin)) {
         if (iicept) {
-          WXi <- spatialreg::create_WX(Xi[,-c(icept), drop = FALSE], 
-                                       listw, 
-                                       zero.policy = zero.policy, 
-                                       prefix = prefix)
+          if (Tm == 1) {
+            WXi <- spatialreg::create_WX(Xi[,-c(icept), drop = FALSE], 
+                                         listw, 
+                                         zero.policy = zero.policy, 
+                                         prefix = prefix)
+          } else {
+              WXi <- NULL
+              for (j in 1:Tm) {
+                Xit <- Xi[((((i-1)*N)+1):(i*N)), ]
+                WXit <- spatialreg::create_WX(Xit[,-c(icept), drop = FALSE], 
+                                              listw, 
+                                              zero.policy = zero.policy, 
+                                              prefix = prefix)
+                WXi <- rbind(WXi, WXit)
+              } 
+            }
         } else {
-          WXi <- spatialreg::create_WX(Xi, listw, 
-                                       zero.policy = zero.policy, 
-                                       prefix = prefix)
+          if (Tm == 1) {
+            WXi <- spatialreg::create_WX(Xi, listw, 
+                                         zero.policy = zero.policy, 
+                                         prefix = prefix)
+          } else {
+            WXi <- NULL
+            for (j in 1:Tm) {
+              Xit <- Xi[((((i-1)*N)+1):(i*N)), ]
+              WXit <- spatialreg::create_WX(Xit, listw, 
+                                            zero.policy = zero.policy, 
+                                            prefix = prefix)
+              WXi <- rbind(WXi, WXit)
+            }          
+          }
         }
       } else { ##  Durbin is formula ...
         fXi <- try(model.matrix(Durbin, data = mf, rhs = i),
@@ -68,14 +91,37 @@ get_data_spsur <- function(formula, mf, Durbin = FALSE,
         if (inherits(fXi, "try-error"))
           stop("Durbin variable mist-match")
         if (iicept) {
-          WXi <- spatialreg::create_WX(fXi[,-c(icept), drop = FALSE], 
-                                       listw, 
-                                       zero.policy = zero.policy, 
-                                       prefix = prefix)
+          if (Tm == 1) {
+            WXi <- spatialreg::create_WX(fXi[,-c(icept), drop = FALSE], 
+                                         listw, 
+                                         zero.policy = zero.policy, 
+                                         prefix = prefix)
+          } else {
+            WXi <- NULL
+            for (j in 1:Tm) {
+              fXit <- fXi[((((i-1)*N)+1):(i*N)), ]
+              WXit <- spatialreg::create_WX(fXit[,-c(icept), drop = FALSE], 
+                                            listw, 
+                                            zero.policy = zero.policy, 
+                                            prefix = prefix)
+              WXi <- rbind(WXi, WXit)
+            }
+          }
         } else {
-          WXi <- spatialreg::create_WX(fXi, listw, 
-                                       zero.policy = zero.policy, 
-                                       prefix = prefix)
+          if (Tm == 1) {
+            WXi <- spatialreg::create_WX(fXi, listw, 
+                                         zero.policy = zero.policy, 
+                                         prefix = prefix)
+          } else {
+            WXi <- NULL
+            for (j in 1:Tm) {
+              fXit <- fXi[((((i-1)*N)+1):(i*N)), ]
+              WXit <- spatialreg::create_WX(fXit, listw, 
+                                            zero.policy = zero.policy, 
+                                            prefix = prefix)
+              WXi <- rbind(WXi, WXit)
+            }
+          }
         }
         #WXi <- spatialreg::create_WX(fXi, listw, 
         #                             zero.policy = zero.policy, 

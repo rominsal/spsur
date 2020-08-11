@@ -1,7 +1,7 @@
 
 fit_spsurslm_3sls <- function(Tm, G, N, Y, X, W, p,
                               type, maxlagW){
-  ## Crear matriz instrumentos para retardo espacial Wy
+   ## Crear matriz instrumentos para retardo espacial Wy
   IT <- Matrix::Diagonal(Tm)
   IG <- Matrix::Diagonal(G)
   IR <- Matrix::Diagonal(N)
