@@ -66,7 +66,7 @@ either \emph{ml} or \emph{3sls}. Default = \emph{ml}.}
 
 \item{maxlagW}{Maximum spatial lag order of the regressors employed to 
 produce spatial instruments for the spatial lags of the explained 
-variables. Default = 2. Note that in case of \code{type}="sdm", the 
+variables. Default = 2. Note that in case of \code{type} = "sdm", the 
 default value for \code{maxlagW} is set to 3 because the first lag of 
 the regressors, \eqn{WX_{tg}}, can not be used as spatial instruments.}
 
@@ -93,7 +93,7 @@ the linear restrictions on the \emph{beta} parameters.
 Default = \code{NULL}.}
 
 \item{demean}{Logical value to allow for the demeaning of panel data. In this case,
-\code{\link{spsurml}} substracts the individual mean to each spatial 
+\code{\link{spsurml}} subtracts the individual mean to each spatial 
 or cross-sectional unit. Default = \code{FALSE}.}
 
 \item{control}{List of additional control arguments.}
@@ -160,13 +160,19 @@ SMSA <- c(spc$SMSA, spc$SMSA)
 pspc <- data.frame(index_indiv, index_time, WAGE, UN,
                     NMR, SMSA)
 form_pspc <- WAGE ~ UN + NMR + SMSA
+form2_pspc <- WAGE | NMR ~ UN  | UN + SMSA
 
 # SLM 
 pspc_slm <- spsurtime(formula = form_pspc, data = pspc, 
-                      listw =lwspc,
+                      listw = lwspc,
                       time = pspc$index_time, 
                       type = "slm", fit_method = "ml")
 summary(pspc_slm)
+pspc_slm2 <- spsurtime(formula = form2_pspc, data = pspc, 
+                      listw = lwspc,
+                      time = pspc$index_time, 
+                      type = "slm", fit_method = "ml")
+summary(pspc_slm2)
 
 ## VIP: The output of the whole set of the examples can be examined 
 ## by executing demo(demo_spsurtime, package="spsur")
@@ -229,11 +235,12 @@ wald_deltas(pHR_slm, R = R2, b = b2)
     \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
        selection strategies in a SUR framework. The case of regional
        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
-    \item López, F.A., Martínez-Ortiz, P.J., & Cegarra-Navarro, J.G. (2017).
+    \item López, F.A., Martínez-Ortiz, P.J., and Cegarra-Navarro, J.G. (2017).
        Spatial spillovers in public expenditure on a municipal level in
        Spain. \emph{Annals of Regional Science}, 58(1), 39-65.
     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
-      effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 5(4), 399-440.
+      effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 
+      5(4), 399-440. \url{https://doi.org/10.1080/17421772.2010.516443}
   }
 }
 \seealso{

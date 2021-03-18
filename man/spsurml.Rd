@@ -264,7 +264,7 @@ The list of (spatial) models that can be estimated with the \emph{spsurml} funct
 rm(list = ls()) # Clean memory
 data(spc)
 Tformula <- WAGE83 | WAGE81 ~ UN83 + NMR83 + SMSA | UN80 + NMR80 + SMSA
-spcsur.sim <-spsurml(formula = Tformula, data = spc, type = "sim")
+spcsur.sim <- spsurml(formula = Tformula, data = spc, type = "sim")
 summary(spcsur.sim)
 # All the coefficients in a single table.
 print(spcsur.sim)
@@ -273,7 +273,7 @@ plot(spcsur.sim)
 
 ## A SUR-SLX model 
 ## (listw argument can be either a matrix or a listw object )
-spcsur.slx <-spsurml(formula = Tformula, data = spc, type = "slx", 
+spcsur.slx <- spsurml(formula = Tformula, data = spc, type = "slx", 
   listw = Wspc)
 summary(spcsur.slx)
 # All the coefficients in a single table.
@@ -290,7 +290,7 @@ if (require(gridExtra)) {
   
 \donttest{
 ### A SUR-SLM model
-spcsur.slm <-spsurml(formula = Tformula, data = spc, type = "slm", 
+spcsur.slm <- spsurml(formula = Tformula, data = spc, type = "slm", 
                      listw = Wspc)
 summary(spcsur.slm)
 if (require(gridExtra)) {
@@ -300,7 +300,7 @@ if (require(gridExtra)) {
 }
 
 #' ### A SUR-SEM model
-spcsur.sem <-spsurml(formula = Tformula, data = spc, type = "sem", 
+spcsur.sem <- spsurml(formula = Tformula, data = spc, type = "sem", 
                      listw = Wspc)
 summary(spcsur.sem)                      
 print(spcsur.sem)
@@ -311,7 +311,7 @@ if (require(gridExtra)) {
 }
 
 ### A SUR-SDM model
-spcsur.sdm <-spsurml(formula = Tformula, data = spc, type = "sdm", 
+spcsur.sdm <- spsurml(formula = Tformula, data = spc, type = "sdm", 
                      listw = Wspc)
 summary(spcsur.sdm)
 print(spcsur.sdm)
@@ -323,7 +323,7 @@ if (require(gridExtra)) {
 
 ## A SUR-SDM model with different spatial lags in each equation
 TformulaD <- ~ UN83 + NMR83 + SMSA | UN80
-spcsur.sdm2 <-spsurml(formula = Tformula, data = spc, type = "sdm", 
+spcsur.sdm2 <- spsurml(formula = Tformula, data = spc, type = "sdm", 
                       listw = Wspc, Durbin = TformulaD)
 summary(spcsur.sdm2)
 if (require(gridExtra)) {
@@ -332,7 +332,7 @@ if (require(gridExtra)) {
                pl$pldeltas, nrow = 3)
 }
 ### A SUR-SDEM model
-spcsur.sdem <-spsurml(formula = Tformula, data = spc, type = "sdem", 
+spcsur.sdem <- spsurml(formula = Tformula, data = spc, type = "sdem", 
                       listw = Wspc)
 print(spcsur.sdem)
 if (require(gridExtra)) {
@@ -342,7 +342,7 @@ if (require(gridExtra)) {
 }
 
 ### A SUR-SARAR model
-spcsur.sarar <-spsurml(formula = Tformula, data = spc, type = "sarar", 
+spcsur.sarar <- spsurml(formula = Tformula, data = spc, type = "sarar", 
                        listw = Wspc, control = list(tol = 0.1))
 print(spcsur.sarar)
 if (require(gridExtra)) {
@@ -352,7 +352,7 @@ if (require(gridExtra)) {
 }
 
 ### A SUR-GNM model
-spcsur.gnm <-spsurml(formula = Tformula, data = spc, type = "gnm", 
+spcsur.gnm <- spsurml(formula = Tformula, data = spc, type = "gnm", 
                        listw = Wspc, control = list(tol = 0.1))
 print(spcsur.gnm)
 if (require(gridExtra)) {
@@ -376,7 +376,7 @@ if (require(gridExtra)) {
 }
 
 ##################################################
-#########  G=1; Tm>1         ########
+#########  CLASSIC PANEL DATA G=1; Tm>1   ########
 ##################################################
 #
 ##### Example 2: Homicides + Socio-Economics (1960-90)
@@ -395,14 +395,14 @@ nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
 Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
 ### A SUR-SIM model
-NCOVRSUR.sim <-spsurml(formula = Tformula, data = NCOVR.sf, type = "sim")
+NCOVRSUR.sim <- spsurml(formula = Tformula, data = NCOVR.sf, type = "sim")
 summary(NCOVRSUR.sim)
 if (require(gridExtra)) {
   pl <- plot(NCOVRSUR.sim, viewplot = FALSE) 
   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], nrow = 3)
 }
 ### A SUR-SLX model
-NCOVRSUR.slx <-spsurml(formula = Tformula, data = NCOVR.sf, type = "slx", 
+NCOVRSUR.slx <- spsurml(formula = Tformula, data = NCOVR.sf, type = "slx", 
                        listw = lwncovr, zero.policy = TRUE)
 print(NCOVRSUR.slx)
 if (require(gridExtra)) {
@@ -413,7 +413,7 @@ if (require(gridExtra)) {
 ### A SUR-SLM model
 ### method = "Matrix" (Cholesky) instead of "eigen"
 ### (fdHess = TRUE to compute numerical covariances )
-NCOVRSUR.slm <-spsurml(formula = Tformula, data = NCOVR.sf, 
+NCOVRSUR.slm <- spsurml(formula = Tformula, data = NCOVR.sf, 
                        type = "slm", listw = lwncovr, method = "Matrix", 
                        zero.policy = TRUE, control = list(fdHess = TRUE))
 summary(NCOVRSUR.slm)
@@ -425,12 +425,12 @@ if (require(gridExtra)) {
 }
 
 # LR test for nested models
-#lrtest(NCOVRSUR.sim, NCOVRSUR.slm)
+anova(NCOVRSUR.sim, NCOVRSUR.slm)
 
 ### A SUR-SDM model with different spatial lags in each equation
 ### Analytical covariances (default)
 TformulaD <- ~ PS80 + UE80 | PS90 
-NCOVRSUR.sdm <-spsurml(formula = Tformula, data = NCOVR.sf, 
+NCOVRSUR.sdm <- spsurml(formula = Tformula, data = NCOVR.sf, 
                        type = "sdm", listw = lwncovr, method = "Matrix",
                        Durbin = TformulaD, zero.policy = TRUE)
 print(NCOVRSUR.sdm)
@@ -463,7 +463,7 @@ if (require(gridExtra)) {
 }
 
 ###############################################
-######### SUR with G>1; Tm>1  ###
+## MULTI-DIMENSIONAL SUR PANEL G>1; Tm>1    ###
 ###############################################
 ##### Reshape NCOVR in panel format
 \donttest{
@@ -521,25 +521,28 @@ if (require(gridExtra)) {
     \item Bivand, R.S. and  Piras G. (2015). Comparing Implementations of 
      Estimation Methods for Spatial Econometrics. \emph{Journal of 
      Statistical Software}, 63(18), 1-36. 
-     https://www.jstatsoft.org/v63/i18/.
+     \url{https://www.jstatsoft.org/v63/i18/}.
     \item Bivand, R. S., Hauke, J., and Kossowski, T. (2013). 
       Computing the Jacobian in Gaussian spatial autoregressive models: An 
       illustrated comparison of available methods. \emph{ Geographical 
       Analysis}, 45(2), 150-179.
-    \item Breusch T, Pagan A (1980). The Lagrange multiplier test and its
+      \url{https://doi.org/10.1111/gean.12008}
+    \item Breusch T., Pagan A. (1980). The Lagrange multiplier test and its
        applications to model specification in econometrics. 
        \emph{Rev Econ Stud} 47: 239-254
-    \item Cliff, A. D. and Ord, J. K. (1981). \emph{Spatial processes: Models 
+    \item Cliff, A.D. and Ord, J.K. (1981). \emph{Spatial processes: Models 
       and applications}, Pion. 
     \item LeSage J and Pace, R.K. (2009). \emph{Introduction to Spatial 
       Econometrics.} CRC Press, Boca Raton.
      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
        selection strategies in a SUR framework. The case of regional
        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
+       \url{https://doi.org/10.1007/s00168-014-0624-2}
     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
       effects in seemingly unrelated regressions.
       \emph{Spatial Economic Analysis}, 5(4), 399-440.
-    \item Ord, J. K. (1975). Estimation methods for models of spatial 
+      \url{https://doi.org/10.1080/17421772.2010.516443}
+    \item Ord, J.K. (1975). Estimation methods for models of spatial 
       interaction, \emph{Journal of the American Statistical Association}, 
       70, 120-126; 
   }

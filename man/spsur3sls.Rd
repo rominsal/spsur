@@ -78,7 +78,7 @@ specification of \emph{p} is only necessary if not available a
 \code{\link[Formula]{Formula}} and a data frame.}
 
 \item{type}{Type of spatial model, restricted to cases where lags of the 
-explainded variable appear in the righ hand side of the equations. There 
+explained variable appear in the rigth hand side of the equations. There 
 are two possibilities: "slm" or "sdm". Default = "slm".}
 
 \item{Durbin}{If a formula object and model is type "sdm" the subset 
@@ -159,7 +159,7 @@ The function estimates spatial SUR models using three stages
 
  By default, the input of this function is an object created with 
  \code{\link[Formula]{Formula}} and a data frame. However, 
- \emph{spsur3sls} also allows for the direct especification of vector
+ \emph{spsur3sls} also allows for the direct specification of vector
  \emph{Y} and matrix \emph{X}, with the explained variables and  regressors 
  respectively, as inputs (these terms may be the result, for example, 
  of \code{\link{dgp_spsur}}). \cr
@@ -172,7 +172,7 @@ The function estimates spatial SUR models using three stages
  using a sequence of spatial lags of the \emph{X} variables, which are 
  assumed to be exogenous. The user must define the number of (spatial) 
  instruments to be used in the procedure, through the argument 
- \code{maxlagW} (i.e. maxlagW=3). Then, the collection of instruments 
+ \code{maxlagW} (i.e. maxlagW = 3). Then, the collection of instruments 
  generated is \eqn{[WX_{tg}; W*WX_{tg}; W*W*WX_{tg}]}. In the case of 
  a \emph{SDM}, the first lag of the \emph{X} matrix already is in the 
  equation and cannot be used as instrument. In the example above, the 
@@ -207,7 +207,7 @@ The function estimates spatial SUR models using three stages
 \examples{
 
 #################################################
-######## CROSS SECTION DATA (G=1; Tm>1) ########
+######## CLASSIC PANEL DATA (G=1; Tm>1)  ########
 #################################################
 
 #### Example 1: Spatial Phillips-Curve. Anselin (1988, p. 203)
@@ -234,9 +234,9 @@ if (require(gridExtra)) {
 
 \donttest{
 ## A SUR-SDM model (3SLS Estimation)
- spcsur_sdm_3sls <-spsur3sls(formula = Tformula, data = spc,
+spcsur_sdm_3sls <- spsur3sls(formula = Tformula, data = spc,
                              type = "sdm", listw = lwspc)
- summary(spcsur_sdm_3sls)
+summary(spcsur_sdm_3sls)
 if (require(gridExtra)) {
   pl <- plot(spcsur_sdm_3sls, viewplot = FALSE) 
   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
@@ -244,7 +244,7 @@ if (require(gridExtra)) {
 }
 rm(spcsur_sdm_3sls)
 
-# A SUR-SDM model with different spatial lags in each equation
+## A SUR-SDM model with different spatial lags in each equation
  TformulaD <-  ~ UN83 + NMR83 + SMSA | UN80 + NMR80  
  spcsur_sdm2_3sls <-spsur3sls(formula = Tformula, data = spc,
                              type = "sdm", listw = lwspc,
@@ -259,10 +259,10 @@ rm(spcsur_sdm2_3sls)
 }
 
 #################################################
-######## PANEL DATA (G>1; Tm>1)         #########
+###  MULTI-DIMENSIONAL PANEL DATA (G>1; Tm>1) ###
 #################################################
 
-#### Example 2: Homicides + Socio-Economics (1960-90)
+#### Example 3: Homicides + Socio-Economics (1960-90)
 # Homicides and selected socio-economic characteristics for continental
 # U.S. counties.
 # Data for four decennial census years: 1960, 1970, 1980 and 1990.
@@ -270,18 +270,16 @@ rm(spcsur_sdm2_3sls)
 
 \donttest{
 rm(list = ls()) # Clean memory
-## Read NCOVR.sf object
- data(NCOVR, package = "spsur")
- nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
+data(NCOVR, package = "spsur")
+nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 ## Some regions with no links...
- lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
- Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
+lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)
+Tformula <- HR80  | HR90 ~ PS80 + UE80 | PS90 + UE90
 ## A SUR-SLM model
- NCOVRSUR_slm_3sls <-spsur3sls(formula = Tformula, data = NCOVR.sf, 
+NCOVRSUR_slm_3sls <- spsur3sls(formula = Tformula, data = NCOVR.sf, 
                                type = "slm", zero.policy = TRUE,
-                               listw = lwncovr, maxlagW = 2, 
-                               trace = FALSE)
- summary(NCOVRSUR_slm_3sls)
+                               listw = lwncovr, trace = FALSE)
+summary(NCOVRSUR_slm_3sls)
 if (require(gridExtra)) {
   pl <- plot(NCOVRSUR_slm_3sls, viewplot = FALSE) 
   grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
@@ -292,13 +290,19 @@ rm(NCOVRSUR_slm_3sls)
 }
 \references{
 \itemize{
-    \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
-      effects in seemingly unrelated regressions.
-      \emph{Spatial Economic Analysis}, 5(4), 399-440.
-     \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
-       selection strategies in a SUR framework. The case of regional
-       productivity in EU. \emph{Annals of Regional Science}, 53(1),
-       197-220.
+      \item López, F. A., Mínguez, R., Mur, J. (2020). ML versus IV estimates 
+      of spatial SUR models: evidence from the case of Airbnb in Madrid urban 
+      area. \emph{The Annals of Regional Science}, 64(2), 313-347.
+      \url{https://doi.org/10.1007/s00168-019-00914-1}
+      \item Anselin, L. (2016) Estimation and Testing in the Spatial Seemingly 
+      Unrelated Regression (SUR). \emph{Geoda Center for Geospatial Analysis 
+      and Computation, Arizona State University}. Working Paper 2016-01.
+      \url{http://dx.doi.org/10.13140/RG.2.2.15925.40163}
+      \item, Anselin, L. (1988). \emph{Spatial Econometrics: Methods and Models}. 
+      Kluwer Academic Publishers, Dordrecht, The Netherlands (p. 146).
+      \item Anselin, L., Le Gallo, J., Hubert J. (2008) Spatial Panel Econometrics. 
+      In \emph{The econometrics of panel data. 
+      Fundamentals and recent developments in theory and practice}. (Chap 19, p. 653)
   }
 }
 \seealso{
