@@ -56,7 +56,8 @@ fit_spsurslm_3sls <- function(Tm, G, N, Y, X, W, p,
   Z_hat <- fitted(lm(as.matrix(Z) ~ as.matrix(H) - 1))
   tsls <- lm(as.matrix(Y) ~ Z_hat-1)
   # summary(tsls)
-  resids.tsls <- residuals(tsls)
+  # resids.tsls <- residuals(tsls)
+  resids.tsls <- as.matrix(Y) - Z %*% tsls$coefficients
   Sigmas <- get_Sigma(resids=resids.tsls,N=N,G=G,Tm=Tm)
   Sigma <- Matrix::Matrix(Sigmas$Sigma)
   Sigmainv <- Matrix::Matrix(Sigmas$Sigma_inv)

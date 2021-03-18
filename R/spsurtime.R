@@ -29,11 +29,11 @@
 #' @param fit_method Method of estimation for the spatial panel SUR model, 
 #'  either \emph{ml} or \emph{3sls}. Default = \emph{ml}.
 #' @param demean  Logical value to allow for the demeaning of panel data. In this case,
-#'   \code{\link{spsurml}} substracts the individual mean to each spatial 
+#'   \code{\link{spsurml}} subtracts the individual mean to each spatial 
 #'   or cross-sectional unit. Default = \code{FALSE}.
 #' @param maxlagW Maximum spatial lag order of the regressors employed to 
 #'   produce spatial instruments for the spatial lags of the explained 
-#'   variables. Default = 2. Note that in case of \code{type}="sdm", the 
+#'   variables. Default = 2. Note that in case of \code{type} = "sdm", the 
 #'   default value for \code{maxlagW} is set to 3 because the first lag of 
 #'   the regressors, \eqn{WX_{tg}}, can not be used as spatial instruments.
 #' @param trs Either \code{NULL} or vector of powered spatial weights 
@@ -77,11 +77,12 @@
 #'     \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
 #'        selection strategies in a SUR framework. The case of regional
 #'        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
-#'     \item López, F.A., Martínez-Ortiz, P.J., & Cegarra-Navarro, J.G. (2017).
+#'     \item López, F.A., Martínez-Ortiz, P.J., and Cegarra-Navarro, J.G. (2017).
 #'        Spatial spillovers in public expenditure on a municipal level in
 #'        Spain. \emph{Annals of Regional Science}, 58(1), 39-65.
 #'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
-#'       effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 5(4), 399-440.
+#'       effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 
+#'       5(4), 399-440. \url{https://doi.org/10.1080/17421772.2010.516443}
 #'   }
 #'
 #' @seealso
@@ -110,13 +111,19 @@
 #' pspc <- data.frame(index_indiv, index_time, WAGE, UN,
 #'                     NMR, SMSA)
 #' form_pspc <- WAGE ~ UN + NMR + SMSA
+#' form2_pspc <- WAGE | NMR ~ UN  | UN + SMSA
 #'
 #' # SLM 
 #' pspc_slm <- spsurtime(formula = form_pspc, data = pspc, 
-#'                       listw =lwspc,
+#'                       listw = lwspc,
 #'                       time = pspc$index_time, 
 #'                       type = "slm", fit_method = "ml")
 #'summary(pspc_slm)
+#' pspc_slm2 <- spsurtime(formula = form2_pspc, data = pspc, 
+#'                       listw = lwspc,
+#'                       time = pspc$index_time, 
+#'                       type = "slm", fit_method = "ml")
+#'summary(pspc_slm2)
 #'
 #' ## VIP: The output of the whole set of the examples can be examined 
 #' ## by executing demo(demo_spsurtime, package="spsur")
@@ -182,10 +189,12 @@ spsurtime <- function(formula, data, time, na.action,
                       trs = NULL,
                       R = NULL, b = NULL, demean = FALSE,
                       control = list() ) {
+  if (!inherits(formula, "Formula")) 
+    formula <- Formula::Formula(formula)
   if (!inherits(time, "factor")) time <- as.factor(time)
   time <- droplevels(time)
-  if (length(time) != nrow(data)) stop("time must have same length than the
-                                       number of rows in data")
+  if (length(time) != nrow(data)) 
+    stop("time must have same length than the number of rows in data")  
   mt <- terms(formula)
   G <- length(levels(time))
   Ylist <- vector("list", G)
@@ -194,17 +203,38 @@ spsurtime <- function(formula, data, time, na.action,
   namesX <- NULL
   levels_time <- levels(time)
   for (i in 1:G) {
-    data_i <- model.frame(mt, data = data[time == levels_time[i],])
+    data_i <- model.frame(mt, 
+                data = data[time == levels_time[i],])
     na.act <- attr(data_i, "na.action")
-    Ylist[[i]] <- data_i[,1]
-    Xlist[[i]] <- model.matrix(mt, data = data[time == levels_time[i],])
-    p <- c(p,ncol(Xlist[[i]]))
-    namesX <- c(namesX,paste(colnames(Xlist[[i]]), i, sep = "_"))
+    if (G > length(formula)[1]) {
+      Ylist[[i]] <- data_i[, 1]
+    } else {
+      Ylist[[i]] <- Formula::model.part(formula,
+                                      data = data_i, 
+                                      lhs = i)
+    }
+    if (G > length(formula)[2]) {
+      Xlist[[i]] <- model.matrix(mt, 
+                                 data = data[time == levels_time[i],])
+    } else {
+      Xlist[[i]] <- model.matrix(formula, 
+                                 data = data_i, 
+                                 rhs = i)
+    }
+    p <- c(p, ncol(Xlist[[i]]))
+    namesX <- c(namesX, 
+                paste(colnames(Xlist[[i]]), 
+                      i, sep = "_"))
   }
   Y <- matrix(unlist(Ylist), ncol=1)
   X <- as.matrix(Matrix::bdiag(Xlist))
   colnames(X) <- namesX
-  N <- length(Ylist[[1]]); Tm <- 1
+  if (inherits(Ylist[[1]], 
+               "data.frame"))
+    N <- nrow(Ylist[[1]])
+  if (is.vector(Ylist[[1]])) 
+    N <- length(Ylist[[1]]) 
+  Tm <- 1
   if (demean) { # demeaning for pure panel data
     # First reorder X matrix
     X <- NULL

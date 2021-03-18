@@ -71,7 +71,7 @@ summary.spsur <- function(object, ...) {
                                                         cumsum(p)[i]]),rdf,
                                                         lower.tail = FALSE))
     }
-    if (!is.null(deltas)) {
+    if (!is.null(deltas) && !(length(deltas) < 1) ) {
       z$coef_table[[i]] <-  rbind(z$coef_table[[i]],
                                   cbind(deltas[i],se_deltas[i],t_deltas[i],
                                         2 * pt(abs(t_deltas[i]),rdf,

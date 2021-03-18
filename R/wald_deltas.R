@@ -16,7 +16,7 @@
 #'  In order to work with \code{\link{wald_betas}}, the model on which the 
 #'  linear restrictions are to be tested needs to exists as an \emph{spsur} 
 #'  object. Using the information contained in the object, 
-#'  \code{\link{wald_deltas}} obtains the corresponding Wald estatistic for 
+#'  \code{\link{wald_deltas}} obtains the corresponding Wald statistic for 
 #'  the null hypotheses specified by the user through the \emph{R} row vector 
 #'  and \emph{b} column vector discussed, used also in \code{\link{spsurml}}. 
 #'  The function shows the  resulting Wald test statistics and their 

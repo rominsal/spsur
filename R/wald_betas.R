@@ -55,12 +55,14 @@
 #'     \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
 #'        selection strategies in a SUR framework. The case of regional
 #'        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
-#'     \item López, F.A., Martínez-Ortiz, P.J., & Cegarra-Navarro, J.G. (2017).
-#'        Spatial spillovers in public expenditure on a municipal level in
-#'        Spain. \emph{Annals of Regional Science}, 58(1), 39-65.
+#'        \url{https://link.springer.com/article/10.1007/s00168-014-0624-2}
 #'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
 #'       effects in seemingly unrelated regressions. \emph{Spatial Economic 
-#'       Analysis}, 5(4), 399-440.
+#'       Analysis}, 5(4), 399-440. \url{https://www.tandfonline.com/doi/abs/10.1080/17421772.2010.516443}
+#'      \item Anselin, L. (2016) Estimation and Testing in the Spatial Seemingly 
+#'       Unrelated Regression (SUR). \emph{Geoda Center for Geospatial Analysis 
+#'       and Computation, Arizona State University}. Working Paper 2016-01.
+#'       \url{http://dx.doi.org/10.13140/RG.2.2.15925.40163}
 #'   }
 #'
 #'

@@ -11,17 +11,18 @@
 #'  of a spatial SUR dataset and inferential procedures related to them.
 #'
 #'  The user of \code{dgp_spsur} should think in terms of a Monte Carlo 
-#'  experiment. The arguments of the funtion specify the dimensions of the 
+#'  experiment. The arguments of the function specify the dimensions of the 
 #'  dataset to be generated, the spatial mechanism underlying the data, the 
 #'  intensity of the SUR structure among the equations and the values of the 
 #'  parameters to be used to obtain the simulated data, which includes the 
 #'  error terms, the regressors and the explained variables.
 #' 
-#' @usage dgp_spsur (Sigma, Tm = 1, G, N, Betas, Thetas = NULL, 
-#'                   rho = NULL,lambda = NULL, p = NULL, listw = NULL, 
-#'                   X = NULL, pdfU = "nvrnorm", pdfX = "nvrnorm")
+#' @usage dgp_spsur(Sigma, Tm = 1, G, N, Betas, Thetas = NULL, 
+#'                  rho = NULL, lambda = NULL, p = NULL, listw = NULL, 
+#'                  X = NULL, type = "matrix", pdfU = "nvrnorm", 
+#'                  pdfX = "nvrnorm")
 #'
-#' @param Tm Number of time periods.Default = \code{1}
+#' @param Tm Number of time periods. Default = \code{1}
 #' @param p Number of regressors by equation, including the intercept. 
 #'  \emph{p} can be a row vector of order \emph{(1xG)}, if the number of 
 #'  regressors is not the same for all the equations, or a scalar, if the 
@@ -66,22 +67,25 @@
 #'  \eqn{(PxP)} covariance matrix. As an alternative, the user may change 
 #'  this probability distribution function to the uniform case, \eqn{U(0,1)}, 
 #'  through the argument \emph{pdfX}. Default = \code{NULL}.
-#' @param pdfX  Multivariate probability distribution function, mdf, from 
+#' @param type Selection of the type of output. The alternatives are 
+#' \code{matrix}, \code{df}, \code{panel}, \code{all}. Default \code{matrix}
+#' @param pdfX  Multivariate probability distribution function (Mpdf), from 
 #'  which the values of the regressors will be drawn. The regressors are 
-#'  assumed to be independent. \code{dgp_spsur} provides two mdf, 
+#'  assumed to be independent. \code{dgp_spsur} provides two Mpdf, 
 #'  the multivariate Normal, which is the default, and the uniform in the 
-#'  interval \eqn{U[0,1]}, using the dunif function, 
-#'  \code{\link[stats]{dunif}}, from the \pkg{stats} package. 
-#'  Default = \code{"nvrnorm"}.
-#' @param pdfU Multivariate probability distribution function, mdf, from 
+#'  interval \eqn{U[0,1]}, using the dunif function.
+#'  \code{\link[stats]{dunif}}, from the \pkg{stats} package. Two alternatives
+#'   \code{"nvrunif"}, \code{"nvrnorm"}. Default \code{"nvrnorm"}.   
+#' @param pdfU Multivariate probability distribution function, Mpdf, from 
 #'   which the values of the error terms will be drawn. The covariance matrix 
-#'   is the \eqn{\Sigma} matrix specificied by the user in the argument 
+#'   is the \eqn{\Sigma} matrix specified by the user in the argument. Two alternatives
+#'   \code{"lognvrnorm"}, \code{"nvrnorm"}. Default \code{"nvrnorm"}.   
+#'   
 #'  \emph{Sigma}.
-#'   The funtion \code{dgp_spsur} provides two mdf, the multivariate Normal, 
-#'   which is the default, and the log-Normal distribution funtion which 
+#'   The function \code{dgp_spsur} provides two Mpdf, the multivariate Normal, 
+#'   which is the default, and the log-Normal distribution function which 
 #'   means just exponenciate the sampling drawn form a \eqn{N(0,\Sigma)}
 #'   distribution. Default = \code{"nvrnorm"}.
-#' @inheritParams spsurml
 #'
 #'
 #' @details
@@ -92,19 +96,18 @@
 #'  Process, DGP. The following aspects should be addressed:
 #'  \itemize{
 #'     \item The user must define the dimensions of the dataset, that is, 
-#'      number of equations,
-#'     \emph{G}, number of time periods, \emph{Tm}, and number of 
-#'      cross-sectional units, \emph{N}.#'
-#'     \item Then, the user must choose the type of spatial structure desired 
+#'      number of equations, \emph{G}, number of time periods, \emph{Tm}, and number of 
+#'      cross-sectional units, \emph{N}.
+#'     \item The user must choose the type of spatial structure desired 
 #'      for the model from among the list of candidates of "sim", "slx", 
-#'      "slm", "sem", "sdm", "sdem" or  "sarar"; the default is the "sim" 
+#'      "slm", "sem", "sdm", "sdem" or  "sarar". The default is the "sim" 
 #'      specification which does not have spatial structure. The decision is 
-#'      made implicitly, just omiting the specification of the spatial 
-#'      parameters which are not involved  in the model (i.e., in a "slm"
+#'      made implicitly, just omitting the specification of the spatial 
+#'      parameters which are not involved in the model (i.e., in a "slm"
 #'      there are no \eqn{\lambda} parameters but appear \eqn{\rho} 
 #'      parameters; in a "sdem" model there are \eqn{\lambda} and \eqn{\theta} 
-#'      parameters but no \eqn{\rho} coefficients). Of course, if the user
-#'      needs a model with spatial structure, a \emph{(nxN)}  weighting 
+#'      parameters but no \eqn{\rho} coefficients). 
+#'      \item If the user needs a model with spatial structure, a \emph{(NxN)}  weighting 
 #'      matrix, \emph{W}, should be chosen.
 #'     \item The next step builds the equations of the SUR model. In this 
 #'      case, the user must specify the number of regressors that intervene 
@@ -120,25 +123,27 @@
 #'
 #'      The \emph{second} part of the problem posited above is solved through 
 #'      the argument \emph{Betas}, which is a row vector of order \emph{(1xp)} 
-#'      with the information requiered for this set of coeficcients.
-#'    \item The user must specify, also, the values of the spatial parameters 
-#'      corresponding to the chosen specification; we are refering to the 
+#'      with the information required for this set of coefficients.
+#'      \item The user must specify, also, the values of the spatial parameters 
+#'      corresponding to the chosen specification; we are referring to the 
 #'      \eqn{\rho_{g}}, \eqn{\lambda_{g}} and  \eqn{\theta_{g}},
 #'      for \eqn{g=1, ..., G and k=1,..., K_{g}} parameters. This is done 
-#'      throught the arguments \emph{rho}, \emph{lambda} and \emph{theta}. 
+#'      thought the arguments \emph{rho}, \emph{lambda} and \emph{theta}. 
 #'      The firs two, \emph{rho} and \emph{lambda}, work as \emph{K}: if 
 #'      they are scalar, the same value will be used in the \emph{G} 
 #'      equations of the SUR model; if they are \emph{(1xG)} row vectors, 
 #'      a different value will be assigned for each equation.
 #'
-#'      Moreover, \emph{theta} works like the argument \emph{beta}. The user 
+#'      Moreover, \emph{Theta} works like the argument \emph{Betas}. The user 
 #'      must define a row vector of order \eqn{1xPTheta} showing these values. 
 #'      It is worth to remember that in no case the intercept will appear 
 #'      among the lagged regressors.
+#'      \item With the argument \code{type} the user take the decision of the 
+#'      output format. See Value section.
 #'    \item Finally, the user must decide which values of the regressors and 
 #'     of the error terms are to be used in the simulation. The regressors 
 #'     can be uploaded from an external matrix generated previously by the
-#'     user. This is the argument \emph{X}. It is the responsability of the 
+#'     user. This is the argument \emph{X}. It is the responsibility of the 
 #'     user to check that the dimensions of the external matrix are consistent 
 #'     with the dataset required for the SUR model. A second possibility
 #'     implies  the regressors to be generated randomly by the function 
@@ -146,8 +151,8 @@
 #'     In this case, the user must select the probability distribution 
 #'     function from which the corresponding data (of the regressors and 
 #'     the error terms) are to be drawn.\cr
-#'
-#'     \code{dgp_spsur} provides two multivariate distibution functions, 
+#'}
+#' \code{dgp_spsur} provides two multivariate distribution functions, 
 #'     namely, the Normal and the log-Normal for the errors (the second 
 #'     should be taken as a clear departure from the standard assumption of
 #'     normality). In both cases, random matrices of order \emph{(TmNxG)} 
@@ -158,14 +163,29 @@
 #'     the regressor. There are two distribution functions available, the
 #'     normal and the uniform in the interval \eqn{U[0,1]}; the regressors 
 #'     are always independent.
-#'   }
+#'   
 #'
 #' @return
-#' A list with a vector \eqn{Y} of order \emph{(TmNGx1)} with the values 
+#' The default output ("matrix") is a list with a vector \eqn{Y} of order 
+#' \emph{(TmNGx1)} with the values 
 #' generated for the explained variable in the G equations of the SUR and 
 #' a matrix \eqn{XX} of order (\emph{(TmNGxsum(p))}, with the values
 #' generated for the regressors of the SUR, including an intercept for 
 #' each equation.
+#' 
+#' In case of Tm = 1 or G = 1 several alternatives 
+#' output can be select:
+#'\itemize{
+#' \item If the user select \code{type = "df"} the output is a data frame where each
+#' column is a variable.
+#' 
+#' \item If the user select \code{type = "panel"} the output is a data frame in 
+#' panel format including two factors. The first factor point out the observation 
+#' of the individual and the second the equation for different Tm or G.
+#' 
+#' \item Finally, if \code{type = "all"} is select the output is a list including all 
+#' alternatives format.
+#' }
 #'
 #' @author
 #'   \tabular{ll}{
@@ -173,7 +193,13 @@
 #'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
 #'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
-#'
+#' @references
+#'   \itemize{
+#'       \item López, F. A., Mínguez, R., Mur, J. (2020). ML versus IV estimates 
+#'       of spatial SUR models: evidence from the case of Airbnb in Madrid urban 
+#'       area. \emph{The Annals of Regional Science}, 64(2), 313-347.
+#'       \url{https://doi.org/10.1007/s00168-019-00914-1}
+#'       }
 #' @seealso
 #' \code{\link{spsurml}}, \code{\link{spsur3sls}}, \code{\link{spsurtime}}
 #' @examples
@@ -181,13 +207,13 @@
 #' ## VIP: The output of the whole set of the examples can be examined 
 #' ## by executing demo(demo_dgp_spsur, package="spsur")
 #' 
-#' ####################################
-#' ######## CROSS SECTION DATA ########
-#' ####################################
+#' ################################################
+#' ### PANEL DATA (Tm = 1 or G = 1)              ##
+#' ################################################
 #'
-#' ####################################
-#' #### Example 1: DGP SLM model
-#' ####################################
+#' ################################################
+#' #### Example 1: DGP SLM model. G equations
+#' ################################################
 #' rm(list = ls()) # Clean memory
 #' Tm <- 1 # Number of time periods
 #' G <- 3 # Number of equations
@@ -207,14 +233,13 @@
 #'                  G = G, N = N, p = p, listw = lw)
 #' \donttest{
 #' SLM <- spsurml(X = DGP$X, Y = DGP$Y, Tm = Tm, N = N, G = G, 
-#'                p = c(3, 3, 3), listw = lw, type = "slm",
-#'                method = "LU", control = list(fdHess = TRUE)) 
+#'                p = c(3, 3, 3), listw = lw, type = "slm") 
 #' summary(SLM)
 #' 
-#' #####################################
+#' ################################################
 #' #### Example 2: DGP SEM model with Tm>1; G=1 and
 #' #### different p for each equation
-#' #####################################
+#' ################################################
 #' rm(list = ls()) # Clean memory
 #' Tm <- 3 # Number of time periods
 #' G <- 1 # Number of equations
@@ -234,18 +259,46 @@
 #'                   lambda = lambda, Tm = Tm, G = G, N = N, p = p, 
 #'                   listw = lw)
 #' SLM2 <- spsurml(X = DGP2$X, Y = DGP2$Y, Tm = Tm, N = N, G = G,
-#'                p = c(2,3,4), listw = lw, type = "slm", 
-#'                control = list(fdHess = TRUE))
+#'                p = c(2,3,4), listw = lw, type = "slm")
 #' summary(SLM2)
 #' SEM2 <- spsurml(X = DGP2$X, Y = DGP2$Y, Tm = Tm, N = N, G = G,
-#'                p = c(2,3,4), listw = lw, type = "sem",
-#'                method = "LU", control = list(fdHess = TRUE))
+#'                p = c(2,3,4), listw = lw, type = "sem")
 #' summary(SEM2)
+#' 
+#' ################################################
+#' #### Example 3: DGP SEM model with Tm>1; G=1 and
+#' #### different p for each equation. Output "df"
+#' ################################################
+#' rm(list = ls()) # Clean memory
+#' Tm <- 3 # Number of time periods
+#' G <- 1 # Number of equations
+#' N <- 500 # Number of spatial elements
+#' p <- c(2,3,4) # Number of independent variables
+#' Sigma <- matrix(0.8, ncol = Tm, nrow = Tm)
+#' diag(Sigma) <- 1
+#' Betas <- c(1,2,1,2,3,1,2,3,4)
+#' rho <- 0 # level of spatial dependence = 0
+#' lambda <- c(0.2,0.5,0.8) 
+#' ## spatial autocorrelation error terms for each equation
+#' ## random coordinates
+#' co <- cbind(runif(N,0,1),runif(N,0,1))
+#' lw <- spdep::nb2listw(spdep::knn2nb(spdep::knearneigh(co, k = 5,
+#'                                                    longlat = FALSE)))
+#' DGP3 <- dgp_spsur(Sigma = Sigma, Betas = Betas, rho = rho, 
+#'                   lambda = lambda, Tm = Tm, G = G, N = N, p = p, 
+#'                   listw = lw, type = "df")
+#' formula <- Y_1 | Y_2 | Y_3 ~ X_11 | X_21 + X_22 | X_31 + X_32 + X_33
+#' SLM3 <- spsurml(formula = formula, data = DGP3$df,
+#'                listw = lw, type = "slm")
+#' summary(SLM3)
+#' SEM3 <- spsurml(formula = formula, data = DGP3$df,
+#'                 listw = lw, type = "sem")
+#' summary(SEM3)
 #'
-#' #####################################
-#' ##### Example with G>1 and Tm>>1
-#' #####################################
-#' ### It usually requires 1-2 minutes maximum
+#' ################################################
+#' ### MULTI-DIMENSIONAL PANEL DATA G>1 and Tm>1 ##
+#' ################################################
+#' 
 #' rm(list = ls()) # Clean memory
 #' Tm <- 10 # Number of time periods
 #' G <- 3 # Number of equations
@@ -260,20 +313,24 @@
 #' co <- cbind(runif(N,0,1),runif(N,0,1))
 #' lw <- spdep::nb2listw(spdep::knn2nb(spdep::knearneigh(co, k = 5,
 #'                                                    longlat = FALSE)))
-#' DGP3 <- dgp_spsur(Sigma = Sigma, Betas = Betas, rho = rho, 
+#' DGP4 <- dgp_spsur(Sigma = Sigma, Betas = Betas, rho = rho, 
 #'                   lambda = lambda, Tm = Tm, G = G, N = N, p = p, 
 #'                   listw = lw)
-#' SLM3  <-spsurml(Y = DGP3$Y, X = DGP3$X, G = G, N = N, Tm = Tm,
-#'                 p = p, listw = lw, type = "slm", 
-#'                 method = "LU", control = list(fdHess = TRUE))
-#' summary(SLM3)
+#' SLM4  <- spsurml(Y = DGP4$Y, X = DGP4$X, G = G, N = N, Tm = Tm,
+#'                  p = p, listw = lw, type = "slm")
+#' summary(SLM4)
 #' }
 #' @export
 dgp_spsur <- function(Sigma, Tm = 1, G, N, Betas,
                       Thetas = NULL, rho = NULL,
                       lambda = NULL, p = NULL, 
                       listw = NULL, X = NULL,
+                      type = "matrix",
                       pdfU = "nvrnorm", pdfX = "nvrnorm") {
+  
+  type <- match.arg(type, c("matrix","df","panel","all"))
+  pdfX <- match.arg(pdfX,c("nvrunif","nvrnorm"))
+  pdfU <- match.arg(pdfU,c("lognvrnorm","nvrnorm"))
   if (is.null(listw) || !inherits(listw, c("listw","Matrix","matrix")))
     stop("listw format unknown or NULL")
   if (inherits(listw, "listw")) {
@@ -285,7 +342,7 @@ dgp_spsur <- function(Sigma, Tm = 1, G, N, Betas,
     W <- listw
     listw <- spdep::mat2listw(as.matrix(W))
   } else W <- Matrix::Diagonal(N)
-
+  xxx <- Tm # To include names in the output
   if (Tm > 1 && G == 1) { #Change dimensions
     G <- Tm
     Tm <- 1
@@ -298,15 +355,21 @@ dgp_spsur <- function(Sigma, Tm = 1, G, N, Betas,
                                                   nrow = G,ncol = 1))
   if (length(rho) == 1) rho <- as.numeric(matrix(rho, 
                                                  nrow = G,ncol = 1))
+
   if (is.null(X)) {
     if (is.null(p)) stop("Arguments X and p can not be NULL simultaneously")
     if (pdfX == "nvrunif") {
-      X <- cbind(matrix(1,N,1),
-                 matrix(runif(N * (p[1] - 1)), N, (p[1] - 1)))
+      X0 <- matrix(runif(N * (p[1] - 1)), N, (p[1] - 1))
+      colnames(X0) <- paste0("X_1",1:dim(X0)[2])
+      X <- cbind(matrix(1,N,1),X0)
+      Xf <- X0
       for (i in 1:(G-1)) {
+        X0 <- matrix(runif(N * (p[i + 1] - 1)), N, 
+                     (p[i + 1] - 1))
+        colnames(X0) <- paste0("X_",(i+1),1:dim(X0)[2])
         X <- Matrix::bdiag(X,cbind(matrix(1, N, 1),
-                        matrix(runif(N * (p[i + 1] - 1)), N, 
-                                     (p[i + 1] - 1))))
+                                   X0))
+        XF <- cbind(XF,X0)
       }
       if (Tm > 1) {
         for (i in 1:(Tm-1)) {
@@ -322,12 +385,17 @@ dgp_spsur <- function(Sigma, Tm = 1, G, N, Betas,
         }
       }
     } else if (pdfX == "nvrnorm"){
-      X <- cbind(matrix(1, N, 1),
-                 matrix(rnorm(N * (p[1] - 1),0, 1), N, (p[1] - 1)))
+      X0 <- matrix(rnorm(N * (p[1] - 1),0, 1), N, (p[1] - 1))
+      colnames(X0) <- paste0("X_1",1:dim(X0)[2])
+      X <- cbind(matrix(1, N, 1),X0)
+      XF <- X0
       for (i in 1:(G - 1)) {
-        X <- Matrix::bdiag(X, cbind(matrix(1, N, 1),
-                                matrix(rnorm(N * (p[i + 1] - 1), 0, 1),
-                                             N, (p[i + 1] - 1))))
+        X0 <- matrix(rnorm(N * (p[i + 1] - 1), 0, 1),
+                     N, (p[i + 1] - 1))
+        
+        colnames(X0) <- paste0("X_",(i+1),1:dim(X0)[2])
+        X <- Matrix::bdiag(X, cbind(matrix(1, N, 1),X0))
+        XF <- cbind(XF, X0)
       }
       if (Tm > 1){
         for (i in 1:(Tm - 1)) {
@@ -408,8 +476,8 @@ dgp_spsur <- function(Sigma, Tm = 1, G, N, Betas,
   if (pdfU == "lognvrnorm") U <- exp(U)
   if (pdfU != "lognvrnorm" && pdfU != "nvrnorm")
     print(" Improper pdf. The errors will be drawn from a multivariate Normal ")
-
   # Si Tm*G*N es muy grande (>30000 ó 40000) hay problemas
+  
   IBU <- Matrix::solve(Matrix::kronecker(IT, 
                         (IGR - Matrix::kronecker(
                                 Matrix::Diagonal(length(lambda), lambda),
@@ -427,6 +495,53 @@ dgp_spsur <- function(Sigma, Tm = 1, G, N, Betas,
                                     W))),
                       (X %*% Betas + IBU))
   }
-  results <- list(X = as.matrix(X), Y = as.matrix(Y))
+  ## Output
+  if (Tm == 1){
+  index_indiv <- rep(1:N, Tm)
+  YY <- matrix(Y[1:(N*G)],ncol = G)
+  
+  # Output type panel. Only in case of equal number of variables in each equation 
+  if (sum(p==p[1])==length(p)){
+    if (xxx != 1){eq <- c("year_","year")} else {eq <- c("eq_","equation")}
+  YYY <- as.data.frame(cbind(paste0("Indv_",rep(1:N,each = G)),rep(paste0(eq[1],1:G),N)))
+  YYY$Y <- c(rbind(t(YY)))
+  h <- c(rbind(t(XF[,substr(colnames(XF),4,4)==1])))
+  for (i in 2:p[1]){
+    h <- rbind(h,c(rbind(t(XF[,substr(colnames(XF),4,4)==i]))))
+  }
+  h <- t(h) 
+  colnames(h) <- paste0("X_",1:dim(h)[2])
+  names(YYY) <- c("index_indiv",eq[2],"Y")
+  YYY <- cbind(YYY,h)
+  YYY$index_indiv <- as.factor(YYY$index_indiv)
+  YYY[,2] <- as.factor(YYY[,2])
+  } else {
+    YYY = NULL
+    if (type == "panel" |type ==  "all")    
+      warning("Unbalanced panel data. Panel output = NULL")
+  } 
+  
+  # Output type df
+  YY <- cbind(index_indiv,YY)
+  colnames(YY) <- c("index_indiv",paste0("Y_",1:G))
+  YY <- as.data.frame(cbind(YY,XF))
+  
+  if (type == "df"){
+  results0 <- list(df = YY)
+  }
+  if (type == "panel"){
+  results0 <- list(panel = YYY)
+  }
+  if (type == "matrix"){
+  results0 <- list(X = as.matrix(X), Y = as.matrix(Y))
+  }
+  if (type == "all"){
+  results0 <- list(X = as.matrix(X), Y = as.matrix(Y), df = YY, panel = YYY)
+  }
+  } else {
+    results0 <- list(Y = as.matrix(Y),X = as.matrix(X))
+  }
+  
+  results <- results0
 }
 
