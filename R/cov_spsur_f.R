@@ -209,7 +209,7 @@ cov_spsurslm_f <- function(env){
     
     #########################################################
     # Breusch_pagan Test de diagonalidad (Breusch-Pagan 1980)
-    # ver: http://www.stata.com/manuals13/rsureg.pdf
+    # ver: https://www.stata.com/manuals13/rsureg.pdf
     Sigmas <- get_Sigma(resids=Res,N=N,G=G,Tm=Tm)
     Sigma_corr <- Sigmas$Sigma_corr
     rm(Sigmas)
@@ -421,7 +421,7 @@ cov_spsursem_f <- function(env){
     
     ###########################################################
     #### Breusch_pagan Test de diagonalidad (Breusch-Pagan 1980)
-    ## ver: http://www.stata.com/manuals13/rsureg.pdf
+    ## ver: https://www.stata.com/manuals13/rsureg.pdf
     Sigmas <- get_Sigma(resids=Res,N=N,G=G,Tm=Tm)
     Sigma_corr <- Sigmas$Sigma_corr
     rm(Sigmas)

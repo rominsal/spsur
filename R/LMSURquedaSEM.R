@@ -267,7 +267,7 @@ LMSURquedaSEM <- function(Tm,G,N,Y,X,W)
   imi <- solve(Irhorho-Irhopslm%*%mislm_inv%*%t(Irhopslm))
   LMMqsemenslm <- as.numeric(gradrho %*% imi  %*% gradrho)
   # Breusch_pagan Test de diagonalidad (Breusch-Pagan 1980)
-  # ver: http://www.stata.com/manuals13/rsureg.pdf
+  # ver: https://www.stata.com/manuals13/rsureg.pdf
   index_ltri <- lower.tri(Sigma_corr)
   BP <- N*Tm*sum(Sigma_corr[index_ltri]^2)
   # Se ajusta a una Chi con G*(G-1)/2 gl

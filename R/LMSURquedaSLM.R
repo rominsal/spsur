@@ -300,7 +300,7 @@ as.matrix(OME %*% solve(t(as.matrix(B)),
   imi <- solve(Ideldel - Idelpsem %*% solve(misem,t(Idelpsem)))
   LMMqslmensem <- t(graddel) %*% (imi%*%graddel)
   #### Breusch_pagan Test de diagonalidad (Breusch-Pagan 1980)
-  ## ver: http://www.stata.com/manuals13/rsureg.pdf
+  ## ver: https://www.stata.com/manuals13/rsureg.pdf
   index_ltri <- lower.tri(Sigma_corr)
   BP <- N*Tm*sum(Sigma_corr[index_ltri]^2)
   ## Se ajuta a una Chi con G*(G-1)/2 gl

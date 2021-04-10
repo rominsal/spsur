@@ -22,11 +22,19 @@
 #'                  X = NULL, type = "matrix", pdfU = "nvrnorm", 
 #'                  pdfX = "nvrnorm")
 #'
+#' @param G Number of equations.
+#' @param N Number of cross-section or spatial units
 #' @param Tm Number of time periods. Default = \code{1}
 #' @param p Number of regressors by equation, including the intercept. 
 #'  \emph{p} can be a row vector of order \emph{(1xG)}, if the number of 
 #'  regressors is not the same for all the equations, or a scalar, if the 
 #'  \emph{G} equations have the same number of regressors.
+#' @param listw A \code{listw} object created for example by 
+#'   \code{\link[spdep]{nb2listw}} from \pkg{spatialreg} package; if 
+#'   \code{\link[spdep]{nb2listw}} not given, set to 
+#'   the same spatial weights as the \code{listw} argument. It can
+#'   also be a spatial weighting matrix of order \emph{(NxN)} instead of
+#'   a \code{listw} object. Default = \code{NULL}.
 #' @param Sigma Covariance matrix between the \emph{G} equations of the 
 #'  SUR model. This matrix should be definite positive and the user must 
 #'  check for that.
@@ -35,7 +43,7 @@
 #'  The first \eqn{P_{1}} terms correspond to the first equation (where 
 #'   the first element is the intercept), the second \eqn{P_{2}} terms to 
 #'   the coefficients of the second equation and so on.
-#' @param  Thetas Values for the \eqn{\theta} coefficients in the 
+#' @param Thetas Values for the \eqn{\theta} coefficients in the 
 #'  \emph{G} equations of the model, when the type of spatial SUR model to 
 #'   be simulated is a "slx", "sdm"  or "sdem". \emph{Thetas} is a 
 #'   row vector of order \emph{\eqn{1xPTheta}}, where 
