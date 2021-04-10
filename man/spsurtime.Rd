@@ -168,11 +168,13 @@ pspc_slm <- spsurtime(formula = form_pspc, data = pspc,
                       time = pspc$index_time, 
                       type = "slm", fit_method = "ml")
 summary(pspc_slm)
+\donttest{ # To save time during the checking... 
 pspc_slm2 <- spsurtime(formula = form2_pspc, data = pspc, 
                       listw = lwspc,
                       time = pspc$index_time, 
                       type = "slm", fit_method = "ml")
 summary(pspc_slm2)
+}
 
 ## VIP: The output of the whole set of the examples can be examined 
 ## by executing demo(demo_spsurtime, package="spsur")

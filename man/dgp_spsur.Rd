@@ -16,6 +16,10 @@ check for that.}
 
 \item{Tm}{Number of time periods. Default = \code{1}}
 
+\item{G}{Number of equations.}
+
+\item{N}{Number of cross-section or spatial units}
+
 \item{Betas}{A row vector of order \eqn{(1xP)} showing the values for 
 the \emph{beta} coefficients.
 The first \eqn{P_{1}} terms correspond to the first equation (where 
@@ -51,6 +55,13 @@ spatial errors. Default = \code{NULL}.}
 \emph{p} can be a row vector of order \emph{(1xG)}, if the number of 
 regressors is not the same for all the equations, or a scalar, if the 
 \emph{G} equations have the same number of regressors.}
+
+\item{listw}{A \code{listw} object created for example by 
+\code{\link[spdep]{nb2listw}} from \pkg{spatialreg} package; if 
+\code{\link[spdep]{nb2listw}} not given, set to 
+the same spatial weights as the \code{listw} argument. It can
+also be a spatial weighting matrix of order \emph{(NxN)} instead of
+a \code{listw} object. Default = \code{NULL}.}
 
 \item{X}{This argument tells the function \code{dgp_spsur} which \emph{X} 
 matrix should be used to generate the SUR dataset. If \emph{X} is 
