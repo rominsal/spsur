@@ -5,7 +5,7 @@ author:
 - Román Mínguez, University of Castilla-La Mancha (Spain)
 - Fernando A. López, Technical University of Cartagena (Spain)
 - Jesús Mur, University of Zaragoza, (Spain) <br> <br> <br>
-date: "2020-07-30 10:44:58 <br>  <br> <br>"
+date: "2021-04-07  <br>  <br> <br>"
 output: 
   bookdown::html_document2:
     df_print: kable

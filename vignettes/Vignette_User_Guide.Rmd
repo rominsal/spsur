@@ -1,10 +1,11 @@
 ---
 title: "spsur user guide"
+subtitle: "The user guide <br>  <br>  <br>"
 author:
 - Román Mínguez, University of Castilla-La Mancha (Spain)
 - Fernando A. López, Technical University of Cartagena (Spain)
 - Jesús Mur, University of Zaragoza, (Spain) <br> <br> <br>
-date: '2020-07-30 13:03:03 <br>  <br> <br>'
+date: '2021-04-07 <br>  <br> <br>'
 output:
   bookdown::html_document2:
     number_sections: yes
@@ -17,7 +18,6 @@ output:
     toc_title: Article Outline
 linkcolor: red
 link-citations: yes
-subtitle: The user guide <br>  <br>  <br>
 bibliography: bibliosure.bib
 vignette: |
   %\VignetteIndexEntry{spsur user guide}
@@ -395,7 +395,7 @@ As said, **spsur** is an R package whose main objective is to estimate and test 
 * SUR-SARAR. SUR model with lags of the of the endogenous variables and spatial errors.
 * SUR-GNM. SUR model with lags of the of the endogenous variables, lags of the X variables and lags spatial errors. This specification nest the rest of models.
 
-The common estimation procedure for the seven cases is maximum-likelihood, ML, whereas the SUR-SLM and SUR-SDM can also be estimated by Three Stage-Least-Squares, 3SLS. @BivandPiras2015 offer an excellent revision of estimation methods in spatial econometrics, whereas @Lopez2019 focus specifically in the comparison of ML against 3SLS. First, we discuss the maximum likelihood approach and finish the Section with a few comments in relation to 3SLS.
+The common estimation procedure for the seven cases is maximum-likelihood, ML, whereas the SUR-SLM and SUR-SDM can also be estimated by Three Stage-Least-Squares, 3SLS. @BivandPiras2015 offer an excellent revision of estimation methods in spatial econometrics, whereas @Lopez2020 focus specifically in the comparison of ML against 3SLS. First, we discuss the maximum likelihood approach and finish the Section with a few comments in relation to 3SLS.
 
 ## SUR-SLX model {#model-surslx}
 
