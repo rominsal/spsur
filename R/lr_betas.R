@@ -76,7 +76,7 @@
 #' ## Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' ## \url{https://geodacenter.github.io/data-and-lab/ncovr/}
 #' rm(list = ls()) # Clean memory
-#' data(NCOVR, package="spsur")
+#' data(NCOVR, package = "spsur")
 #' nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 #' ### Some regions with no links...
 #' lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)

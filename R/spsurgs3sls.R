@@ -568,8 +568,7 @@ spsurgs3sls <- function(formula = NULL, data = NULL, na.action,
                         residuals = residuals, 
                         df.residual = df.residual,
                         fitted.values = fitted.values,
-                        Y = if(is.null(data)) Y else yf, 
-                        X = if(is.null(data)) X else Xf,  
+                        Y = yf, X = Xf,  
                         zero.policy = zero.policy, 
                         listw_style = listw$style))
   
