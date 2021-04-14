@@ -168,7 +168,7 @@ pspc_slm <- spsurtime(formula = form_pspc, data = pspc,
                       time = pspc$index_time, 
                       type = "slm", fit_method = "ml")
 summary(pspc_slm)
-\donttest{ # To save time during the checking... 
+\donttest{  
 pspc_slm2 <- spsurtime(formula = form2_pspc, data = pspc, 
                       listw = lwspc,
                       time = pspc$index_time, 

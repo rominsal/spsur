@@ -283,7 +283,6 @@ LeSage and Pace (2009) adapt the classical notion of
      \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
        effects in seemingly unrelated regressions.
        \emph{Spatial Economic Analysis}, 5(4), 399-440.
-       \url{https://doi.org/10.1080/17421772.2010.516443}
   }
 }
 \seealso{

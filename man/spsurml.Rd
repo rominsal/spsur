@@ -120,6 +120,8 @@ Object of \code{spsur} class with the output of the
  A list with:
   \tabular{ll}{
     \code{call} \tab Matched call. \cr
+    \code{formula} \tab formula in the call or \emph{NULL}. \cr
+    \code{data} \tab data.frame used as database or \emph{NULL}. \cr
     \code{type} \tab  Type of model specified. \cr
     \code{method} \tab Value of \code{method} argument to compute the 
       Jacobian \cr
@@ -159,9 +161,9 @@ Object of \code{spsur} class with the output of the
     \code{N} \tab Number of cross-sections or spatial units. \cr
     \code{Tm} \tab Number of time periods. \cr
     \code{p} \tab Number of regressors by equation (including intercepts). \cr
-    \code{Y} \tab Vector \emph{Y} of the explained variables of the 
+    \code{Y} \tab If \emph{data} is \emph{NULL}, vector \emph{Y} of the explained variables of the 
       SUR model. \cr
-    \code{X} \tab Matrix \emph{X} of the regressors of the SUR model. \cr
+    \code{X} \tab If \emph{data} is \emph{NULL}, matrix \emph{X} of the regressors of the SUR model. \cr
     \code{W} \tab Spatial weighting matrix. \cr
     \code{zero.policy} \tab Logical value of \code{zero.policy} . \cr
     \code{interval} \tab	Search interval for spatial parameter. \cr
@@ -274,7 +276,7 @@ plot(spcsur.sim)
 ## A SUR-SLX model 
 ## (listw argument can be either a matrix or a listw object )
 spcsur.slx <- spsurml(formula = Tformula, data = spc, type = "slx", 
-  listw = Wspc)
+  listw = Wspc, Durbin = TRUE)
 summary(spcsur.slx)
 # All the coefficients in a single table.
 print(spcsur.slx)
@@ -526,7 +528,6 @@ if (require(gridExtra)) {
       Computing the Jacobian in Gaussian spatial autoregressive models: An 
       illustrated comparison of available methods. \emph{ Geographical 
       Analysis}, 45(2), 150-179.
-      \url{https://doi.org/10.1111/gean.12008}
     \item Breusch T., Pagan A. (1980). The Lagrange multiplier test and its
        applications to model specification in econometrics. 
        \emph{Rev Econ Stud} 47: 239-254
@@ -537,11 +538,9 @@ if (require(gridExtra)) {
      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
        selection strategies in a SUR framework. The case of regional
        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
-       \url{https://doi.org/10.1007/s00168-014-0624-2}
     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
       effects in seemingly unrelated regressions.
       \emph{Spatial Economic Analysis}, 5(4), 399-440.
-      \url{https://doi.org/10.1080/17421772.2010.516443}
     \item Ord, J.K. (1975). Estimation methods for models of spatial 
       interaction, \emph{Journal of the American Statistical Association}, 
       70, 120-126; 
