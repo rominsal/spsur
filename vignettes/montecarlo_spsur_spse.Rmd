@@ -472,7 +472,7 @@ Table 1 shows the mean of the bias and the RMSE of the $\beta's$ and $\rho's$ pa
 Figure 1 shows the boxplots of  $\gamma_{ij}=\hat\beta_{ij}^{spsur}-\hat\beta_{ij}^{spse}$ and $\delta_i=\hat\rho_{i}^{spsur}-\hat\rho_{i}^{spse}$, the difference between estimated parameters 'model to model' for N = 516 (the superscript indicates the package used to estimate the coefficient). These boxplots confirm that the main differences are founded in the intercept of the second equation.
 
 
-![Figure 1: Difference between parameters 'model to model' SUR-SLM (N=516). (A) $\rho_1=-0.4; \rho_2=0.6$ ; (B) $\rho_1=0.5; \rho_2=0.5$ ; (C) $\rho_1 = 0.2; \rho_2 = 0.8$](boxplot model to model slm-1.png)
+![Figure 1: Difference between parameters 'model to model' SUR-SLM (N=516). (A) $\rho_1=-0.4; \rho_2=0.6$ ; (B) $\rho_1=0.5; \rho_2=0.5$ ; (C) $\rho_1 = 0.2; \rho_2 = 0.8$](boxplot_slm1.png)
 
 
 # Maximum Likelihood estimation of SUR-SEM models
@@ -557,7 +557,7 @@ Pack & N & $\lambda_1$ & $\lambda_2$ & $\hat\beta_{10}$ & $\hat\beta_{11}$ & $\h
 
 As in the case of SUR-SLM, the Figure 2 shows the difference between the parameters estimated with **spsur** and **spse** for N = 516. These boxplots show that the biases in the SUR-SEM are lower than in the SUR-SLM for all the parameters.
 
-![Figure 2: Difference between parameters 'model to model' SUR-SEM N=516.  (A) $\lambda_1=-0.4; \lambda_2=0.6$ ; (B) $\lambda_1=0.5; \lambda_2=0.5$ ; (C) $\lambda_1 = 0.2; \lambda_2 = 0.8$](boxplot model to model sem-1.png)
+![Figure 2: Difference between parameters 'model to model' SUR-SEM N=516.  (A) $\lambda_1=-0.4; \lambda_2=0.6$ ; (B) $\lambda_1=0.5; \lambda_2=0.5$ ; (C) $\lambda_1 = 0.2; \lambda_2 = 0.8$](boxplot_sem1.png)
 
 # Maximum Likelihood estimation of SUR-SARAR models
 
