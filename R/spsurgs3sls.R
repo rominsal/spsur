@@ -111,6 +111,8 @@
 #'   A list with:
 #'   \tabular{ll}{
 #'     \code{call} \tab Matched call. \cr
+#'     \code{formula} \tab formula in the call or \emph{NULL}. \cr
+#'     \code{data} \tab data.frame used as database or \emph{NULL}. \cr
 #'     \code{type} \tab  Type of model specified. \cr
 #'     \code{Durbin} \tab Value of \code{Durbin} argument. \cr
 #'     \code{coefficients} \tab Estimated coefficients for the regressors. \cr
@@ -136,8 +138,8 @@
 #'     \code{N} \tab Number of cross-sections or spatial units. \cr
 #'     \code{Tm} \tab Number of time periods. \cr
 #'     \code{p} \tab Number of regressors by equation (including intercepts). \cr
-#'     \code{Y} \tab Vector \emph{Y} of the explained variables of the SUR model. \cr
-#'     \code{X} \tab Matrix \emph{X} of the regressors of the SUR model. \cr
+#'     \code{Y} \tab If \emph{data} is \emph{NULL}, vector \emph{Y} of the explained variables of the SUR model. \cr
+#'     \code{X} \tab If \emph{data} is \emph{NULL}, matrix \emph{X} of the regressors of the SUR model. \cr
 #'     \code{W} \tab Spatial weighting matrix. \cr
 #'     \code{zero.policy} \tab Logical value of \code{zero.policy} . \cr
 #'     \code{listw_style} \tab	Style of neighborhood matrix \code{W}. \cr
