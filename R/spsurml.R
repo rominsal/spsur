@@ -244,7 +244,6 @@
 #'       Computing the Jacobian in Gaussian spatial autoregressive models: An 
 #'       illustrated comparison of available methods. \emph{ Geographical 
 #'       Analysis}, 45(2), 150-179.
-#'       \url{https://doi.org/10.1111/gean.12008}
 #'     \item Breusch T., Pagan A. (1980). The Lagrange multiplier test and its
 #'        applications to model specification in econometrics. 
 #'        \emph{Rev Econ Stud} 47: 239-254
@@ -255,11 +254,9 @@
 #'      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
 #'        selection strategies in a SUR framework. The case of regional
 #'        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
-#'        \url{https://doi.org/10.1007/s00168-014-0624-2}
 #'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
 #'       effects in seemingly unrelated regressions.
 #'       \emph{Spatial Economic Analysis}, 5(4), 399-440.
-#'       \url{https://doi.org/10.1080/17421772.2010.516443}
 #'     \item Ord, J.K. (1975). Estimation methods for models of spatial 
 #'       interaction, \emph{Journal of the American Statistical Association}, 
 #'       70, 120-126; 
@@ -290,7 +287,7 @@
 #' ## A SUR-SLX model 
 #' ## (listw argument can be either a matrix or a listw object )
 #' spcsur.slx <- spsurml(formula = Tformula, data = spc, type = "slx", 
-#'   listw = Wspc)
+#'   listw = Wspc, Durbin = TRUE)
 #' summary(spcsur.slx)
 #' # All the coefficients in a single table.
 #' print(spcsur.slx)
@@ -581,7 +578,6 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
     G <- Tm
     Tm <- 1
   }
-  
   if (!is.null(formula) && (!inherits(formula, "Formula"))) 
     formula <- Formula::Formula(formula)
   cl <- match.call()
@@ -845,25 +841,26 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
     coefficients <- coefforig
     rest.se <- seorig
   }  
-  
-  ret <- new_spsur(list(call = cl, type = type, 
-                       method = method, Durbin = Durbin, 
-                       G = G, N = N, Tm = Tm, 
-                       deltas = deltas, deltas.se = deltas.se,  
-                       coefficients = coefficients, rest.se = rest.se,
-                       resvar = resvar, fdHess = fdHess,
-                       p = p, dvars = dvars,
-                       parameters = parameters,
-                       LL = LL, R2 = c(R2_pool,R2_eq),
-                       Sigma = Sigma,
-                       BP = BP, LMM = LMM,
-                       residuals = z$residuals, df.residual = df.residual,
-                       fitted.values = z$fitted.values, se.fit = NULL,
-                       Y = Y, X = X, W = W, 
-                       similar = similar, can.sim = can.sim, 
-                       zero.policy = zero.policy, listw_style = listw$style, 
-                       interval = interval,  
-                       insert = !is.null(trs)))
+  ret <- new_spsur(list(call = cl, formula = formula, 
+                        type = type, data = data, W = W,
+                        method = method, Durbin = Durbin, 
+                        G = G, N = N, Tm = Tm, 
+                        deltas = deltas, deltas.se = deltas.se,  
+                        coefficients = coefficients, rest.se = rest.se,
+                        resvar = resvar, fdHess = fdHess,
+                        p = p, dvars = dvars,
+                        parameters = parameters,
+                        LL = LL, R2 = c(R2_pool,R2_eq),
+                        Sigma = Sigma,
+                        BP = BP, LMM = LMM,
+                        residuals = z$residuals, df.residual = df.residual,
+                        fitted.values = z$fitted.values, se.fit = NULL,
+                        Y = if(is.null(data)) Y else NULL, 
+                        X = if(is.null(data)) X else NULL,  
+                        similar = similar, can.sim = can.sim, 
+                        zero.policy = zero.policy, listw_style = listw$style, 
+                        interval = interval,  
+                        insert = !is.null(trs)))
   if (zero.policy) {
     zero.regs <- attr(listw$neighbours, "region.id")[which(
                       spdep::card(listw$neighbours) == 0)]

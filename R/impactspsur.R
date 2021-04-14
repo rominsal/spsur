@@ -149,7 +149,6 @@
 #'      \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
 #'        effects in seemingly unrelated regressions.
 #'        \emph{Spatial Economic Analysis}, 5(4), 399-440.
-#'        \url{https://doi.org/10.1080/17421772.2010.516443}
 #'   }
 #'
 #' @seealso
@@ -286,7 +285,6 @@ impactspsur <- function(obj, ..., tr = NULL,
                            Q = NULL) {
   if (obj$type == "sim" || obj$type == "sem") 
        stop("impact measures not for this model")
-  
   if (is.null(listw) && !is.null(obj$listw_style) && 
       obj$listw_style != "W") 
     stop("Only row-standardised weights supported")
@@ -300,146 +298,30 @@ impactspsur <- function(obj, ..., tr = NULL,
   if (type == "slx" || type == "sdem") {
     ## SLX object for each equation
     res <- list()
-    idxcoef <- 1
-    idxres <- 1
+    if (is.null(listw)) {
+      lw <- spdep::mat2listw(obj$W, style = "W")
+    } else {
+      lw <- listw
+      if (inherits(lw, c("matrix","Matrix"))) {
+        lw <- spdep::mat2listw(lw)
+      }
+    }  
     for (i in 1:G) {
-      coeffi <- obj$coefficients[idxcoef:
-                                   (idxcoef + p[i] - 1)]
-      rest.sei <- obj$rest.se[idxcoef:
-                                (idxcoef + p[i] - 1)]
-      resi <- obj$residuals[idxres: 
-                              (idxres + N - 1)]
-      fiti <- obj$fitted.values[idxres: 
-                                  (idxres + N - 1)]
-      y <- obj$Y[idxres:(idxres + N - 1),1]
-      Xi <- obj$X[idxres:(idxres + N - 1), names(coeffi)]
-      icept <- grep("(Intercept)", colnames(Xi))
-      iicept <- length(icept) > 0L
-      if (iicept) {
-        lmi.model <- lm(formula(paste("y ~ ", 
-                         paste(colnames(Xi)[c(-icept)], 
-                         collapse = "+"))), 
-                       data = as.data.frame(Xi))
-      } else {
-        lmi.model <- lm(formula(paste("y ~ 0 + ", 
-                                paste(colnames(Xi), 
-                                      collapse = "+"))), 
-                        data = as.data.frame(Xi))
-      }
-      lmi.model$coefficients <- coeffi
-      lmi.model$residuals <- resi
-      lmi.model$fitted.values <- fiti
-      mixedImps <- NULL
-      Ki <- ifelse(isTRUE(grep("Intercept", 
-                  names(coefficients(lmi.model))[1]) == 
-                         1L), 2, 1)
-      if (isTRUE(Durbin)) {
-        lagcept <- grep("lag.", names(lmi.model$coefficients))
-        nclti <- names(lmi.model$coefficients)[-lagcept]
-        mi <- length(coefficients(lmi.model))
-        odd <- (mi %/% 2) > 0
-        if (odd) {
-          m2i <- (mi - 1)/2
-        }
-        if (Ki == 1 && odd) {
-          warning("model configuration issue: no total impacts")
-        } else {
-          cmi <- matrix(0, ncol = mi, nrow = m2i)
-          if (Ki == 2) {
-            if (odd) {
-              rownames(cmi) <- nclti[2:(m2i + 1)]
-            } else {
-              rownames(cmi) <- nclti[1:m2i]
-            }
-            for (j in 1:m2i) cmi[j, c(j + 1, 
-                                      j + (m2i + 1))] <- 1
-            dirImpsi <- cbind(coeffi[2:(m2i + 1)],
-                              rest.sei[2:(m2i + 1)])
-            rownames(dirImpsi) <- rownames(cmi)
-            indirImpsi <- cbind(coeffi[(m2i + 2):mi],
-                                rest.sei[(m2i + 2):mi])
-            rownames(indirImpsi) <- rownames(cmi)
-          } else {
-            rownames(cmi) <- nclti[1:m2i]
-            for (j in 1:m2i) cmi[j, c(j, j + m2i)] <- 1
-            dirImpsi <- cbind(coeffi[1:m2i],
-                              rest.sei[1:m2i])          
-            rownames(dirImpsi) <- rownames(cmi)
-            indirImpsi <- cbind(coeffi[(m2i + 1):mi],
-                                rest.sei[(m2i + 1):mi])          
-            rownames(indirImpsi) <- rownames(cmi)
-          }
-          totImpsi <- as.matrix(gmodels::estimable(lmi.model, 
-                                                   cmi)[, 1:2, drop = FALSE])
-        } 
-      } else if (inherits(Durbin, "formula")) {
-        mi <- sum(dvars[[i]])
-        m2i <- dvars[[i]][2]
-        cmi <- matrix(0, ncol = mi, nrow = m2i)
-        inds <- attr(dvars[[i]], "inds")
-        for (j in 1:m2i) {
-          cmi[j, c(inds[j], j + dvars[[i]][1])] <- 1
-        }
-        lagcept <- grep("lag.", names(lmi.model$coefficients))
-        xni <- names(lmi.model$coefficients)[-lagcept]
-        if (iicept) xni <- xni[-1]
-        wxni <- names(lmi.model$coefficients)[lagcept]
-        wxni <- substring(wxni, nchar("lag") + 2, nchar(wxni))
-        zero_fill <- length(xni) + (which(!(xni %in% wxni)))
-        rownames(cmi) <- wxni
-        dirImpsi <- cbind(coeffi[2:dvars[[i]][1]],
-                          rest.sei[2:dvars[[i]][1]])
-        rownames(dirImpsi) <- xni
-        indirImpsi <- cbind(coeffi[(dvars[[i]][1] + 1):mi],
-                            rest.sei[(dvars[[i]][1] + 1):mi])
-        if (!is.null(zero_fill)) {
-          if (length(zero_fill) > 0L) {
-            lres <- vector(mode = "list", length = 2L)
-            for (j in 1:2) {
-              jindirImpsi <- rep(as.numeric(NA), (dvars[[i]][1] - 
-                                                   1))
-              inds <- attr(dvars[[i]],"inds")
-              for (k in seq(along = inds)) {
-                jindirImpsi[(inds[k] - 1)] <- indirImpsi[k,j]
-              }
-              lres[[j]] <- jindirImpsi
-            }
-            indirImpsi <- do.call("cbind", lres)
-          }
-        }
-        rownames(indirImpsi) <- xni
-
-        totImpsi <- as.matrix(gmodels::estimable(lmi.model, 
-                                                 cmi)[, 1:2, drop = FALSE])
-        if (!is.null(zero_fill)) {
-          if (length(zero_fill) > 0L) {
-            lres <- vector(mode = "list", length = 2L)
-            for (j in 1:2) {
-              jtotImpsi <- dirImpsi[, j]
-              for (k in seq(along = inds)) {
-                jtotImpsi[(inds[k] - 1)] <- totImpsi[k, j]
-              }
-              lres[[j]] <- jtotImpsi
-            }
-            totImpsi <- do.call("cbind", lres)
-          }
-        }
-        rownames(totImpsi) <- xni        
-        
-      }
-       mixedImps <- list(dirImps = dirImpsi, 
-                         indirImps = indirImpsi, 
-                         totImps = totImpsi)
-       attr(lmi.model, "mixedImps") <- mixedImps
-       attr(lmi.model, "dvars") <- dvars[i]
-       class(lmi.model) <- c("SLX", class(lmi.model))
-       impWXi <- spatialreg::impacts.SLX(lmi.model)
-       res[[i]] <- impWXi
-       idxcoef <- idxcoef + p[i] 
-       idxres <- idxres + N
+      form_i <- formula(obj$formula, lhs = i, rhs = i)
+      if (inherits(Durbin, "formula")) {
+        if (!inherits(Durbin, "Formula")) 
+          Durbin <- Formula::Formula(Durbin)
+        Durbin_i <- formula(Durbin, rhs = i)
+        if (Durbin_i == ~.) Durbin_i <- FALSE
+      } else { Durbin_i <- Durbin }
+      lmSLX_i <- spatialreg::lmSLX(formula = form_i, 
+                                   data = obj$data,
+                                   listw = lw,
+                                   Durbin = Durbin_i)
+      impWXi <- spatialreg::impacts(lmSLX_i)
+      res[[i]] <- impWXi
     }
-    #return(res)
-  } else {
+   } else {
     if (type == "slm") { type <- "lag" 
     } else if (any(type == c("sdm", "gnm"))) { 
       if (type == "gnm") deltas <- deltas[1:G] # supress lambda's in gnm

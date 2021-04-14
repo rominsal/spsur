@@ -549,7 +549,8 @@ spsurgs3sls <- function(formula = NULL, data = NULL, na.action,
     cat("Time to fit the model: ",
         end_fit-start_fit," seconds\n")
   }  
-  ret <- new_spsur(list(call = cl, type = type, 
+  ret <- new_spsur(list(call = cl, formula = formula,
+                        type = type, data = data, W = W,
                         Durbin = Durbin, 
                         G = G, N = N, Tm = Tm, 
                         deltas = deltas, 
@@ -564,8 +565,9 @@ spsurgs3sls <- function(formula = NULL, data = NULL, na.action,
                         Sigma = Sigmahat, 
                         residuals = residuals, 
                         df.residual = df.residual,
-                        fitted.values = fitted.values, 
-                        Y = yf, X = Xf, W = W, 
+                        fitted.values = fitted.values,
+                        Y = if(is.null(data)) Y else yf, 
+                        X = if(is.null(data)) X else Xf,  
                         zero.policy = zero.policy, 
                         listw_style = listw$style))
   

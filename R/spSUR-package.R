@@ -215,7 +215,7 @@
 #' @importFrom sparseMVN rmvn.sparse
 #' @importFrom spatialreg get.ZeroPolicyOption create_WX trW  
 #' @importFrom spatialreg can.be.simmed jacobianSetup do_ldet 
-#' @importFrom spatialreg impacts intImpacts anova.sarlm 
+#' @importFrom spatialreg impacts intImpacts lmSLX  
 #' @importFrom spdep knearneigh knn2nb nb2mat
 #' @importFrom spdep card mat2listw invIrW
 #' @importFrom stats cor cov optim pchisq pnorm pt qnorm rnorm runif
