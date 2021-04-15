@@ -136,6 +136,7 @@ lr_betas(pHR.slm, R = R, b = b)
     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
       effects in seemingly unrelated regressions.
       \emph{Spatial Economic Analysis}, 5(4), 399-440.
+      <doi:10.1080/17421772.2010.516443>
   }
 }
 \seealso{

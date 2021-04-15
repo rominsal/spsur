@@ -168,7 +168,7 @@ pspc_slm <- spsurtime(formula = form_pspc, data = pspc,
                       time = pspc$index_time, 
                       type = "slm", fit_method = "ml")
 summary(pspc_slm)
-\donttest{  
+\donttest{ 
 pspc_slm2 <- spsurtime(formula = form2_pspc, data = pspc, 
                       listw = lwspc,
                       time = pspc$index_time, 
@@ -234,15 +234,20 @@ wald_deltas(pHR_slm, R = R2, b = b2)
 \itemize{
     \item Anselin, L. (1988). Spatial econometrics: methods and models. Dordrecht,
      Kluwer Academic Publishers.
+     
     \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
        selection strategies in a SUR framework. The case of regional
        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
+       <doi:10.1007/s00168-014-0624-2>
+       
     \item López, F.A., Martínez-Ortiz, P.J., and Cegarra-Navarro, J.G. (2017).
        Spatial spillovers in public expenditure on a municipal level in
        Spain. \emph{Annals of Regional Science}, 58(1), 39-65.
+       <doi:10.1007/s00168-016-0780-7>
+       
     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
       effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 
-      5(4), 399-440. \url{https://doi.org/10.1080/17421772.2010.516443}
+      5(4), 399-440. <doi:10.1080/17421772.2010.516443>
   }
 }
 \seealso{
