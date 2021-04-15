@@ -2,7 +2,7 @@ Package: spsur
 Type: Package
 Title: Spatial Seemingly Unrelated Regression Models
 Version: 1.0.2.0.9000
-Date: 2021-04-07
+Date: 2021-04-14
 Authors@R: c(person("Ana", "Angulo", email = "aangulo@unizar.es", 
                   role = "aut"),
            person("Fernando A", "Lopez", email = "fernando.lopez@upct.es", 
@@ -48,7 +48,7 @@ Imports:
     Rdpack (>= 0.11-1), 
     rmarkdown (>= 2.1),    
     sparseMVN (>= 0.2.1.1),
-    spatialreg (>= 1.1-7),
+    spatialreg (>= 1.1-5),
     spdep (>= 1.1-3),
     sphet (>= 1.10.01)
 Suggests: 
