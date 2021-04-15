@@ -130,8 +130,6 @@
 #'  A list with:
 #'   \tabular{ll}{
 #'     \code{call} \tab Matched call. \cr
-#'     \code{formula} \tab formula in the call or \emph{NULL}. \cr
-#'     \code{data} \tab data.frame used as database or \emph{NULL}. \cr
 #'     \code{type} \tab  Type of model specified. \cr
 #'     \code{method} \tab Value of \code{method} argument to compute the 
 #'       Jacobian \cr
@@ -845,8 +843,7 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
     coefficients <- coefforig
     rest.se <- seorig
   }  
-  ret <- new_spsur(list(call = cl, formula = formula, 
-                        type = type, data = data, W = W,
+  ret <- new_spsur(list(call = cl, type = type, 
                         method = method, Durbin = Durbin, 
                         G = G, N = N, Tm = Tm, 
                         deltas = deltas, deltas.se = deltas.se,  
@@ -859,7 +856,7 @@ spsurml <- function(formula = NULL, data = NULL, na.action,
                         BP = BP, LMM = LMM,
                         residuals = z$residuals, df.residual = df.residual,
                         fitted.values = z$fitted.values, se.fit = NULL,
-                        Y = Y, X = X,  
+                        Y = Y, X = X, W = W,  
                         similar = similar, can.sim = can.sim, 
                         zero.policy = zero.policy, listw_style = listw$style, 
                         interval = interval,  

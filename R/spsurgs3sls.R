@@ -111,8 +111,6 @@
 #'   A list with:
 #'   \tabular{ll}{
 #'     \code{call} \tab Matched call. \cr
-#'     \code{formula} \tab formula in the call or \emph{NULL}. \cr
-#'     \code{data} \tab data.frame used as database or \emph{NULL}. \cr
 #'     \code{type} \tab  Type of model specified. \cr
 #'     \code{Durbin} \tab Value of \code{Durbin} argument. \cr
 #'     \code{coefficients} \tab Estimated coefficients for the regressors. \cr
@@ -551,8 +549,8 @@ spsurgs3sls <- function(formula = NULL, data = NULL, na.action,
     cat("Time to fit the model: ",
         end_fit-start_fit," seconds\n")
   }  
-  ret <- new_spsur(list(call = cl, formula = formula,
-                        type = type, data = data, W = W,
+  ret <- new_spsur(list(call = cl, 
+                        type = type, 
                         Durbin = Durbin, 
                         G = G, N = N, Tm = Tm, 
                         deltas = deltas, 
@@ -568,7 +566,7 @@ spsurgs3sls <- function(formula = NULL, data = NULL, na.action,
                         residuals = residuals, 
                         df.residual = df.residual,
                         fitted.values = fitted.values,
-                        Y = yf, X = Xf,  
+                        Y = yf, X = Xf, W = W,
                         zero.policy = zero.policy, 
                         listw_style = listw$style))
   

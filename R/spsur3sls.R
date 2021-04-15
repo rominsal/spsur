@@ -101,8 +101,6 @@
 #'   A list with:
 #'   \tabular{ll}{
 #'     \code{call} \tab Matched call. \cr
-#'     \code{formula} \tab formula in the call or \emph{NULL}. \cr
-#'     \code{data} \tab data.frame used as database or \emph{NULL}. \cr
 #'     \code{type} \tab  Type of model specified. \cr
 #'     \code{Durbin} \tab Value of \code{Durbin} argument. \cr
 #'     \code{coefficients} \tab Estimated coefficients for the regressors. \cr
@@ -425,8 +423,8 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
     coefficients <- coefforig
     rest.se <- seorig
   }  
-  ret <- new_spsur(list(call = cl, type = type, formula = formula,
-                        data = data, W = W, Durbin = Durbin, 
+  ret <- new_spsur(list(call = cl, type = type, 
+                        Durbin = Durbin, 
                         G = G, N = N, Tm = Tm, 
                         deltas = deltas, 
                         deltas.se = deltas.se,  
@@ -442,7 +440,7 @@ spsur3sls <- function(formula = NULL, data = NULL, na.action,
                         residuals = z$residuals, 
                         df.residual = df.residual,
                         fitted.values = z$fitted.values,
-                        Y = Y, X = X,  
+                        Y = Y, X = X, W = W,  
                         zero.policy = zero.policy, 
                         listw_style = listw$style, 
                         maxlagW = maxlagW))
