@@ -206,7 +206,8 @@
 #'       \item López, F. A., Mínguez, R., Mur, J. (2020). ML versus IV estimates 
 #'       of spatial SUR models: evidence from the case of Airbnb in Madrid urban 
 #'       area. \emph{The Annals of Regional Science}, 64(2), 313-347.
-#'       \url{https://doi.org/10.1007/s00168-019-00914-1}
+#'       <doi:10.1007/s00168-019-00914-1>
+#'              
 #'       }
 #' @seealso
 #' \code{\link{spsurml}}, \code{\link{spsur3sls}}, \code{\link{spsurtime}}

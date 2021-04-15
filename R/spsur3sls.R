@@ -148,11 +148,11 @@
 #'       \item López, F. A., Mínguez, R., Mur, J. (2020). ML versus IV estimates 
 #'       of spatial SUR models: evidence from the case of Airbnb in Madrid urban 
 #'       area. \emph{The Annals of Regional Science}, 64(2), 313-347.
-#'       \url{https://doi.org/10.1007/s00168-019-00914-1}
+#'       <doi:10.1007/s00168-019-00914-1>
 #'       \item Anselin, L. (2016) Estimation and Testing in the Spatial Seemingly 
 #'       Unrelated Regression (SUR). \emph{Geoda Center for Geospatial Analysis 
 #'       and Computation, Arizona State University}. Working Paper 2016-01.
-#'       \url{http://dx.doi.org/10.13140/RG.2.2.15925.40163}
+#'       <doi:10.13140/RG.2.2.15925.40163>
 #'       \item, Anselin, L. (1988). \emph{Spatial Econometrics: Methods and Models}. 
 #'       Kluwer Academic Publishers, Dordrecht, The Netherlands (p. 146).
 #'       \item Anselin, L., Le Gallo, J., Hubert J. (2008) Spatial Panel Econometrics. 

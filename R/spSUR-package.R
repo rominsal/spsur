@@ -183,14 +183,17 @@
 #'        selection strategies in a SUR framework. The case of regional
 #'        productivity in EU. \emph{Annals of Regional Science},
 #'        53(1), 197-220.
+#'        <doi:10.1007/s00168-014-0624-2>
 #'
 #'      \item López, F.A., Martínez-Ortiz, P.J., and Cegarra-Navarro, J.G.
 #'        (2017). Spatial spillovers in public expenditure on a municipal
 #'        level in Spain. \emph{Annals of Regional Science}, 58(1), 39-65.
+#'        <doi:10.1007/s00168-016-0780-7>
 #'
 #'      \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
 #'        effects in seemingly unrelated regressions. \emph{Spatial Economic
 #'        Analysis}, 5(4), 399-440.
+#'        <doi:10.1080/17421772.2010.516443>
 #'   }
 #'
 #' @author

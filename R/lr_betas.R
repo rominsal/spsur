@@ -33,6 +33,7 @@
 #'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
 #'       effects in seemingly unrelated regressions.
 #'       \emph{Spatial Economic Analysis}, 5(4), 399-440.
+#'       <doi:10.1080/17421772.2010.516443>
 #'   }
 #'
 #' @seealso
@@ -76,7 +77,7 @@
 #' ## Data for four decennial census years: 1960, 1970, 1980 and 1990.
 #' ## \url{https://geodacenter.github.io/data-and-lab/ncovr/}
 #' rm(list = ls()) # Clean memory
-#' data(NCOVR, package = "spsur")
+#' data(NCOVR, package="spsur")
 #' nbncovr <- spdep::poly2nb(NCOVR.sf, queen = TRUE)
 #' ### Some regions with no links...
 #' lwncovr <- spdep::nb2listw(nbncovr, style = "W", zero.policy = TRUE)

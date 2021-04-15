@@ -241,11 +241,11 @@
 #'     \item Bivand, R.S. and  Piras G. (2015). Comparing Implementations of 
 #'      Estimation Methods for Spatial Econometrics. \emph{Journal of 
 #'      Statistical Software}, 63(18), 1-36. 
-#'      \url{https://www.jstatsoft.org/v63/i18/}.
+#'      <doi:	10.18637/jss.v063.i18>
 #'     \item Bivand, R. S., Hauke, J., and Kossowski, T. (2013). 
 #'       Computing the Jacobian in Gaussian spatial autoregressive models: An 
 #'       illustrated comparison of available methods. \emph{ Geographical 
-#'       Analysis}, 45(2), 150-179.
+#'       Analysis}, 45(2), 150-179. <doi:10.1111/gean.12008>
 #'     \item Breusch T., Pagan A. (1980). The Lagrange multiplier test and its
 #'        applications to model specification in econometrics. 
 #'        \emph{Rev Econ Stud} 47: 239-254
@@ -256,12 +256,14 @@
 #'      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
 #'        selection strategies in a SUR framework. The case of regional
 #'        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
+#'        <doi:10.1007/s00168-014-0624-2>
 #'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
 #'       effects in seemingly unrelated regressions.
 #'       \emph{Spatial Economic Analysis}, 5(4), 399-440.
+#'       <doi:10.1080/17421772.2010.516443>
 #'     \item Ord, J.K. (1975). Estimation methods for models of spatial 
 #'       interaction, \emph{Journal of the American Statistical Association}, 
-#'       70, 120-126; 
+#'       70, 120-126. 
 #'   }
 #'
 #' @seealso
