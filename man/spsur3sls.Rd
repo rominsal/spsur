@@ -99,8 +99,6 @@ Object of \code{spsur} class with the output of the  three-stages
   A list with:
   \tabular{ll}{
     \code{call} \tab Matched call. \cr
-    \code{formula} \tab formula in the call or \emph{NULL}. \cr
-    \code{data} \tab data.frame used as database or \emph{NULL}. \cr
     \code{type} \tab  Type of model specified. \cr
     \code{Durbin} \tab Value of \code{Durbin} argument. \cr
     \code{coefficients} \tab Estimated coefficients for the regressors. \cr

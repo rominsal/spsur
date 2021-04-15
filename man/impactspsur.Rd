@@ -274,12 +274,15 @@ LeSage and Pace (2009) adapt the classical notion of
        Estimation Methods for Spatial Econometrics. \emph{Journal of 
        Statistical Software}, 63(18), 1-36. 
        <doi:	10.18637/jss.v063.i18>
+       
      \item LeSage, J., and Pace, R. K. (2009). \emph{Introduction to spatial
        econometrics}. Chapman and Hall/CRC.
+       
      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
        selection strategies in a SUR framework. The case of regional
        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
        <doi:10.1007/s00168-014-0624-2>
+       
      \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
        effects in seemingly unrelated regressions.
        \emph{Spatial Economic Analysis}, 5(4), 399-440.

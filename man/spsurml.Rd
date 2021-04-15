@@ -120,8 +120,6 @@ Object of \code{spsur} class with the output of the
  A list with:
   \tabular{ll}{
     \code{call} \tab Matched call. \cr
-    \code{formula} \tab formula in the call or \emph{NULL}. \cr
-    \code{data} \tab data.frame used as database or \emph{NULL}. \cr
     \code{type} \tab  Type of model specified. \cr
     \code{method} \tab Value of \code{method} argument to compute the 
       Jacobian \cr
