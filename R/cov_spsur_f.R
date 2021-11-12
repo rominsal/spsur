@@ -58,8 +58,8 @@ cov_spsurslm_f <- function(env){
     #invirtiendo bloque por bloque y luego blockdiagonal
     lAuxi <- vector("list", G)
     for (i in 1:G){
-      # lAuxi[[i]] <- spdep::invIrW(W, rho=deltas[i,i], method="solve")  
-      # lAuxi[[i]] <- spdep::invIrW(W, rho=deltas[i, i], method="solve")
+      # lAuxi[[i]] <- invIrW(W, rho=deltas[i,i], method="solve")  
+      # lAuxi[[i]] <- invIrW(W, rho=deltas[i, i], method="solve")
       lAuxi[[i]] <- Matrix::solve(IR-deltas[i,i]*W)
     }
     Auxi <- Matrix::bdiag(lAuxi)
@@ -254,8 +254,8 @@ cov_spsursem_f <- function(env){
     Auxt<-Matrix::t(Aux)
     lAuxi <- vector("list", G)
     for (i in 1:G){
-      lAuxi[[i]] <- spdep::invIrW(W, rho=deltas[i,i], method="solve")  
-      #lAuxi[[i]] <- spdep::invIrW(W, rho=deltas[i, i], method="solve")
+      lAuxi[[i]] <- invIrW(W, rho=deltas[i,i], method="solve")  
+      #lAuxi[[i]] <- invIrW(W, rho=deltas[i, i], method="solve")
     }
     Auxi <- Matrix::bdiag(lAuxi)    
     #Auxi<-Matrix::solve(Aux)

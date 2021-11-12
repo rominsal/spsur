@@ -185,12 +185,12 @@
 #'        53(1), 197-220.
 #'        <doi:10.1007/s00168-014-0624-2>
 #'
-#'      \item López, F.A., Martínez-Ortiz, P.J., and Cegarra-Navarro, J.G.
+#'      \item Lopez, F.A., Martinez-Ortiz, P.J., and Cegarra-Navarro, J.G.
 #'        (2017). Spatial spillovers in public expenditure on a municipal
 #'        level in Spain. \emph{Annals of Regional Science}, 58(1), 39-65.
 #'        <doi:10.1007/s00168-016-0780-7>
 #'
-#'      \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
+#'      \item Mur, J., Lopez, F., and Herrera, M. (2010). Testing for spatial
 #'        effects in seemingly unrelated regressions. \emph{Spatial Economic
 #'        Analysis}, 5(4), 399-440.
 #'        <doi:10.1080/17421772.2010.516443>
@@ -198,9 +198,9 @@
 #'
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@@upct.es} \cr
-#'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
-#'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
 #'
 #' @importFrom Formula Formula model.part
@@ -218,9 +218,9 @@
 #' @importFrom sparseMVN rmvn.sparse
 #' @importFrom spatialreg get.ZeroPolicyOption create_WX trW  
 #' @importFrom spatialreg can.be.simmed jacobianSetup do_ldet 
-#' @importFrom spatialreg impacts intImpacts lmSLX  
+#' @importFrom spatialreg impacts intImpacts lmSLX invIrW  
 #' @importFrom spdep knearneigh knn2nb nb2mat
-#' @importFrom spdep card mat2listw invIrW
+#' @importFrom spdep card mat2listw 
 #' @importFrom stats cor cov optim pchisq pnorm pt qnorm rnorm runif
 #' @importFrom stats coefficients fitted lm residuals printCoefmat
 #' @importFrom stats model.frame model.matrix terms
