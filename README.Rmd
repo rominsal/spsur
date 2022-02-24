@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 # spsur
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/f8l5h9/spsur/workflows/R-CMD-check/badge.svg)](https://github.com/f8l5h9/spsur/actions)
+[![R-CMD-check](https://github.com/rominsal/spsur/workflows/R-CMD-check/badge.svg)](https://github.com/rominsal/spsur/actions)
 [![CRAN status](https://www.r-pkg.org/badges/version-ago/spsur)
 [![CRAN downloads-last-month](https://cranlogs.r-pkg.org/badges/last-month/spsur)
 [![CRAN downloads-grand-total](https://cranlogs.r-pkg.org/badges/grand-total/spsur)
