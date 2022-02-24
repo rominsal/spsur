@@ -14,6 +14,14 @@ knitr::opts_chunk$set(
 ```
 # spsur
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/f8l5h9/spsur/workflows/R-CMD-check/badge.svg)](https://github.com/f8l5h9/spsur/actions)
+[![CRAN status](https://www.r-pkg.org/badges/version-ago/spsur)
+[![CRAN downloads-last-month](https://cranlogs.r-pkg.org/badges/last-month/spsur)
+[![CRAN downloads-grand-total](https://cranlogs.r-pkg.org/badges/grand-total/spsur)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+<!-- badges: end -->
+
 The **spsur** package allows for the estimation of the most popular Spatial Seemingly Unrelated Regression models by maximum likelihood or instrumental variable procedures (SUR-SLX; SUR-SLM; SUR-SEM;SUR-SDM; SUR-SDEM and SUR-SARAR) and non spatial SUR model (SUR-SIM). Moreover, **spsur** implements a collection of Lagrange Multipliers and Likelihood Ratios to test for misspecifications in the SUR. Additional functions allow for the estimation of the so-called spatial impacts (direct, indirect and total effects) and also obtains random data sets, of a SUR nature, with the features decided by the user. An important aspect of **spsur** is that it operates both in a pure cross-sectional setting or in panel data sets.
 
 ## Installation
