@@ -1,6 +1,18 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+<!-- badges: start -->
+
+[![R-CMD-check](https://github.com/f8l5h9/spqdep/workflows/R-CMD-check/badge.svg)](https://github.com/f8l5h9/spqdep/actions)
+\[![CRAN status](https://www.r-pkg.org/badges/version-ago/spsur)
+\[![CRAN
+downloads-last-month](https://cranlogs.r-pkg.org/badges/last-month/spsur)
+\[![CRAN
+downloads-grand-total](https://cranlogs.r-pkg.org/badges/grand-total/spsur)
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+<!-- badges: end -->
+
 # spsur
 
 The **spsur** package allows for the estimation of the most popular
