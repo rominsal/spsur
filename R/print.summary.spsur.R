@@ -10,9 +10,9 @@
 #'
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@@upct.es} \cr
-#'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
-#'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
 #'
 #' @seealso

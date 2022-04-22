@@ -235,17 +235,17 @@ wald_deltas(pHR_slm, R = R2, b = b2)
     \item Anselin, L. (1988). Spatial econometrics: methods and models. Dordrecht,
      Kluwer Academic Publishers.
      
-    \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
+    \item Lopez, F.A., Mur, J., and Angulo, A. (2014). Spatial model
        selection strategies in a SUR framework. The case of regional
        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
        <doi:10.1007/s00168-014-0624-2>
        
-    \item López, F.A., Martínez-Ortiz, P.J., and Cegarra-Navarro, J.G. (2017).
+    \item Lopez, F.A., Martinez-Ortiz, P.J., and Cegarra-Navarro, J.G. (2017).
        Spatial spillovers in public expenditure on a municipal level in
        Spain. \emph{Annals of Regional Science}, 58(1), 39-65.
        <doi:10.1007/s00168-016-0780-7>
        
-    \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
+    \item Mur, J., Lopez, F., and Herrera, M. (2010). Testing for spatial
       effects in seemingly unrelated regressions. \emph{Spatial Economic Analysis}, 
       5(4), 399-440. <doi:10.1080/17421772.2010.516443>
   }
@@ -257,8 +257,8 @@ wald_deltas(pHR_slm, R = R2, b = b2)
 }
 \author{
 \tabular{ll}{
-  Fernando López  \tab \email{fernando.lopez@upct.es} \cr
-  Román Mínguez  \tab \email{roman.minguez@uclm.es} \cr
-  Jesús Mur  \tab \email{jmur@unizar.es} \cr
+  Fernando Lopez  \tab \email{fernando.lopez@upct.es} \cr
+  Roman Minguez  \tab \email{roman.minguez@uclm.es} \cr
+  Jesus Mur  \tab \email{jmur@unizar.es} \cr
   }
 }

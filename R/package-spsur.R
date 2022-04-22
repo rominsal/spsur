@@ -219,7 +219,7 @@
 #' @importFrom sparseMVN rmvn.sparse
 #' @importFrom spatialreg get.ZeroPolicyOption create_WX trW  
 #' @importFrom spatialreg can.be.simmed jacobianSetup do_ldet 
-#' @importFrom spatialreg impacts intImpacts lmSLX invIrW  
+#' @importFrom spatialreg impacts intImpacts lmSLX invIrW    
 #' @importFrom spdep knearneigh knn2nb nb2mat
 #' @importFrom spdep card mat2listw 
 #' @importFrom sphet spreg
@@ -227,5 +227,5 @@
 #' @importFrom stats coefficients fitted lm residuals printCoefmat
 #' @importFrom stats model.frame model.matrix terms
 #' @importFrom stats anova coef formula logLik AIC BIC
-#' @importFrom stats na.action napredict update
+#' @importFrom stats lm.fit na.action napredict update
 NULL

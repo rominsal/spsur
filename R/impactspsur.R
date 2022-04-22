@@ -130,9 +130,9 @@
 #' 
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@@upct.es} \cr
-#'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
-#'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
 #' @references
 #'   \itemize{
@@ -144,12 +144,12 @@
 #'      \item LeSage, J., and Pace, R. K. (2009). \emph{Introduction to spatial
 #'        econometrics}. Chapman and Hall/CRC.
 #'        
-#'      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
+#'      \item Lopez, F.A., Mur, J., and Angulo, A. (2014). Spatial model
 #'        selection strategies in a SUR framework. The case of regional
 #'        productivity in EU. \emph{Annals of Regional Science}, 53(1), 197-220.
 #'        <doi:10.1007/s00168-014-0624-2>
 #'        
-#'      \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
+#'      \item Mur, J., Lopez, F., and Herrera, M. (2010). Testing for spatial
 #'        effects in seemingly unrelated regressions.
 #'        \emph{Spatial Economic Analysis}, 5(4), 399-440.
 #'        <doi:10.1080/17421772.2010.516443>
@@ -435,7 +435,7 @@ impactspsur <- function(obj, ..., tr = NULL,
                          totImps = totImpsi)
        attr(lmi.model, "mixedImps") <- mixedImps
        attr(lmi.model, "dvars") <- dvars[i]
-       class(lmi.model) <- c("SLX", class(lmi.model))
+       class(lmi.model) <- c("SlX", class(lmi.model))
        impWXi <- spatialreg::impacts(lmi.model)
        res[[i]] <- impWXi
        idxcoef <- idxcoef + p[i] 

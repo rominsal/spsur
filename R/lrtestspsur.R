@@ -67,17 +67,17 @@
 #'
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@@upct.es} \cr
-#'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
-#'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
 #'
 #' @references
 #'   \itemize{
-#'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
+#'     \item Mur, J., Lopez, F., and Herrera, M. (2010). Testing for spatial
 #'       effects in seemingly unrelated regressions.
 #'       \emph{Spatial Economic Analysis}, 5(4), 399-440.
-#'      \item López, F.A., Mur, J., and Angulo, A. (2014). Spatial model
+#'      \item Lopez, F.A., Mur, J., and Angulo, A. (2014). Spatial model
 #'        selection strategies in a SUR framework. The case of regional
 #'        productivity in EU. \emph{Annals of Regional Science}, 53(1),
 #'        197-220.
@@ -123,19 +123,22 @@
 #' @export
 lrtestspsur <- function(objectr,  objectu = NULL) {
   # LR tests of model specification.
-  class(objectr) <- "sarlm" ## ANOVA for sarlm class
-  if(is.null(objectu)) {
-    anova_table <- spatialreg::anova.sarlm(objectr)
-    attr(anova_table, "row.names") <- paste(objectr$type,
-                                    "model", sep = " ")
-  } else {
-    class(objectu) <- "sarlm"
-    anova_table <- spatialreg::anova.sarlm(objectr, objectu)
-    attr(anova_table, "row.names") <- c(paste(objectr$type,
-                                        "model", sep = " "),
-                                        paste(objectu$type,
-                                        "model", sep = " "))
-  }
-  res <- anova_table
-  res
+  if (is.null(objectu))
+    anova(objectr, lrtest = FALSE)
+  else anova(objectr, objectu)
+  # #class(objectr) <- "sarlm" ## ANOVA for sarlm class
+  # if(is.null(objectu)) {
+  #   anova_table <- spatialreg::anova.sarlm(objectr)
+  #   attr(anova_table, "row.names") <- paste(objectr$type,
+  #                                   "model", sep = " ")
+  # } else {
+  #   class(objectu) <- "sarlm"
+  #   anova_table <- spatialreg::anova.sarlm(objectr, objectu)
+  #   attr(anova_table, "row.names") <- c(paste(objectr$type,
+  #                                       "model", sep = " "),
+  #                                       paste(objectu$type,
+  #                                       "model", sep = " "))
+  # }
+  # res <- anova_table
+  #res
 }
