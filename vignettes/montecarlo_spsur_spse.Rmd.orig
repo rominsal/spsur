@@ -1,0 +1,566 @@
+---
+title: "Maximum Likelihood estimation of Spatial Seemingly Unrelated Regression models. A short Monte Carlo exercise with spsur and spse"
+author:
+- Fernando A. López, Technical University of Cartagena (Spain)
+- Román Mínguez, University of Castilla-La Mancha (Spain)
+- Jesús Mur, University of Zaragoza, (Spain) <br> <br> <br>
+date: '2021-04-07 <br>  <br> <br>'
+output:
+  bookdown::html_document2:
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+    toc_title: Article Outline
+linkcolor: red
+link-citations: yes
+bibliography: bibliosure.bib
+vignette: |
+  %\VignetteIndexEntry{Maximum Likelihood estimation of Spatial Seemingly Unrelated Regression models. A short Monte Carlo exercise with spsur and spse}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown} 
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r, setup, include=FALSE}
+options(prompt = 'R> ', continue = '+ ', eval = FALSE)
+```
+
+# A short Monte Carlo exercise: spsur vs spse.
+
+The goal of this vignette is to present the results obtained in a Monte Carlo exercise to evaluate the performance of the Maximum Likelihood (ML) estimation of three spatial SUR models using the *R*-package **spsur** [@Lopez2020,@spsur]. The results will be compared with the same estimation using the **spse** *R*-package [@Piras2010] when it is possible. We compare the two basic spatial SUR models, named SUR-SLM and SUR-SEM. In the case of SUR-SARAR, we only present the results obtained with **spsur** because the estimation of this model is not available with **spse**.
+
+The design of the Monte Carlo is as follows: We simulate a spatial SUR model with two equations (G = 2), where each equation includes an intercept and two explanatory variables plus the corresponding spatial terms. For the general model the equation is:
+
+```{=tex}
+\begin{equation}
+y_i = (I_N-\rho_iW)^{-1}(\beta_{i0} + X_{i1}\beta_{i1} + X_{i2}\beta_{i2} + (I_N-\lambda_iW)^{-1}\epsilon_i); \ cov(\epsilon_i,\epsilon_j)=\sigma_{ij} ; \ i=1,2
+(\#eq:sur)
+\end{equation}
+```
+
+During the experiment, the $\beta$ parameters are fixed for every model taking the values $\beta_{10}=\beta_{20}=1$; $\beta_{11}=\beta_{21}=2$ and $\beta_{12}=\beta_{22}=3$. The variance-covariance matrix $\Sigma=(\sigma_{ij})$ is defined by $\sigma_{ij}=0.5 \ (i \neq j)$  and $\sigma_{ii}=1 \ (i=1,2)$. Two sample sizes, small and medium, are choosen (N=52, 516). A regular hexagonal layout is selected, from which the **W** matrix is obtained, based on the border contiguity between the hexagons (rook neighborhood type). Figure \ref{Fig:geometry} shows the hexagonal lattices for the case of N = 516. The $X_{ij}$ (i,j=1,2) variables are drawn from an independent U(0,1), and the error terms from a bivariate normal distribution with a variance-covariance matrix $\Sigma$. For all the experiments, 1,000 replications are performed.
+
+Several combinations of parameters are selected to evaluate the performance of the ML algorithm under different levels of spatial dependence.
+
+     SUR-SLM: $(\rho_1,\rho_2)=(-0.4,0.6);(0.5,0.5);(0.2,0.8)$ and $(\lambda_1,\lambda_2)=(0,0)$
+
+     SUR-SEM: $(\rho_1,\rho_2)=(0,0)$ and $(\lambda_1,\lambda_2)=(-0.4,0.6);(0.5,0.5);(0.2,0.8)$
+
+     SUR-SARAR: $(\rho_1,\rho_2)=(\lambda_1,\lambda_2)=(-0.4,0.6);(0.5,0.5);(0.2,0.8)$
+
+These spatial processes have been generated using the function  *dgp_spsur()*, available in the **spsur** package. To evaluate the performance of the Maximum Likelihood estimation, we report bias and root mean-squared errors (RMSE) for all the combinations of the spatial parameters.
+
+```{r libraries, echo = FALSE, warning = FALSE, collapse = TRUE, message = FALSE, results='hide'}
+library(spsur)
+library(sf)
+library(ggplot2)
+library(spdep)
+library(gridExtra)
+library(devtools)
+options(kableExtra.latex.load_packages = FALSE)
+library(kableExtra)
+library(xtable)
+library(dplyr)
+library(knitr)
+library(tidyverse)
+```
+
+```{r par, warning = FALSE, echo = FALSE,message = FALSE}
+library(foreach)
+library(doParallel)
+library(parallel)
+library(iterators)
+# cl <- parallel::makeCluster(detectCores())
+```
+
+If **spsur** and **spse** needed to be installed, the first one  is available in the CRAN repository and the second one can be installed from the following GitHub repository:
+
+```{r spse, echo = TRUE, warning = FALSE, collapse = TRUE, message=FALSE}
+# install_github("gpiras/spse",force = TRUE)
+library(spse)
+```
+
+The package **sf** is used to generate hexagonal and regular lattices with the number of hexagons prefixed and **spdep** to obtain the **W** matrix based on a common border.
+
+```{r Lattice, collapse = TRUE, results = 'hide',warning = FALSE}
+library(sf)
+library(spdep)
+sfc <- st_sfc(st_polygon(list(rbind(c(0,0),c(1,0),c(1,1),c(0,1),c(0,0)))))
+hexs.N52.sf <- st_sf(st_make_grid(sfc, cellsize = .19, square = FALSE))
+hexs.N525.sf <- st_sf(st_make_grid(sfc, cellsize = .05, square = FALSE))
+listw.N52 <- as(hexs.N52.sf, "Spatial") %>% 
+             poly2nb(queen = FALSE) %>% nb2listw()
+listw.N525 <- as(hexs.N525.sf, "Spatial") %>% 
+              poly2nb(queen = FALSE) %>% nb2listw()
+```
+
+
+
+# Maximum Likelihood estimation of SUR-SLM models
+
+This section presents the results of a Monte Carlo exercise for the ML estimation of SUR-SLM models. 
+
+```{=tex}
+\begin{equation}
+y_i = (I_N-\rho_iW)^{-1}(\beta_{i0} + X_{i1}\beta_{i1} + X_{i2}\beta_{i2} + \epsilon_i) \ ; \ cov(\epsilon_i,\epsilon_j)=\sigma_{ij} \ ; \ \ i=1,2
+(\#eq:sur-sem)
+\end{equation}
+```
+
+Table 1 shows the mean of the bias and the RMSE of the $\beta's$ and $\rho's$ parameters for the 1,000 replications. In general, all the results are coherent. The estimations with both *R*-packages show similar results. The highest bias is observed in the estimates of the intercept of the second equation for both packages. When the model is estimated with **spsur** the maximum bias is reached for N = 52  and  when the model is estimated with **spse** the maximum bias corresponds to N = 516. In general, the results confirm that for both packages, the estimates of the parameters of spatial dependence present low biases. The RMSE values decrease when the sample size increases, as expected.
+
+```{r setting MC-SLM, cache = TRUE, echo = FALSE}
+G <- 2 # Number of equations
+N52 <- length(listw.N52$neighbours) # Number observations
+N525 <- length(listw.N525$neighbours) # Number observations
+p <- 3 # Number of independent variables
+Sigma <- matrix(0.5, ncol = G, nrow = G) # Variance-Covariance matrix
+diag(Sigma) <- 1
+Betas <- c(1,2,3,1,2,3) # Beta coefficients
+RHO <- t(matrix(c(-0.4,0.6,0.5,0.5,0.2,0.8),nrow = 2)) # Spatial coefficients
+lambda <- c(0,0)
+```
+
+```{r DGP-SUR-SLM, cache = TRUE, warning = FALSE,  echo = FALSE}
+it <- 1000 # number of iterations
+set.seed(123)
+dgp.slm.N52 <- list()
+dgp.slm.N525 <- list()
+for (i in 1:3){
+  dgp.slm.N52[[i]] <- list()
+  dgp.slm.N525[[i]] <- list()
+  rho <- RHO[i,]
+for (j in 1:it){
+dgp.slm.N52[[i]][[j]] <- dgp_spsur(Sigma = Sigma, G = G, N = N52, Betas = Betas, 
+                 rho = rho, p = p, listw = listw.N52, type ="all")
+dgp.slm.N525[[i]][[j]] <- dgp_spsur(Sigma = Sigma, G = G, N = N525, Betas = Betas, 
+                 rho = rho, p = p, listw = listw.N525, type ="all")
+}
+}
+```
+
+```{r Monte-Carlo spsur-slm, cache = TRUE, warning = FALSE, echo = FALSE}
+numCores <- detectCores()
+registerDoParallel(numCores)  # use multicore, set to the number of our cores
+it <- 1000
+coeff.spsur.N52.slm <- list()
+coeff.spsur.N525.slm <- list()
+formula.spsur <- Y_1 | Y_2 ~ X_11 + X_12 | X_21 + X_22
+control <- list(fdHess = TRUE,trace = FALSE)
+for (i in 1:3){
+coeff.N52 <- matrix(0, ncol = 8,nrow = it)
+coeff.N525 <- matrix(0, ncol = 8,nrow = it)
+cl <- parallel::makeCluster(detectCores())
+Lik <- foreach(1:it,.combine = rbind, j=icount(), .packages='spsur') %dopar% {
+j = j
+a <- spsurml(formula = formula.spsur, data = dgp.slm.N52[[i]][[j]]$df,
+                  listw = listw.N52, type = "slm", control = control)
+b <- spsurml(formula = formula.spsur, data = dgp.slm.N525[[i]][[j]]$df,
+                  listw = listw.N525, type = "slm", control = control)
+Lik <- c(a$coefficients,a$deltas,b$coefficients,b$deltas)
+}
+coeff.spsur.N52.slm[[i]] <- Lik[,1:8]
+coeff.spsur.N525.slm[[i]] <- Lik[,9:16]
+}
+```
+
+```{r Monte-Carlo spsur-slm table, warning = FALSE, echo = FALSE}
+dt <- numeric()
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,RHO[i,]),it), nrow = 8)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spsur.N52.slm[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spsur.N52.slm[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,RHO[i,]),it), nrow = 8)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spsur.N525.slm[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spsur.N525.slm[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+dt0 <- matrix(rep(sprintf("%1.1f",RHO),each=2),ncol=2)
+dt0 <- rbind(dt0,dt0)
+dt <- data.frame(N=c(sprintf("%1.0f",52),rep("",5),sprintf("%1.0f",516),rep("",5)),dt0,dt)
+dt.spsur.slm <- dt
+caption = "SUR-SLM Bias and RMSE (in brackets). Maximum Likelihood "
+```
+
+```{r Monte-Carlo spse-slm, cache = TRUE, warning = FALSE, echo = FALSE}
+it <- 1000
+coeff.spse.N52.slm <- list()
+coeff.spse.N525.slm <- list()
+eq1 <- Y ~ X_1 + X_2
+eq2 <- Y ~ X_1 + X_2
+formula.spse <- list(tp1 = eq1, tp2 = eq2)
+for (i in 1:3){
+coeff.N52 <- matrix(0, ncol = 8,nrow = it)
+coeff.N525 <- matrix(0, ncol = 8,nrow = it)
+for (j in 1:it){
+listw <- listw.N52
+a <- spseml(formula.spse, data = dgp.slm.N52[[i]][[j]]$panel,
+                  w = listw, model = "lag", quiet = TRUE)
+coeff.N52[j,] <- c(a$coefficients,a$rho)
+listw <- listw.N525
+b <- spseml(formula.spse, data = dgp.slm.N525[[i]][[j]]$panel,
+                  w = listw, model = "lag", quiet = TRUE)
+coeff.N525[j,] <- c(b$coefficients,b$rho)
+}
+coeff.spse.N52.slm[[i]] <- coeff.N52
+coeff.spse.N525.slm[[i]] <- coeff.N525
+}
+```
+
+```{r Monte-Carlo spse-slm table, warning = FALSE, echo = FALSE}
+dt <- numeric()
+it <- 1000
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,RHO[i,]),it), nrow = 8)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spse.N52.slm[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spse.N52.slm[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,RHO[i,]),it), nrow = 8)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spse.N525.slm[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spse.N525.slm[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+dt0 <- matrix(rep(sprintf("%1.1f",RHO),each=2),ncol=2)
+dt0 <- rbind(dt0,dt0)
+dt <- data.frame(N = c(sprintf("%1.0f",52),rep("",5),sprintf("%1.0f",516),rep("",5)),dt0,dt)
+dt.spse.slm <- dt
+caption = "SUR-SLM2 Bias and RMSE. Maximum Likelihood "
+```
+
+```{r, echo = FALSE}
+dt <- rbind(dt.spsur.slm,dt.spse.slm)
+dt$m <- c("spsur",rep("",11),"spse",rep("",11))
+dt <- dt[,c(12, 1:11)]
+caption = "Table 1: SUR-SLM Bias and RMSE. Maximum Likelihood"
+```
+
+```{r print-table-slm, echo = FALSE, warning = FALSE}
+names(dt) <- NULL
+kable(dt, align = "c",row.names = FALSE,linesep = "",
+      caption = caption, digits = 3, booktabs = TRUE, longtable = TRUE,
+      col.names = c("Pack.","N","$\\rho_1$","$\\rho_2$",
+                     "$\\hat\\beta_{10}$","$\\hat\\beta_{11}$","$\\hat\\beta_{12}$",
+                     "$\\hat\\beta_{20}$","$\\hat\\beta_{21}$","$\\hat\\beta_{22}$",
+                     "$\\hat\\rho_1$","$\\hat\\rho_2$"),escape=FALSE) %>% 
+  row_spec(c(6,18), extra_latex_after = "\\cline{2-12}") %>%
+  row_spec(12, hline_after = T)
+```
+
+
+Figure 1 shows the boxplots of  $\gamma_{ij}=\hat\beta_{ij}^{spsur}-\hat\beta_{ij}^{spse}$ and $\delta_i=\hat\rho_{i}^{spsur}-\hat\rho_{i}^{spse}$, the difference between estimated parameters 'model to model' for N = 516 (the superscript indicates the package used to estimate the coefficient). These boxplots confirm that the main differences are founded in the intercept of the second equation.
+
+
+```{r boxplot model to model slm, fig.width = 8, fig.height = 4 ,echo = FALSE, warning = FALSE, fig.cap = "Figure 1: Difference between parameters 'model to model' SUR-SLM (N=516). (A) $\\rho_1=-0.4; \\rho_2=0.6$ ; (B) $\\rho_1=0.5; \\rho_2=0.5$ ; (C) $\\rho_1 = 0.2; \\rho_2 = 0.8$" }
+ti <- c("  (A)" ,"  (B)","  (C)")
+mynames <- c(expression(gamma["10"]),expression(gamma["11"]),expression(gamma["12"]),
+             expression(gamma["20"]),expression(gamma["21"]),expression(gamma["22"]),
+            expression(delta["1"]),expression(delta["2"]))
+plot <- list()
+for (i in 1:3){
+plot[[i]] <- ggplot(stack(as.data.frame(coeff.spsur.N525.slm[[i]]-coeff.spse.N525.slm[[i]])), aes(x = ind, y = values)) +
+  geom_boxplot(fill="gray") + 
+  xlab("") +
+  ylab("") +
+  geom_jitter(color="black", size = 0.05, alpha = .1) +
+  scale_x_discrete(labels= mynames) +
+  geom_hline(yintercept=0, color = "red") +
+  ylim(-.1,.12) + 
+  ggtitle(ti[i]) +
+  theme_bw()
+}
+grid.arrange(plot[[1]], plot[[2]],plot[[3]],  ncol = 3, nrow = 1)
+# grid.arrange(plot1, plot2,layout_matrix = rbind(c(1,1,2,2),c(NA,3,3,NA)), ncol=4, nrow = 2)
+```
+
+
+# Maximum Likelihood estimation of SUR-SEM models
+
+Table 1 shows the results of the bias and RMSE for the estimation of an SUR-SEM model with both R-packages. In general terms, the biases of the estimated parameters are lower than 0.01 in absolute values for all $\beta$ parameters. The estimation of the $\lambda's$ parameters for small sample (N = 52) has a bias higher than 0.01 with a tendency toward the underestimation in all the cases. For medium sample sizes (N = 516), the bias is lower than 0.01. The RMSE decreases when the sample size increase as expected.
+
+```{r setting MC-SEM, echo = FALSE, cache = TRUE}
+G <- 2 # Number of equations
+N52 <- length(listw.N52$neighbours) # Number observations
+N525 <- length(listw.N525$neighbours) # Number observations
+p <- 3 # Number of independent variables
+Sigma <- matrix(0.5, ncol = G, nrow = G) # Variance-Covariance matrix
+diag(Sigma) <- 1
+Betas <- c(1,2,3,1,2,3) # Beta coefficients
+RHO <- c(0,0)
+LAMBDA <- t(matrix(c(-0.4,0.6,0.5,0.5,0.2,0.8),nrow = 2))# Spatial coefficients
+```
+
+```{r DGP-SUR-SEM, cache = TRUE, warning = FALSE,  echo = FALSE}
+it <- 1000 # number of iterations
+set.seed(123)
+dgp.sem.N52 <- list()
+dgp.sem.N525 <- list()
+for (i in 1:3){
+  dgp.sem.N52[[i]] <- list()
+  dgp.sem.N525[[i]] <- list()
+  lambda <- LAMBDA[i,]
+for (j in 1:it){
+dgp.sem.N52[[i]][[j]] <- dgp_spsur(Sigma = Sigma, G = G, N = N52, Betas = Betas, 
+                 lambda = lambda, p = p, listw = listw.N52, type ="all")
+dgp.sem.N525[[i]][[j]] <- dgp_spsur(Sigma = Sigma, G = G, N = N525, Betas = Betas, 
+                 lambda = lambda, p = p, listw = listw.N525, type ="all")
+}
+}
+```
+
+```{r Monte-Carlo spsur-sem, cache = TRUE, warning = FALSE, echo = FALSE}
+numCores <- detectCores()
+registerDoParallel(numCores)  # use multicore, set to the number of our cores
+it <- 1000
+coeff.spsur.N52.sem <- list()
+coeff.spsur.N525.sem <- list()
+formula.spsur <- Y_1 | Y_2 ~ X_11 + X_12 | X_21 + X_22
+control <- list(fdHess = TRUE, trace = FALSE)
+for (i in 1:3){
+coeff.N52 <- matrix(0, ncol = 8, nrow = it)
+coeff.N525 <- matrix(0, ncol = 8, nrow = it)
+Lik <- foreach(1:it,.combine = rbind, j=icount(), .packages='spsur') %dopar% {
+j = j
+a <- spsurml(formula = formula.spsur, data = dgp.sem.N52[[i]][[j]]$df,
+                  listw = listw.N52, type = "sem", control = control)
+b <- spsurml(formula = formula.spsur, data = dgp.sem.N525[[i]][[j]]$df,
+                   listw = listw.N525, type = "sem", control = control)
+Lik <- c(a$coefficients,a$deltas,b$coefficients,b$deltas)
+}
+coeff.spsur.N52.sem[[i]] <- Lik[,1:8] 
+coeff.spsur.N525.sem[[i]] <- Lik[,9:16]
+}
+
+
+
+
+```{r Monte-Carlo spse-sem, cache = TRUE, warning = FALSE, echo = FALSE}
+it <- 1000
+spse.N52.sem <- list()
+spse.N525.sem <- list()
+coeff.spse.N52.sem <- list()
+coeff.spse.N525.sem <- list()
+eq1 <- Y ~ X_1 + X_2
+eq2 <- Y ~ X_1 + X_2
+formula.spse <- list(tp1 = eq1, tp2 = eq2)
+for (i in 1:3){
+  spse.N52.sem[[i]] <- list()
+  spse.N525.sem[[i]] <- list()
+coeff.N52 <- matrix(0, ncol= 8,nrow = it)
+coeff.N525 <- matrix(0, ncol= 8,nrow = it)
+for (j in 1:it){
+  listw <- listw.N52
+spse.N52.sem[[i]][[j]] <- spseml(formula.spse, data = dgp.sem.N52[[i]][[j]]$panel,
+                  w = listw, model = "error", quiet = TRUE)
+coeff.N52[j,] <- c(as.matrix(spse.N52.sem[[i]][[j]]$coefficients),spse.N52.sem[[i]][[j]]$rho)
+listw <- listw.N525
+spse.N525.sem[[i]][[j]] <- spseml(formula.spse, data = dgp.sem.N525[[i]][[j]]$panel,
+                  w = listw, model = "error", quiet = TRUE)
+coeff.N525[j,] <- c(as.matrix(spse.N525.sem[[i]][[j]]$coefficients),spse.N525.sem[[i]][[j]]$rho)
+}
+coeff.spse.N52.sem[[i]] <- coeff.N52
+coeff.spse.N525.sem[[i]] <- coeff.N525
+}
+```
+
+```{r Monte-Carlo spsur-sem table, warning = FALSE, echo = FALSE}
+dt <- numeric()
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,LAMBDA[i,]),it), nrow = 8)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spsur.N52.sem[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spsur.N52.sem[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,LAMBDA[i,]),it), nrow = 8)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spsur.N525.sem[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spsur.N525.sem[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+dt0 <- matrix(rep(sprintf("%1.1f",LAMBDA),each=2),ncol=2)
+dt0 <- rbind(dt0,dt0)
+dt <- data.frame(N=sprintf("%1.0f",c(rep(52,6),rep(516,6))),dt0,dt)
+dt.spsur.sem <- dt
+caption = "SUR-SLM Bias and RMSE. Maximum Likelihood"
+```
+
+```{r Monte-Carlo spse-sem table, warning = FALSE, echo = FALSE}
+dt <- numeric()
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,LAMBDA[i,]),it), nrow = 8)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spse.N52.sem[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spse.N52.sem[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,LAMBDA[i,]),it), nrow = 8)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spse.N525.sem[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spse.N525.sem[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+dt0 <- matrix(rep(sprintf("%1.1f",LAMBDA),each=2),ncol=2)
+dt0 <- rbind(dt0,dt0)
+dt <- data.frame(N=sprintf("%1.0f",c(rep(52,6),rep(516,6))),dt0,dt)
+dt.spse.sem <- dt
+```
+
+```{r, echo = FALSE}
+dt <- rbind(dt.spsur.sem,dt.spse.sem)
+dt$m <- c(rep("spsur",12),rep("spse",12))
+dt <- dt[,c(12, 1:11)]
+caption = "Table 2: Bias and RMSE. SUR-SEM Maximum Likelihood"
+```
+
+```{r, print-table-2, echo = FALSE, warning = FALSE}
+names(dt) <- NULL
+kable(dt, format = "latex", align = "c",linesep = "",
+      caption = caption, digits = 3, booktabs = TRUE, longtable = FALSE,
+      col.names = c("Pack","N","$\\lambda_1$","$\\lambda_2$",
+                     "$\\hat\\beta_{10}$","$\\hat\\beta_{11}$","$\\hat\\beta_{12}$",
+                     "$\\hat\\beta_{20}$","$\\hat\\beta_{21}$","$\\hat\\beta_{22}$",
+                     "$\\hat\\lambda_1$","$\\hat\\lambda_2$"), escape = FALSE) %>% 
+  kable_styling() %>%
+  collapse_rows(columns = 1:4, latex_hline = "major", valign = "top") %>% 
+  row_spec(c(6,18), extra_latex_after = "\\cline{2-12}") %>%
+  row_spec(12, hline_after = T)
+```
+
+
+As in the case of SUR-SLM, the Figure 2 shows the difference between the parameters estimated with **spsur** and **spse** for N = 516. These boxplots show that the biases in the SUR-SEM are lower than in the SUR-SLM for all the parameters.
+
+```{r, boxplot model to model sem, fig.width = 8, fig.height = 4 ,echo = FALSE, warning = FALSE, fig.cap = "Figure 2: Difference between parameters 'model to model' SUR-SEM N=516.  (A) $\\lambda_1=-0.4; \\lambda_2=0.6$ ; (B) $\\lambda_1=0.5; \\lambda_2=0.5$ ; (C) $\\lambda_1 = 0.2; \\lambda_2 = 0.8$"} 
+ti <- c("  (A) ","  (B)","  (C)")
+mynames <- c(expression(gamma["10"]),expression(gamma["11"]),expression(gamma["12"]),
+             expression(gamma["20"]),expression(gamma["21"]),expression(gamma["22"]),
+            expression(rho["1"]),expression(rho["2"]))
+plot <- list()
+for (i in 1:3){
+plot[[i]] <- ggplot(stack(as.data.frame(coeff.spsur.N525.sem[[i]]-coeff.spse.N525.sem[[i]])), aes(x = ind, y = values)) +
+  geom_boxplot(fill="gray") + 
+  xlab("") +
+  ylab("") +
+  geom_jitter(color="black", size = 0.05, alpha = .1) +
+  scale_x_discrete(labels= mynames) +
+  geom_hline(yintercept=0, color = "red") +
+  ylim(-.1,.12) + 
+  ggtitle(ti[i]) +
+  theme_bw()
+}
+grid.arrange(plot[[1]], plot[[2]],plot[[3]],  ncol = 3, nrow = 1)
+```
+
+# Maximum Likelihood estimation of SUR-SARAR models
+
+Table 3 shows the results obtained for the bias and RMSE for the LM estimation of SUR-SARAR models. For this model, only the results obtained with the **spsur** package can be shown because this specification is not available for the **spse** package. As in the case of the estimations of the SUR-SLM and SUR-SEM models the worst results in terms of bias and RMSE are obtained when the sample size is small (N = 52). In the case of N = 52 the $\lambda's$ parameters are underestimated. This underestimation disappears when the sample size is medium (N = 516).
+
+```{r setting MC-SARAR, echo = FALSE, cache = TRUE}
+G <- 2 # Number of equations
+N52 <- length(listw.N52$neighbours) # Number observations
+N525 <- length(listw.N525$neighbours) # Number observations
+p <- 3 # Number of independent variables
+Sigma <- matrix(0.5, ncol = G, nrow = G) # Variance-Covariance matrix
+diag(Sigma) <- 1
+Betas <- c(1,2,3,1,2,3) # Beta coefficients
+RHO <- t(matrix(c(-0.4,0.6,0.5,0.5,0.2,0.8),nrow = 2))
+LAMBDA <- t(matrix(c(-0.4,0.6,0.5,0.5,0.2,0.8),nrow = 2))# Spatial coefficients
+```
+
+```{r DGP-SUR-SARAR, cache = TRUE, warning = FALSE,  echo = FALSE}
+it <- 1000 # number of iterations
+set.seed(123)
+dgp.sarar.N52 <- list()
+dgp.sarar.N525 <- list()
+for (i in 1:3){
+  dgp.sarar.N52[[i]] <- list()
+  dgp.sarar.N525[[i]] <- list()
+  rho <- RHO[i,]
+  lambda <- LAMBDA[i,]
+for (j in 1:it){
+dgp.sarar.N52[[i]][[j]] <- dgp_spsur(Sigma = Sigma, G = G, N = N52, Betas = Betas,
+                 rho = rho, lambda = lambda, p = p, listw = listw.N52, type ="df")
+dgp.sarar.N525[[i]][[j]] <- dgp_spsur(Sigma = Sigma, G = G, N = N525, Betas = Betas,
+                 rho = rho, lambda = lambda, p = p, listw = listw.N525, type ="df")
+}
+}
+```
+
+```{r Monte-Carlo-spsur-sarar, cache = TRUE, warning = FALSE, echo = FALSE}
+numCores <- detectCores()
+registerDoParallel(numCores)  # use multicore, set to the number of our cores
+it <- 1000
+coeff.spsur.N52.sarar <- list()
+coeff.spsur.N525.sarar <- list()
+formula.spsur <- Y_1 | Y_2 ~ X_11 + X_12 | X_21 + X_22
+control <- list(fdHess = TRUE,trace = FALSE)
+for (i in 1:3){
+Lik <- foreach(1:it,.combine = rbind, j=icount(), .packages='spsur') %dopar% {
+j = j
+a <- spsurml(formula = formula.spsur, data = dgp.sarar.N52[[i]][[j]]$df,
+                  listw = listw.N52, type = "sarar", control = control)
+b <- spsurml(formula = formula.spsur, data = dgp.sarar.N525[[i]][[j]]$df,
+                  listw = listw.N525, type = "sarar", control = control)
+Lik <- c(a$coefficients,a$deltas,b$coefficients,b$deltas)
+}
+coeff.spsur.N52.sarar[[i]] <- Lik[,1:10]
+coeff.spsur.N525.sarar[[i]] <- Lik[,11:20]
+}
+```
+
+```{r Monte-Carlo spsur-sarar-table, warning = FALSE, echo = FALSE}
+it <- 1000
+dt <- numeric()
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,RHO[i,],LAMBDA[i,]),it), nrow = 10)) 
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spsur.N52.sarar[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spsur.N52.sarar[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+for (i in 1:3){
+real.coef <- t(matrix(rep(c(Betas,RHO[i,],LAMBDA[i,]),it), nrow = 10))
+dt0 <- rbind(sprintf("%1.3f",colMeans(coeff.spsur.N525.sarar[[i]]-real.coef)),
+                       sprintf("(%1.3f)",sqrt(colMeans((coeff.spsur.N525.sarar[[i]]-real.coef)^2))))
+dt <- rbind(dt,dt0)
+}
+dt0 <- matrix(rep(sprintf("%1.1f",RHO),each=2),ncol=2)
+dt0 <- rbind(dt0,dt0)
+dt <- data.frame(N=sprintf("%1.0f",c(rep(52,6),rep(516,6))),dt0,dt)
+dt.spsur.sarar<- dt
+caption = "Table 3: SUR-SARAR Bias and RMSE (in brackets). Maximum Likelihood with spsur"
+```
+
+```{r, echo = FALSE, warning = FALSE}
+names(dt) <- NULL
+kable(dt, align = "c",
+      caption = caption, 
+      digits = 3, booktabs = TRUE, longtable = TRUE,
+      col.names = c("N","$\\rho_1;\\lambda_1$","$\\rho_2;\\lambda_2$",
+                     "$\\hat\\beta_{10}$","$\\hat\\beta_{11}$",
+                     "$\\hat\\beta_{12}$","$\\hat\\beta_{20}$",
+                     "$\\hat\\beta_{21}$","$\\hat\\beta_{22}$",
+                     "$\\hat\\rho_1$","$\\hat\\rho_2$",
+                     "$\\hat\\lambda_1$","$\\hat\\lambda_2$"), escape = FALSE) %>% 
+  kable_styling(latex_options="scale_down",font_size = 7, "striped") %>%
+  row_spec(seq(1,dim(dt)[1],2)) %>%
+  collapse_rows(columns = 1:3, latex_hline = "major", valign = "top") 
+```
+
+# Conclusion
+
+This vignette shows the results of a sort Monte Carlo exercise to evaluate the ML estimation of three spatial SUR models, SUR-SLM, SUR-SEM, and SUR-SARAR. The first two models are estimated with the **spsur** and **spse** packages and the results are compared. In the case of the SUR-SARAR model only the results using the **spsur** are presented because the estimation of SUR-SARAR is no available.
+
+In general, both packages present admissible results. When comparing the estimates of the coefficients for SUR-SLM some differences emerge, mainly in the estimation of the intercepts. In the case of SUR-SEM both *R*-packages give similar results for small and medium sample sizes.
+
+A full Monte Carlo using irregular lattices, alternative **W** matrices, and non-ideal conditions would shed more light on the performance of the ML algorithm implemented in both *R*-packages. 
+
+# References
+

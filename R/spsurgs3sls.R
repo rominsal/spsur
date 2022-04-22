@@ -204,7 +204,7 @@
 #'                       endog = ~ UN83 | ., 
 #'                       instruments = ~ SMSA | .)
 #' summary(spciv)
-#' print(spciv)#
+#' print(spciv)
 #' #########################################################################
 #' ## A SLM model with endogenous regressors 
 #' spcslm <- spsurgs3sls(formula = Tformula2, data = spc,

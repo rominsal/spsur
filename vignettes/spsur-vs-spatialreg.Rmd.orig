@@ -1,0 +1,291 @@
+---
+title: "spsur vs spatialreg" 
+subtitle: "Uniequational model <br>  <br>  <br>"
+author:
+- Román Mínguez, University of Castilla-La Mancha (Spain)
+- Fernando A. López, Technical University of Cartagena (Spain)
+- Jesús Mur, University of Zaragoza, (Spain) <br> <br> <br>
+date: "`r Sys.time()` <br>  <br> <br>"
+output: 
+  bookdown::html_document2:
+    df_print: kable
+    highlight: tango
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    toc_title: spsur vs spse
+    # code_folding: hide
+bibliography: bibliosure.bib
+link-citations: yes
+linkcolor: red
+
+vignette: >
+  %\VignetteIndexEntry{spsur vs spatialreg}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, echo = FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",
+  warning = FALSE, message = FALSE, 
+  echo = TRUE, eval = TRUE, cache = FALSE)
+```
+
+```{r loadpackages}
+library(spsur)
+library(spdep)
+library(spatialreg)
+library(sf)
+```
+
+# Introduction
+
+The **spsur** R-package (@LopezMinguezMur2020) has been designed for estimate spatial regression models in a multiequational framework. However, because of its flexibility, it is also possible to obtain useful results for uniequational models. On the oher hand, the **spatialreg** package ( @BivandPedesma2013; @BivandPiras2015), is the most adequate alternative for working with uniequational models, in a pure cross-sectional setting. The purpose of this vignette is to compare the results of **spsur** and **spatialreg** in case of *uniequational models*. As we will see, the differences between the two are negligible.
+
+In sum, the purpose of this vignette is to compare the results of **spsur** and **spatialreg** in the following issues:
+
+* Estimation of spatially independent model, or SIM models.
+* Lagrange Multiplier misspecification tests for SIM models.
+* ML estimation of SLM, SEM, SARAR models.
+* 3SLS estimation of SLM and SDM models.
+
+# The data set NCOVR
+
+Throughout the vignette we use the dataset NCOVR (National Consortium on Violence Research). These data were employed by @Baller2001 to analyze the incidence of homicides rates in the US counties. The dataset can be freely dowloaded from
+**https://geodacenter.github.io/data-and-lab/ncovr/**
+
+NCOVR contains 3085 spatial units (counties), for 4 different cross-sections (1960, 1970, 1980, 1990) and 69 variables. According to @Baller2001, the main variables of interest are:
+
+* HR: homicide rate per 100000 inhabitants
+* RD: resource deprivation 
+* PS: population structure 
+* MA: median age
+* DV: divorce rate (% males over 14 divorced)
+* UE: unemployment rate 
+* SOUTH: dummy variable for Southern counties (South = 1)
+
+First, we can read the NCOVR dataset as a simple feature (sf) object (named NCOVR.sf),
+
+```{r data_set}
+data(NCOVR, package = "spsur")
+```
+
+The first three observations in NCOVR appear below:
+
+```{r printdatatable}
+NCOVR <- st_drop_geometry(NCOVR.sf)
+knitr::kable(
+  head((NCOVR[1:3, 1:6])),
+  caption = 'First observations of NCOVR dataset' )
+```
+
+Whereas the geometry of the USA counties is shown in Figure  \@ref(fig:plotgeom):
+
+```{r plotgeom, fig.cap = "Geometry of the USA counties", fig.align='center'}
+plot(st_geometry(NCOVR.sf))
+```
+
+Following @Baller2001, we consider a **W** matrix based on the criterion of 10 nearest-neighbourhood, which is immediate to obtain using the **spdep** package (@BivandPedesma2013; @BivandWong2018). The resulting weighting matrix will be called *listw*. Note that this matrix is non-symmetric and it is row-standardized.
+
+```{r W}
+# Obtain coordinates of centroids
+co <- sf::st_coordinates(sf::st_centroid(NCOVR.sf))
+listw <- spdep::nb2listw(spdep::knn2nb(spdep::knearneigh(co, k = 10,longlat = TRUE)))
+```
+
+@Baller2001 specify a single linear model to explain the case of HR in the year 1960 with the results shown in the Table below,
+
+\begin{equation}
+HR_{60} = \beta_{0}+\beta_{1}RD_{60}+\beta_{2}PS_{60}+\beta_{3}MA_{60}+\beta_{4}DV_{60} +\beta_{5}UE_{60} +\beta_{6}SOUTH+\epsilon_{60} 
+(\#eq:ols)
+\end{equation}
+
+```{r ols_60sp}
+formula_60 <- HR60 ~ RD60 + PS60 + MA60 + DV60 + UE60 + SOUTH
+lm_60 <- stats::lm(formula = formula_60, data = NCOVR.sf)
+summary(lm_60)
+```
+
+The model can be estimated in usual way with the function `stats::lm` (@R2019),
+
+```{r ols_60sr}
+formula_60 <- HR60 ~ RD60 + PS60 + MA60 + DV60 + UE60 + SOUTH
+lm_60 <- lm(formula = formula_60, data = NCOVR.sf)
+summary(lm_60)
+```
+
+The same results can be obtained with the function `spsurml` from **spsur**, selecting the argument *type = "sim"*
+
+```{r sur-sim}
+ols.spsur <- spsurml(formula = formula_60, type = "sim", 
+                     data = NCOVR.sf)
+summary(ols.spsur)
+```
+
+The two functions, `stats::lm` and `spsurml`, produce identical results. The output of `spsurml` is shorter than that of `lm` so, depending on the necessities of the user, he/she can choose between `lm` and `spsurml` without loss of information. If you want all the estimation details, then use `lm`.
+
+# LM tests for spatial autocorrelation
+
+The existence of omitted spatial dependence in the results of a SIM model, estimated by LS, can be tested by using the classical LM tests. The function `spdep::lm.LMtests` report the values of these Lagrange Multipliers
+
+```{r}
+lmtest.spdep <- spdep::lm.LMtests(lm_60, listw, test = "all")
+print(lmtest.spdep)
+```
+
+The same tests can be obtained with the function `lmtestspsur`
+
+```{r test_SUR-SIM}
+lmtest.spsur <- lmtestspsur(formula = formula_60, listw = listw, 
+                            data = NCOVR.sf)
+print(lmtest.spsur)
+```
+
+Note that the ordering of the battery of Lagrange Multipliers is not the same. Otherwise, the results are almost identical.
+
+# The Spatial Lag Model
+
+Both R packages **spatialreg** and **spsur** can estimate Spatial Lag Models for a single cross-section. Continuing with the example before, the model that we want to estimate is:
+
+$$
+\begin{equation}
+HR_{60} = \rho W HR_{60} +\beta_{0}+\beta_{1}RD_{60}+\beta_{2}PS_{60}+\beta_{3}MA_{60}+\beta_{4}DV_{60} +\beta_{5}UE_{60} +\beta_{6}SOUTH+\epsilon_{60}\
+(\#eq:slm)
+\end{equation}
+$$
+
+The ML estimation of equation \@ref(eq:slm) using the function `spsurml()` of **spsur** renders the following results:
+
+
+```{r SUR-SLM}
+slm.spsur <- spsur::spsurml(formula = formula_60, type = "slm", 
+                            listw = listw, data = NCOVR.sf)
+summary(slm.spsur)
+```
+
+The output of the function `spatialreg::lagsarlm()` from **spatialreg** is
+
+```{r SLM}
+slm.spatialreg <- spatialreg::lagsarlm(formula = formula_60, 
+                                       listw = listw, type = "lag", 
+                                       data = NCOVR.sf)
+summary(slm.spatialreg)
+```
+
+Once again, the two estimations are almost the same. The estimated log-likelihood of the SLM can be recovered using the function `logLik()`
+
+```{r logLik}
+logLik(slm.spsur)
+```
+
+The log-likelihood corresponding to the SIM model is much lower, -9176.338, which points to a severe misspecification in the last model. More formally, the LR, obtained with the function `anova` of **spsur** strongly rejects the SIM model in favour of the SLM alternative; the AIC and BIC statistics indicates the same.
+
+```{r LR-test}
+anova(ols.spsur, slm.spsur)
+```
+
+The SLM model can also be estimate by Three Stages-Least-Squares (3SLS) by both R-packages. The function for **spsur** is `spsur3sls()`
+
+```{r IV-spsur}
+slm.3sls.spsur <- spsur3sls(formula = formula_60, type = "slm", 
+                            listw = listw, data = NCOVR.sf)
+summary(slm.3sls.spsur)
+```
+
+Whereas **spatialreg** uses the function `spatialreg::stsls()`
+
+```{r IV-spatialreg, collapse=FALSE}
+slm.3sls.spatialreg <- spatialreg::stsls(formula = formula_60, listw = listw, 
+                             data = NCOVR.sf)
+summary(slm.3sls.spatialreg)
+```
+
+There is hardly any difference between them because the estimation algorithm is quasilinear and both functions use the same set of instruments. The case of the SDM model produces identical results.
+
+# Spatial Error Model
+
+The model to estimate in this case is:
+
+$$
+\begin{equation}
+HR_{60} = \beta_{0}+\beta_{1}RD_{60}+\beta_{2}PS_{60}+\beta_{3}MA_{60}+\beta_{4}DV_{60} +\beta_{5}UE_{60} +\beta_{6}SOUTH+ u_{60} \\
+u_{60} = \lambda W u_{60} + \epsilon_{60}\
+(\#eq:sem)
+\end{equation}
+$$
+
+which can be solved by ML using the function `spatialreg::errorsarlm()`, from **spatialreg**.
+
+```{r SEM}
+sem.spatialreg <- spatialreg::errorsarlm(formula = formula_60, 
+                             listw = listw, data = NCOVR.sf)
+summary(sem.spatialreg)
+```
+
+**spsur** always uses the same function for the ML algorithm, `spsurml()`; you only have to change the type of model to estimate.
+
+```{r sem spsur}
+sem.spsur <- spsurml(formula = formula_60, type = "sem",
+                     listw = listw, data = NCOVR.sf)
+```
+
+```{r summary sem spsur}
+summary(sem.spsur)
+```
+
+The LR test for nested models, in this case SIM vs SEM, can be obtained as before using the function `anova()`
+
+```{r LR-test-OLS-SEM}
+anova(ols.spsur, sem.spsur)
+```
+
+Clearly, the SEM model is preferable to the SIM specification because there is spatial dependence in the data, which has been effectively captured by the SEM mechanism. Moreover, according to the LMM test below (this is a Marginal Lagrange Multiplier of the type $LM(\rho|\lambda)$; see the *spsur user guide*), once the spatial errors are introduced in the equation, the spatial lag of the endogenous variable, $WHR_{60}$ is not statistically significant.
+
+```{r}
+print(sem.spsur$LMM)
+```
+
+# Spatial Simultaneous Autoregressive Model (SARAR) 
+
+The especification of the SARAR model is as usual
+
+$$
+\begin{equation}
+HR_{60} = \rho W HR_{60} + \beta_{0}+\beta_{1}RD_{60}+\beta_{2}PS_{60}+\beta_{3}MA_{60}+\beta_{4}DV_{60} +\beta_{5}UE_{60} +\beta_{6}SOUTH+ u_{60} \\
+u_{60} = \lambda W u_{60} + \epsilon_{60}\
+(\#eq:sarar)
+\end{equation}
+$$
+
+**spsur** estimates this model by using the funtion `spsurml()`; you only have to adjust the argument *type* to *sarar*, that is
+
+```{r SUR-SARAR}
+sarar.spsur <- spsurml(formula = formula_60, listw = listw, 
+                       type ="sarar",data = NCOVR.sf)
+summary(sarar.spsur)
+```
+
+In the case of **spatialreg**, the function for this case is `spatialreg::sacsar()`
+
+```{r SARAR}
+sarar.spatialreg <- spatialreg::sacsarlm(formula = formula_60, 
+                             listw = listw, data = NCOVR.sf)
+summary(sarar.spatialreg)
+```
+
+The same as before, the differences between the two codes are minimal.
+
+Finally, according to the `anova()` function of **spsur**, the SARAR model is preferable to the SLM and SEM alternatives, which are nested in the SARAR, in spite of the high value estimated for the parameter $\lambda$, -0.93327, close to a unit root case. The LR and both AIC and BIC statistics reach the same conclusion.
+
+```{r}
+anova(slm.spsur,sarar.spsur)
+anova(sem.spsur,sarar.spsur)
+```
+
+
+# References

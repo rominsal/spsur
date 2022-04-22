@@ -1,0 +1,345 @@
+---
+title: "Spatial seemingly unrelated regression models. A comparison of spsur, spse and PySAL"
+author:
+- Román Mínguez, University of Castilla-La Mancha (Spain)
+- Fernando A. López, Technical University of Cartagena (Spain)
+- Jesús Mur, University of Zaragoza, (Spain) <br> <br> <br>
+date: '2021-04-07 <br>  <br> <br>'
+output:
+  bookdown::html_document2:
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+    toc_title: Article Outline
+linkcolor: red
+link-citations: yes
+bibliography: bibliosure.bib
+vignette: |
+  %\VignetteIndexEntry{Spatial seemingly unrelated regression models. A comparison of spsur, spse and PySAL}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown} 
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r, setup, include=FALSE}
+options(prompt = 'R> ', continue = '+ ')
+```
+
+```{r libraries, message = FALSE, echo =FALSE}
+library(spdep)
+library(spsur)
+library(ggplot2)
+library(spatialreg)
+library(reticulate)
+options(kableExtra.latex.load_packages = FALSE)
+library(kableExtra)
+library(xtable)
+```
+
+```{r spse, echo = FALSE, warning = FALSE, collapse = TRUE, message = FALSE}
+if (!require("spsur")) install.packages("spsur")
+# install_github("gpiras/spse",force = TRUE)
+library(spse)
+```
+
+```{r, echo = FALSE, warning = FALSE}
+py_install("pysal")
+pysal <- import("pysal")
+py_install("spreg")
+spreg <- import("spreg")
+py_install("libpysal")
+libpysal <- import("libpysal")
+```
+
+```{python, echo = FALSE, collapse = TRUE, warning = FALSE, message = FALSE,  results = 'hide' }
+import pysal
+from spreg import SUR
+```
+
+# Introduction {#Intro}
+
+The main objective of this vignette is to present the results of the estimation of spatial SUR models using three alternative tools: Two *R*-packages, **spsur** [@Lopez2020; @spsur] and **spse** [@PirasGitHub] together with the *Python* spatial analysis library **PySAL** available at [https://pysal.org/](https://pysal.org/). Three SUR models are estimated in this vignette. The first one, is the baseline SUR-SIM model, a SUR model without spatial effects. This model will be estimated with **spsur** and **PySAL**. The second one is the SUR-SEM model; that is, a SUR model including a spatial lag in the errors. This model will be estimated by Maximum Likelihood [@Anselin1988a], using the three alternative tools. The last one is the SUR-SLM model, including a spatial lag of the dependent variable, which will be estimated by the Three Stage Least Squares (3SLS) algorithm [@Lopez2020; @Anselin2016]. This model will be estimated with **spsur** and **PySAL**.
+
+The comparison is performed on the @Baller2001 data set[^1]. This is a well-known dataset downloaded from the GeoDa Data and Lab collection with information about homicide rates in 3,085 continental US counties for four years (1960, 1970, 1980, and 1990). The dataset includes a large number of socio-economic characteristics for these counties. This dataset is available from the **spsur** R-package with the name *NCOVR* and from **PySAL** with the name of *NAT.dbf*.
+
+[^1]: see [GeoDa](https://geodacenter.github.io/data-and-lab/ncovr/) for more details about the database
+
+The model selected to illustrate the results of the estimation is the same as that included in the help area of **PySAL**.
+
+# The SUR-SIM model {#SUR-SIM}
+
+This section considers the simplest case of the estimation of an SUR model without spatial effects: SUR-SIM. The model specification is the same as that which appears in the help of area of **PySAL** and we reproduce it in the equation \@ref(eq:ncovr):
+
+```{=tex}
+\begin{equation}
+\begin{array}{llc}
+HR_{80} = \beta_{10} + PS_{80} \ \beta_{11} + UE_{80} \ \beta_{12} + \epsilon_1 \\ 
+HR_{90} = \beta_{20} + PS_{90} \ \beta_{21} + UE_{90} \ \beta_{22} + \epsilon_2 \\
+cov(\epsilon_i,\epsilon_j)=\sigma_{ij} \ ; \ i,j=1,2
+\end{array}
+(\#eq:ncovr)
+\end{equation}
+```
+The *R* code to estimate equation \@ref(eq:ncovr) with the **spsur** package is:
+
+```{r}
+data("NCOVR", package = "spsur")
+formula.spsur <- HR80 | HR90 ~ PS80 + UE80 | PS90 + UE90
+control <- list(trace = FALSE)
+spsur.sim <- spsurml(formula = formula.spsur, data = NCOVR.sf, 
+                     type = "sim", control = control)
+```
+
+The *Python* code to estimate equation \@ref(eq:ncovr) with **PySAL** is:
+
+```{python python-sur-sim, collapse = TRUE, warning = FALSE, message = FALSE,  results='hide', prompt = FALSE}
+db = pysal.open(pysal.examples.get_path("NAT.dbf"),'r')
+y_var = ['HR80','HR90']
+x_var = [['PS80','UE80'],['PS90','UE90']]
+bigy,bigX,bigyvars,bigXvars = pysal.spreg.sur_utils.sur_dictxy(db,y_var,x_var)
+w = pysal.knnW_from_shapefile(pysal.examples.get_path("NAT.shp"), k = 10)
+w.transform = 'r'
+pysal_sim = SUR(bigy,bigX,w=w,iter=True,
+                name_bigy=bigyvars,name_bigX=bigXvars,spat_diag=True,
+                name_ds="nat")
+```
+
+Note that the *Python* code includes the definition of the $W$ matrix. Following @Baller2001 we choose a **W** matrix based on the k-nearest-neighbors, with $k = 10$.
+
+```{r from-python-2-r-1, echo = FALSE}
+res <- rbind(sprintf("%1.4f",spsur.sim$coefficients),
+                   sprintf("(%1.4f)",sqrt(diag(spsur.sim$resvar))))
+a <- py_to_r(py$pysal_sim)
+res.0 <- rbind(sprintf("%1.4f",unlist(a$bSUR)),
+                 sprintf("(%1.4f)",sqrt(diag(a$varb))))
+res <- rbind(res,res.0)
+res <- cbind(c("spsur","","PySAL",""),res)
+res <- as.data.frame(res)
+dt <- res
+caption <- "Estimated coefficients and standard errors. SUR-SIM"
+```
+
+Table \@ref(tab:print-table-sim) shows the values of the coefficients and the standard error (in parentheses). The full output of both codes is shown in the Appendix. The main result is that no relevant differences are founded. The results of the estimations are similar, both in terms of the parameters and the standard errors, and only extremely small numerical differences appears.
+
+```{r print-table-sim, echo = FALSE, warning=FALSE}
+names(dt) <- NULL
+kable(dt, row.names = FALSE, align = "c",
+caption = caption, booktabs = TRUE, longtable = TRUE,
+col.names = c("  ","$\\hat\\beta_{10}$","$\\hat\\beta_{11}$","$\\hat\\beta_{12}$",
+                   "$\\hat\\beta_{12}$","$\\hat\\beta_{12}$","$\\hat\\beta_{12}$"),escape = FALSE) %>%
+xtable2kable()
+```
+
+# Estimation of SUR-SEM
+
+This section presents the results of the estimation of the SUR-SEM model by Maximum Likelihood with **spsur**, **spse** and **PySAL**. The formal expression of SUR-SEM includes a spatial structure in the residuals of the model \@ref(eq:ncovr),
+
+```{=tex}
+\begin{equation}
+\begin{array}{ll}
+HR_{80} = \beta_{10} + PS_{80} \ \beta_{11} + UE_{80} \ \beta_{12} + u_1 \ ;  \  u_1 = \lambda_1 W u_1 + \epsilon_1 \\ 
+HR_{90} = \beta_{20} + PS_{90} \ \beta_{21} + UE_{90} \ \beta_{22} + u_2 \ ;  \ u_2 = \lambda_2 W u_2 + \epsilon_2 \\
+\end{array}
+(\#eq:sur-sem)
+\end{equation}
+```
+
+where $W$ is the $N \times N$ spatial weighting matrix and $\lambda_i$ (i=1,2) are the parameters of spatial dependence. The $W$ matrix has been previously defined in the **PySAL** code
+using neighborhood criteria based on the k-nearest-neighbors with k = 10. This $W$ matrix can be imported to the *R* environment and transformed into an *listw* object. The $W$ matrix has been standardized in **PySAL**.
+
+```{r}
+listw <- mat2listw(as.matrix(py_to_r(py$w)$sparse))
+```
+
+The *R* code to estimate the SUR-SEM model \@ref(eq:sur-sem) with **spsur** is:
+
+```{r, collapse=TRUE}
+spsur.sem <- spsurml(formula = formula.spsur, data = NCOVR.sf,
+                     listw = listw , type = "sem", control = control)
+```
+
+```{r, echo = FALSE}
+res <- rbind(sprintf("%1.4f",
+          c(spsur.sem$coefficients,spsur.sem$deltas)),
+                 sprintf("(%1.4f)", 
+          c(spsur.sem$rest.se,spsur.sem$deltas.se) ) )
+```
+
+In order to estimate the same model with **spse**, the *sf* object NCOVR.sf must be reordered to transform the data set from a data frame into another one with a structure of panel data. 
+
+```{r re-order dataframe, warning = FALSE}
+data <- data.frame(
+  index_indiv = factor(cbind(paste0("Indv_",rep(1:3085,
+                                                each = 2)))),
+  year = rep(c(1980,1990),3085),
+  HR = c(rbind(NCOVR.sf$HR80,NCOVR.sf$HR90)),
+  PS = c(rbind(NCOVR.sf$PS80,NCOVR.sf$PS90)),
+  UE = c(rbind(NCOVR.sf$UE80,NCOVR.sf$UE90)))
+```
+
+With this data frame, model \@ref(eq:sur-sem) can be estimated with **spse**:
+
+```{r spse-sur-sem, warning = FALSE}
+eq <- HR ~ PS + UE
+formula.spse <- list(tp1 = eq, tp2 = eq)
+spse.sem <- spseml(formula.spse, data = data,
+                       w = listw, model = "error", quiet = TRUE)
+```
+
+```{r, echo = FALSE}
+res.0 <- rbind(sprintf("%1.4f",
+             c(as.matrix(spse.sem$coefficients),spse.sem$rho)),
+                   sprintf("(%1.4f)",
+             c(sqrt(diag(spse.sem$vcov)),sqrt(diag(spse.sem$vcov.errcomp)))))
+res <- rbind(res,res.0)
+```
+
+Finally, the **PySAL** code to estimate SUR-SEM model \@ref(eq:sur-sem) is:
+
+```{python, prompt = FALSE}
+from spreg import SURerrorML
+pysal_sem = SURerrorML(bigy,bigX,w=w,name_bigy=bigyvars,name_bigX=bigXvars,
+                       name_ds="NAT",name_w="nat_queen")
+```
+
+Table \@ref(tab:print-table-sem) shows the coefficients and the standard errors obtained in the estimation of equation \@ref(eq:sur-sem) with the three alternatives. The results are very similar, and only small differences appear when the results of **spse** are compared with **spsur** and **PySAL**. The use of different optimization routines is a possible source of the these small numerical differences. For example, the **spsur** optimizes the concentrated Log-Likelihood with the *bobyqa()* from **minqa** [@minqa] while **spse** uses *nlminb()* from the **stats** package [@stats]. The full output of both codes is shown in the Appendix.
+
+```{r from-python-2-r-2, echo = FALSE}
+a <- py_to_r(py$pysal_sem)
+res.0 <- rbind(sprintf("%1.4f",c(unlist(a$bSUR),a$lamsur)),  
+               c(sprintf("(%1.4f)",sqrt(diag(a$varb))),sprintf("(%1.4s)",NA),sprintf("(%1.4s)",NA)))
+res <- rbind(res,res.0)
+res <- cbind(c("spsur","","spse","","PySAL",""),res)
+res <- as.data.frame(res)
+dt <- res
+caption <- "Estimated coefficients and standard errors. SUR-SEM"
+```
+
+```{r print-table-sem, echo = FALSE, warning = FALSE}
+names(dt) <- NULL
+options(knitr.kable.NA = "**")
+kable(dt, digits = 3, row.names = FALSE, align = "lcccccccc",linesep = "",
+caption = caption, booktabs = TRUE, longtable = TRUE,
+      col.names = c("  ","$\\hat\\beta_{10}$","$\\hat\\beta_{11}$","$\\hat\\beta_{12}$",
+                   "$\\hat\\beta_{20}$","$\\hat\\beta_{21}$","$\\hat\\beta_{22}$",
+                   "$\\hat\\lambda_{1}$","$\\hat\\lambda_{2}$"),escape = FALSE)
+```
+
+
+# Estimation of SUR-SLM
+
+The option to estimate an SUR-SLM model with the 3SLS algorithm [@Anselin2016; @Lopez2020] is available with **spsur** and **PySAL**. The specification of this model in our case is:
+
+```{=tex}
+\begin{equation}
+\begin{array}{ll}
+HR_{80} = \ W HR_{80} \rho_1 + \beta_{10} + PS_{80} \ \beta_{11} + UE_{80} \ \beta_{12} + \epsilon_1 \\ 
+HR_{90} = \ W HR_{90} \rho_2 + \beta_{20} + PS_{90} \ \beta_{21} + UE_{90} \ \beta_{22} + \epsilon_2 \\
+\end{array}
+(\#eq:sur-slm)
+\end{equation}
+```
+
+where $\rho_i$ (i=1,2) are the parameters of spatial dependence. The *R* code to estimate SUR-SLM (\@ref(eq:sur-slm)) using the 3SLS algorithm is:
+
+```{r spsur-sur-slm-iv}
+spsur.slm.3sls <- spsur3sls(formula = formula.spsur, data = NCOVR.sf,
+                            listw = listw , type = "slm", trace = FALSE)
+```
+
+```{r, echo = FALSE}
+res <- rbind(sprintf("%1.4f",c(spsur.slm.3sls$coefficients,spsur.slm.3sls$deltas)),
+             sprintf("(%1.4f)",c(spsur.slm.3sls$rest.se,spsur.slm.3sls$deltas.se)))
+```
+
+The code to estimate the equation (\@ref(eq:sur-slm)) with **PySAL** is,
+
+```{python, prompt = FALSE}
+from spreg import SURlagIV
+pysal_iv = SURlagIV(bigy,bigX,w=w,w_lags=2,name_bigy=bigyvars,
+                    name_bigX=bigXvars,name_ds="NAT",name_w="nat_queen")
+```
+
+```{r python-slm-iv-output, echo = FALSE}
+a <- py_to_r(py$pysal_iv)
+a1 <- c(a$b3SLS$`0`[,1][1:3],a$b3SLS$`1`[,1][1:3],a$b3SLS$`0`[,1][4],a$b3SLS$`1`[,1][4])
+a2 <- c(a$tsls_inf$`0`[,1][1:3],a$tsls_inf$`1`[,1][1:3],a$tsls_inf$`0`[,1][4],a$tsls_inf$`1`[,1][4])
+res.0 <- rbind(sprintf("%1.4f",a1),sprintf("(%1.4f)",a2))
+res <- rbind(res,res.0)
+res <- cbind(c("spsur","","PySAL",""),res)
+res <- as.data.frame(res)
+dt <- res
+caption <- "Estimated coefficients and standard errors. SUR-SLM-IV"
+```
+
+Note that the instruments used by default with the function *spsur3sls()* are the first two spatial lags of the independent variables (see @Lopez2020) while the function *SURlagIV()* in **PySAL** considers only the first one by default (see @Anselin2016). Therefore, to obtain equivalent results, it is necessary to include the option $w\_lags = 2$ in the **PySAL** code.
+
+Table \@ref(tab:print-table-slm-iv) shows the coefficients and standard error (in parentheses) of the estimation with **spsur** and **PySAL**. As in the case of the SUR-SEM estimation, minimal differences are founded. The results are practically identical. The full output of both codes is shown in the Appendix.
+
+```{r print-table-slm-iv, echo = FALSE, warning = FALSE}
+names(dt) <- NULL
+kable(dt, row.names = FALSE, align = "c",
+caption = caption, booktabs = TRUE, longtable = TRUE,
+      col.names = c("  ","$\\hat\\beta_{10}$","$\\hat\\beta_{11}$","$\\hat\\beta_{12}$",
+                   "$\\hat\\beta_{20}$","$\\hat\\beta_{21}$","$\\hat\\beta_{22}$",
+                   "$\\hat\\rho_{1}$","$\\hat\\rho_{2}$"),escape = FALSE)
+```
+
+# Conclusion
+
+In this vignette, a numerical check to compare the results of several spatial SUR models estimations is shown. Fortunately, some functionalities of **spsur** are also available in the **spse** package and also in **PySAL** so the user can choose. The well-known data set [@Baller2001] is used with the objective of comparing the values of the estimated coefficients and standard errors. The results confirm that the three alternatives supply identical outputs with extremely small numerical differences.
+
+# Appendix {#Appendix}
+
+## Full results SUR-SIM
+
+### spsur output
+
+```{r print-spsur-sim}
+summary(spsur.sim)
+```
+
+### PySal output
+
+```{python}
+print(pysal_sim.summary)
+```
+
+## Full results SUR-SEM
+
+### spsur output
+
+```{r print-spsur-sem}
+summary(spsur.sem)
+```
+
+### spse output
+
+```{r}
+summary(spse.sem)
+```
+
+### PySal output
+
+```{python}
+print(pysal_sem.summary)
+```
+
+## Full results SUR-SLM-IV
+
+### spsur output
+
+```{r}
+summary(spsur.slm.3sls)
+```
+
+### PySal output
+
+```{python}
+print(pysal_iv.summary)
+```
