@@ -1,0 +1,42 @@
+citHeader("To cite spsur in publications use:")
+
+citEntry(entry = "Article",
+  title = "ML versus IV estimates of spatial SUR models: evidence from the case of Airbnb in Madrid urban area",
+  author = personList(
+  as.person("Fernando Lopez"),
+  as.person("Roman Minguez"),
+  as.person("Jesus Mur")),
+  journal = "The Annals of Regional Science",
+  volume = "64",
+  number = "2",
+  pages = "313--347",
+  year = "2020",
+  publisher = "Springer",
+  doi = "10.1007/s00168-019-00914-1",
+  url = "https://link.springer.com/article/10.1007/s00168-019-00914-1",
+  
+  textVersion = 
+  paste("Lopez, F.; Minguez, R. and 
+  Mur, J. (2020).",
+  "ML versus IV estimates of spatial SUR models: evidence from the case of Airbnb in Madrid urban area.",
+  "The Annals of Regional Science,
+64(2), 313-347.",
+"URL https://link.springer.com/article/10.1007/s00168-019-00914-1")
+)
+
+citEntry(entry = "Article",
+  title = "spsur: an R package for dealing with spatial seemingly unrelated regression models",
+  author = personList(
+  as.person("Roman Minguez"),
+  as.person("Fernando Lopez"),
+  as.person("Jesus Mur")),
+  journal = "Journal of Statistical Software",
+  year = "forthcoming",
+  url = "https://github.com/rominsal/spsur/tree/master/vignettes",
+  
+  textVersion = paste("Minguez, R.; Lopez, F. and   Mur, J. (forthcoming).",
+  "spsur: an R package for dealing with spatial
+seemingly unrelated regression models.",
+  "Journal of Statistical Software.",
+  "URL https://github.com/rominsal/spsur/tree/master/vignettes")
+)

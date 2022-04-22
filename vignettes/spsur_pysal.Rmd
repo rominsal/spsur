@@ -28,17 +28,9 @@ editor_options:
 
 
 
-
-
-
-
-
-
-
-
 # Introduction {#Intro}
 
-The main objective of this vignette is to present the results of the estimation of spatial SUR models using three alternative tools: Two *R*-packages, **spsur** [@Lopez2020; @spsur] and **spse** [@PirasGitHub] together with the *Python* spatial analysis library **PySAL** available at [https://pysal.org/](https://pysal.org/). Three SUR models are estimated in this vignette. The first one, is the baseline SUR-SIM model, a SUR model without spatial effects. This model will be estimated with **spsur** and **PySAL**. The second one is the SUR-SEM model; that is, a SUR model including a spatial lag in the errors. This model will be estimated by Maximum Likelihood [@Anselin1988a], using the three alternative tools. The last one is the SUR-SLM model, including a spatial lag of the dependent variable, which will be estimated by the Three Stage Least Squares (3SLS) algorithm [@Lopez2020; @Anselin2016]. This model will be estimated with **spsur** and **PySAL**.
+The main objective of this vignette is to present the results of the estimation of spatial SUR models using three alternative tools: Two *R*-packages, **spsur** [@Lopez2020; @spsur_jss_forthcoming] and **spse** [@PirasGitHub] together with the *Python* spatial analysis library **PySAL** available at [https://pysal.org/](https://pysal.org/). Three SUR models are estimated in this vignette. The first one, is the baseline SUR-SIM model, a SUR model without spatial effects. This model will be estimated with **spsur** and **PySAL**. The second one is the SUR-SEM model; that is, a SUR model including a spatial lag in the errors. This model will be estimated by Maximum Likelihood [@Anselin1988a], using the three alternative tools. The last one is the SUR-SLM model, including a spatial lag of the dependent variable, which will be estimated by the Three Stage Least Squares (3SLS) algorithm [@Lopez2020; @Anselin2016]. This model will be estimated with **spsur** and **PySAL**.
 
 The comparison is performed on the @Baller2001 data set[^1]. This is a well-known dataset downloaded from the GeoDa Data and Lab collection with information about homicide rates in 3,085 continental US counties for four years (1960, 1970, 1980, and 1990). The dataset includes a large number of socio-economic characteristics for these counties. This dataset is available from the **spsur** R-package with the name *NCOVR* and from **PySAL** with the name of *NAT.dbf*.
 

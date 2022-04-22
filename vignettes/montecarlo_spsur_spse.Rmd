@@ -31,7 +31,7 @@ editor_options:
 
 # A short Monte Carlo exercise: spsur vs spse.
 
-The goal of this vignette is to present the results obtained in a Monte Carlo exercise to evaluate the performance of the Maximum Likelihood (ML) estimation of three spatial SUR models using the *R*-package **spsur** [@Lopez2020,@spsur]. The results will be compared with the same estimation using the **spse** *R*-package [@Piras2010] when it is possible. We compare the two basic spatial SUR models, named SUR-SLM and SUR-SEM. In the case of SUR-SARAR, we only present the results obtained with **spsur** because the estimation of this model is not available with **spse**.
+The goal of this vignette is to present the results obtained in a Monte Carlo exercise to evaluate the performance of the Maximum Likelihood (ML) estimation of three spatial SUR models using the *R*-package **spsur** [@Lopez2020,@spsur_jss_forthcoming]. The results will be compared with the same estimation using the **spse** *R*-package [@Piras2010] when it is possible. We compare the two basic spatial SUR models, named SUR-SLM and SUR-SEM. In the case of SUR-SARAR, we only present the results obtained with **spsur** because the estimation of this model is not available with **spse**.
 
 The design of the Monte Carlo is as follows: We simulate a spatial SUR model with two equations (G = 2), where each equation includes an intercept and two explanatory variables plus the corresponding spatial terms. For the general model the equation is:
 

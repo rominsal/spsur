@@ -1,0 +1,793 @@
+---
+title: "spsur user guide"
+author:
+- Román Mínguez, University of Castilla-La Mancha (Spain)
+- Fernando A. López, Technical University of Cartagena (Spain)
+- Jesús Mur, University of Zaragoza, (Spain) <br> <br> <br>
+date: '`r Sys.time()` <br>  <br> <br>'
+output:
+  bookdown::html_document2:
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+    toc_title: Article Outline
+linkcolor: red
+link-citations: yes
+subtitle: The user guide <br>  <br>  <br>
+bibliography: bibliosure.bib
+vignette: |
+  %\VignetteIndexEntry{spsur user guide}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown} 
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "#>", 
+  echo = TRUE, eval = TRUE, warning = FALSE, 
+  message = FALSE, cache = FALSE)
+```
+
+Load packages:
+
+```{r loadpackages}
+library(spsur)
+library(sf)
+library(dplyr)
+```
+
+# Introduction
+
+The purpose of this vignette is to show the functionalities of the new R-package **spsur** (@spsur_jss_forthcoming). In the vignette the reader will find information about the following aspects:
+
+* Description of the dataset NCOVR, employed to illustrate the use of the package.
+* Estimation of SUR models without spatial effects (the so called SUR-SIM models).
+* Testing for various forms of spatial autocorrelation in the SUR-SIM model.
+* In case of misspecification of the SUR-SIM model, estimation of SUR models with spatial effects, by ML or IV.
+* Misspecification tests in a estimated spatial SUR model.
+* Measures of spatial interaction for a spatial SUR model, the so-called Direct/Indirect/Total effects.
+* Estimation of a spatial SUR panel data model, with 1 equation and several cross-sections.
+* Generation of random data sets with the required spatial SUR structure.
+
+# The data set NCOVR
+
+Throughout the vignette we use the dataset NCOVR (National Consortium on Violence Research) to illustrate the capabilities of the package. The same data were employed by @Baller2001 to analyze the incidence of homicides rates in the US counties. The dataset can be freely dowloaded from
+**https://geodacenter.github.io/data-and-lab/ncovr/**
+
+There are three dimensions to consider in a SUR model: N, number of individuals, Tm, number of time periods and G, number of equations. Typically, in a spatial setting N will be large and Tm moderate with a small number of equations. NCOVR fits very well with the above description: it contains 3085 spatial units (counties), for 4 different cross-sections (1960, 1970, 1980, 1990) and 69 variables. According to @Baller2001, the main variables of interest are:
+
+* HR: homicide rate per 100000 inhabitants
+* RD: resource deprivation 
+* PS: population structure 
+* MA: median age
+* DV: divorce rate (% males over 14 divorced)
+* UE: unemployment rate 
+* SOUTH: dummy variable for Southern counties (South = 1)
+
+**spsur** deals with datasets from large to very small, especially in what respects to the number of spatial units. In this case, the dimensions of NCOVR make it a large dataset.
+
+First, we can read the NCOVR dataset as a simple feature (sf) object (named NCOVR.sf),
+
+```{r data_set}
+data(NCOVR, package = "spsur")
+```
+
+The first three observations in NCOVR appear below:
+
+```{r printdatatable}
+NCOVR <- st_drop_geometry(NCOVR.sf)
+knitr::kable(
+  head((NCOVR[1:3, 1:6])),
+  caption = 'First observations of NCOVR dataset' )
+```
+
+Whereas the geometry of the USA counties is shown in Figure  \@ref(fig:plotgeom):
+
+```{r, plotgeom, fig.cap = "Geometry of the USA counties", fig.align='center'}
+plot(st_geometry(NCOVR.sf))
+```
+
+Following @Baller2001, we consider a **W** matrix based on the criterion of 10 nearest-neighbourhood, which is inmediate to obtain using the **spdep** package, @BivandPedesma2013. The resulting weighting matrix can be obtained using *lwncovr* object. Note that this matrix is non-symmetric.
+
+
+```{r W}
+# Obtain coordinates of centroids
+co <- sf::st_coordinates(sf::st_centroid(NCOVR.sf))
+lwncovr <- spdep::nb2listw(spdep::knn2nb(spdep::knearneigh(co, k = 10,longlat = TRUE)))
+```
+
+Figure \@ref(fig:quantilemap) shows the Quantile map for the Homicide Rate in the year 1960. Apparently there exist a strong structure of positive spatial autocorrelation. We observe a big cluster of the type High-High in the South East and South West counties, which evolves to Low-Low as we move to the North.
+
+```{r, quantilemap, fig.cap = "Quantile Map; Variable HR60", fig.align = 'center'}
+q <- quantile(NCOVR.sf$HR60)
+NCOVR.sf$qm <- (NCOVR.sf$HR60 > q[2]) + (NCOVR.sf$HR60 > q[3]) +(NCOVR.sf$HR60 >= q[4]) + 1
+plot(NCOVR.sf["qm"], pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"),
+     main = "")
+```
+
+@Baller2001 specify a single linear model to explain the case of HR in the year 1960 with the results shown in the Table below, identical to those in Table 1 of @Baller2001.
+
+\begin{equation}
+HR_{60} = \beta_{0}+\beta_{1}RD_{60}+\beta_{2}PS_{60}+\beta_{3}MA_{60}+\beta_{4}DV_{60} +\beta_{5}UE_{60} +\beta_{6}SOUTH+\epsilon_{60} 
+(\#eq:ols)
+\end{equation}
+
+
+```{r ols_60}
+formula_60 <- HR60 ~ RD60 + PS60 + MA60 + DV60 + UE60 + SOUTH
+lm_60 <- lm(formula = formula_60, data = NCOVR.sf)
+summary(lm_60)
+```
+
+Figure \@ref(fig:quantilemap) points to the existence of cross-sectional dependence in the spatial distribution of HR60 but the model in \@ref(eq:ols) does not contain elements of spatial interaction. The consequence is a scattermap of the LS residuals, \@ref(fig:quantilemap) ,  with a strong structure of clusters, similar to that of HR60 in Figure \@ref(fig:residualquantilemap).
+
+```{r, residualquantilemap, fig.cap = "Quantile Map of LS residuals", fig.align='center'}
+q <- quantile(lm_60$residuals)
+NCOVR.sf$qmr <- (lm_60$residuals > q[2]) + (lm_60$residuals > q[3]) + (lm_60$residuals >= q[4]) + 1
+plot(NCOVR.sf["qmr"], pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"), main = "")
+```
+
+The battery of LM tests for omitted spatial structure, supplied by **spdep** @BivandPedesma2013, confirms the misspecification of \@ref(eq:ols). According to these results, the most adequate specification is a spatial lag model. Similar results are obtained for the years 1970, 1980 and 1990, which we omit for reasons of space.
+
+```{r}
+print(spdep::lm.LMtests(model=lm_60,listw = lwncovr,test="all"))
+```
+
+The previous discussion is an example of the traditional approach in spatial econometrics, where we process the data cross-section by cross-section, perhaps in a panel framework. We stop here this analysis in favour of a multivariate approach using SUR models, which is the purpose of **spsur**.
+
+# A single SUR model
+
+We begin by introducing dependence in the errors of the same county across time, as in expression \@ref(eq:sur) below. Note that time dependence in the errors of different counties is not allowed. To simplify we consider only two cross-sections, 1960 and 1970.
+
+\begin{equation}
+HR_{60} = \beta_{10}+\beta_{11}RD_{60}+\beta_{12}PS_{60}+\beta_{13}MA_{60}+\beta_{14}DV_{60} +\beta_{15}UE_{60} +\beta_{16}SOUTH+\epsilon_{60}\\
+HR_{70} = \beta_{20}+\beta_{21}RD_{70}+\beta_{22}PS_{70}+\beta_{23}MA_{70}+\beta_{24}DV_{70} +\beta_{25}UE_{70} +\beta_{26}SOUTH+\epsilon_{70} \\
+Corr(\epsilon_{60},\epsilon_{70}) \neq 0 \\
+ (\#eq:sur)
+ \end{equation}
+
+The package **Formula** is used to build the model in **spsur**
+
+```{r Formula}
+formula_sur <- HR60 | HR70 ~ RD60 + PS60 + MA60 + DV60 + UE60 + SOUTH |  RD70 + PS70 + MA70 + DV70 + UE70 + SOUTH
+```
+
+The function `spsurml()` estimates a pure SUR model without spatial effects, which we call SUR-SIM. The *key argument* to estimate this model is *type = "sim"*, which declares the type of spatial specification desired by the user.
+
+```{r SUR-SIM}
+sur.sim <- spsurml(formula = formula_sur, type = "sim", data = NCOVR.sf)
+summary(sur.sim)
+```
+
+The signs of the variables are as expected and, more interesting, the SUR estimation detects a strong positive dependence between the errors for the year 1960 and those of the year 1970, 0.2616 according to the data in the *Correlation Matrix of inter-equation residuals*. The Breusch-Pagan diagonality test that appears at the end of the Table confirms that this dependence is statistically significant and should not be avoided.
+
+Figure \@ref(fig:residualsurquantilemap) shows the quantile maps of the SUR residuals corresponding to the years 1960 and 1970. The maps reveal that time dependence was only part of the problem. Indeed, there remain a strong spatial structure in the SUR residuals which is apparently stable across time.
+
+```{r, residualsurquantilemap, fig.cap="Quantile Map of LS residuals for SUR-SIM model", fig.align='center'}
+res <- residuals(sur.sim)
+q <- quantile(res[[1]])
+NCOVR.sf$SUR_residuals_1960 <- (res[[1]] > q[2]) + (res[[1]] > q[3]) + (res[[1]] >= q[4]) + 1
+q <- quantile(res[[2]])
+NCOVR.sf$SUR_residuals_1970 <- (res[[2]]>q[1]) + (res[[2]]>q[3]) + (res[[2]] >= q[4]) + 1
+plot(NCOVR.sf[c("SUR_residuals_1960","SUR_residuals_1970")],
+     pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"))
+```
+
+The battery of Lagrange Multipliers that appear below are obtained with the function `lmtestspsur()`. The output is a list of 5 elements each one of the class `htest`. They are the traditional LM misspecification tests [@anselinbera1998] for omitted spatial elements, adapted to a SUR framework by [@Mur2010]. All the Multipliers are statistically significant, both the raw and robust LMs as well as the joint LM for SARMA processes.
+
+```{r test_SUR-SIM}
+lmtest.sur <- lmtestspsur(formula = formula_sur, 
+                          listw = lwncovr, data = NCOVR.sf)
+print(lmtest.sur)
+```
+
+The conclusion is that the simple SUR model of expression \@ref(eq:sur) is misspecified due of the omission of relevant spatial elements. The problem for the user is the identification of the elements of spatial structure that are missing from the equation. In fact, all the Multipliers are statistically significant, which would point to a SUR-SARAR specification.
+
+As a way of example, the next Section estimates all the possible spatial configurations of a SUR model by using the function `spsurml()`.
+
+# Estimation of spatial SUR models
+
+As said, **spsur** is an R package whose main objective is to estimate and test SUR models with a given spatial structure. It is assumed that the same spatial structure appears in all time periods and equations. The catalog of spatial specification that this package can process are
+
+* SUR-SLX. SUR model with lags of the X variables.
+* SUR-SLM. SUR model with lags of the endogenous variables.
+* SUR-SEM. SUR model with spatial errors.
+* SUR-SDM. SUR model with lags of the endogenous and of the X variables, or Spatial Durbin.
+* SUR-SDEM. SUR model with with lags of the X variables and spatial errors.
+* SUR-SARAR. SUR model with lags of the of the endogenous variables and spatial errors.
+* SUR-GNM. SUR model with lags of the of the endogenous variables, lags of the X variables and lags spatial errors. This specification nest the rest of models.
+
+The common estimation procedure for the seven cases is maximum-likelihood, ML, whereas the SUR-SLM and SUR-SDM can also be estimated by Three Stage-Least-Squares, 3SLS. @BivandPiras2015 offer an excellent revision of estimation methods in spatial econometrics, whereas @Lopez2020 focus specifically in the comparison of ML against 3SLS. First, we discuss the maximum likelihood approach and finish the Section with a few comments in relation to 3SLS.
+
+## SUR-SLX model {#model-surslx}
+
+The SUR-SLX model includes spatial lags of of the X variables, assumed to be exogenous. The user should specify the argument *type = "slx"* in the function `spsurml()`
+
+```{r SUR-SLX}
+sur.slx <- spsurml(formula = formula_sur, listw = lwncovr, 
+                   type = "slx",data = NCOVR.sf)
+summary(sur.slx)
+```
+
+By default, *type = "slx"*  implies that lags of all the X variables appearing in the equations are included as additional regressors. However, `spsurml()´allows the user to decide the lags of which X variables should be added. In this case, the user activates the argument *Durbin = *. Suppose, by example, that we only want to include the spatial lag of $RD_{60}$ in the fist equation of \@ref(eq:sur) and the spatial lags of the $DV_{70}$ and $MA_{70}$ in the second equation. Then, we would write:
+
+```{r SUR-SLX2}
+formulaD <-  ~ DV60 |  MA70 + UE70 
+sur.slx2 <- spsurml(formula = formula_sur, listw = lwncovr, 
+                    type = "slx", Durbin = formulaD, 
+                    data = NCOVR.sf)
+summary(sur.slx2)
+```
+
+## SUR-SLM model {#model-surslm}
+
+The specification of the SLM-SUR model that we want to estimate is standard,
+
+\begin{equation} 
+HR_{60} = \rho_{60}WHR_{60} + \beta_{10}+\beta_{11}RD_{60}+\beta_{12}PS_{60}+\beta_{13}MA_{60}+\beta_{14}DV_{60} +\beta_{15}UE_{60} +\beta_{16}SOUTH+\epsilon_{60} \\
+HR_{70} = \rho_{60}WHR_{70} + \beta_{20}+\beta_{21}RD_{70}+\beta_{22}PS_{70}+\beta_{23}MA_{70}+\beta_{24}DV_{70} +\beta_{25}UE_{70} +\beta_{26}SOUTH+\epsilon_{70}\\
+Corr(\epsilon_{60},\epsilon_{70}) \neq 0
+(\#eq:surslm)
+\end{equation}
+
+which can be estimated by maximum likelihood using the argument *type = "slm"* in the function `spsurml()`.
+
+A severe handicap of ML is the evaluation of the Jacobian term, which is highly time consuming. We offer some flexibility to the user with the arguments *method =* and *control=* imported from **spatialreg**, @BivandPedesma2013. The argument *method =* is used to select the method to evaluate the Jacobian. The options are *eigen*, *Matrix*, *LU*, *Chebyshev* and *MC*. The default is *eigen* and *Matrix* required the **W** matrix to be symmetric. *control=* adds a list of functionalities to expedite the calculus, which can be consulted in the documentation of **spatialreg**.
+
+```{r SUR-SLM-ML}
+control <- list(fdHess = TRUE)
+sur.slm <- spsurml(formula = formula_sur, listw = lwncovr, 
+                   method = "LU", type = "slm", control = control, 
+                   data = NCOVR.sf)
+summary(sur.slm)
+```
+
+The `plot()` function allows the user to plot both beta and spatial coefficients for all equations of the spsur model. The argument *viewplot* is used to choose between interactive or non-interactive plots.
+
+```{r}
+# Interactive plot
+plot(sur.slm)
+```
+
+The `print()` function is used to print short tables including the values of beta and spatial coefficients as well as p-values of significance test for each coefficient. This can be used as an alternative to `summary()` when a brief output is needed. The *NA* values indicate that the coefficient has not been fitted in the corresponding equation.
+
+```{r}
+print(sur.slm)
+```
+
+
+## SUR-SEM model {#model-sursem}
+
+The corresponding specification is the following: 
+
+\begin{equation}
+HR_{60} = \beta_{10}+\beta_{11}RD_{60}+\beta_{12}PS_{60}+\beta_{13}MA_{60}+\beta_{14}DV_{60} +\beta_{15}UE_{60} +\beta_{16}SOUTH+u_{60} \ ; \\ u_{60}=\lambda_{60}W u_{60}+\epsilon_{60}\\
+\\
+HR_{70} = \beta_{20}+\beta_{21}RD_{70}+\beta_{22}PS_{70}+\beta_{23}MA_{70}+\beta_{24}DV_{70} +\beta_{25}UE_{70} +\beta_{26}SOUTH+u_{70} ; \\ u_{70}=\lambda_{70}W u_{70}+\epsilon_{70} \\
+\\
+Corr(\epsilon_{60},\epsilon_{70}) \neq 0
+(\#eq:sursem)
+\end{equation}
+
+The model is estimated by ML, with *method = "LU"* and calculating the analytical Hessian (option *fdHess = TRUE* in the argument control) in place of using the numerical approximation. The results appear below.
+
+```{r SUR-SEM-ML}
+sur.sem <- spsurml(formula = formula_sur, listw = lwncovr, 
+                   method = "LU", type = "sem", 
+                   control = control, data = NCOVR.sf)
+summary(sur.sem)
+```
+
+```{r}
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.sem, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+## SUR-SDEM model {#model-sursdem} 
+
+The specification of a spatial Durbin model with spatial errors and a SUR framework is the following 
+
+\begin{equation}
+HR_{60} = \beta_{10}+\beta_{11}RD_{60}+\beta_{12}PS_{60}+\beta_{13}MA_{60}+\beta_{14}DV_{60} +\beta_{15}UE_{60} +\beta_{16}SOUTH+u_{60} +\theta_{1}WDV_{60}\ ; \\ u_{60}=\lambda_{60}W u_{60}+\epsilon_{60}\\
+\\
+HR_{70} = \beta_{20}+\beta_{21}RD_{70}+\beta_{22}PS_{70}+\beta_{23}MA_{70}+\beta_{24}DV_{70} +\beta_{25}UE_{70} +\beta_{26}SOUTH+u_{70}+\theta_{2}WMA_{70}+\theta_{3}WUE_{70} ; \\ u_{70}=\lambda_{70}W u_{70}+\epsilon_{70} \\
+\\
+Corr(\epsilon_{60},\epsilon_{70}) \neq 0
+(\#eq:sursdem)
+\end{equation}
+
+Note that the specificaction above, in spite of its name, does not include lags of the endogenous variables; only lags of the X variables combined with spatial errors. The model is estimated by ML, with *method = "LU"* and *fdHess = TRUE* in the argument control. To shorten the output, we use the argument *Durbin=* to restrict the spatial lags of the X variables that we want to see in the SUR equations. The results appear below.
+
+```{r SUR-SDEM-ML}
+formulaD <-  ~ DV60 |  MA70 + UE70 
+sur.sdem <- spsurml(formula = formula_sur, listw = lwncovr, 
+                   method = "LU", type = "sdem", Durbin = formulaD,
+                   control = control, data = NCOVR.sf)
+summary(sur.sdem)
+```
+
+```{r}
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.sdem, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+## SUR-SDM model {#model-sursdm} 
+
+To estimate a full spatial Durbin model set the argument type to *type = "sdm"*. Moreover, the same as in other previous cases, we can restrict the list of lags of the X variables that we want to appear in the equations, by using the argument *Durbin =*.
+
+```{r SUR-SDM-ML}
+formulaD <-  ~ RD60 + PS60 + MA60 + DV60 |  RD70 + PS70 + DV70 
+sur.sdm <- spsurml(formula = formula_sur, listw = lwncovr,
+                   type = "sdm", method = "LU", 
+                   Durbin = formulaD, data = NCOVR.sf)
+summary(sur.sdm)
+```
+
+
+```{r}
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.sdm, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+## SUR-SARAR model {#model-sursarar}
+
+The key argument to build a SARAR model from a single SUR specification, like that in of \@ref(eq:sur), is *type = "sarar"*.
+
+```{r SUR-SARAR-ML}
+sur.sarar <- spsurml(formula = formula_sur, listw = lwncovr,
+                     type = "sarar", method = "LU", 
+                     control= control, 
+                     data = NCOVR.sf)
+summary(sur.sarar)
+```
+
+```{r}
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.sarar, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+
+## SUR-GNM model {#model-surgnm}
+
+This is the most general specification of a spatial SUR model. It needs to be chosen as *type = "gnm"*.
+
+```{r SUR-GNM-ML}
+sur.gnm <- spsurml(formula = formula_sur, listw = lwncovr,
+                     type = "gnm", method = "LU", 
+                     control= control, 
+                     data = NCOVR.sf)
+summary(sur.gnm)
+```
+
+```{r}
+# Non-interactive plot
+if (require(gridExtra)) {
+  pl <- plot(sur.gnm, viewplot = FALSE) 
+  grid.arrange(pl$lplbetas[[1]], pl$lplbetas[[2]], 
+               pl$pldeltas, nrow = 3)
+}
+```
+
+
+##  3SLS estimation of SUR-SLM and SUR-SDM models
+
+We finish this Section by discussing briefly how to estimate a SUR-SLM model using a 3SLS approach (the same applies for the case of a SUR-SDM). The advantage of 3SLS over ML is time computing, because the first consists of a quasi-linear algorithm whereas the second may be highly non-linear and time consuming.
+
+First is the obtaining of the spatial instruments using the information in the X variables, assumed to be exogenous. The matrix of instruments is $H=[X,WX,W^2X,W^3X,...,W^rX]$, with r=2 for the SUR-SLM case and r=3 in case of a SUR-SDM model. This defaults can be changed by using the argument *"maxlagW="* to the desired integer.
+
+```{r SUR-SLM-IV}
+sur.slm.3sls <- spsur3sls(formula = formula_sur, 
+                          listw = lwncovr, 
+                          type = "slm", maxlagW = 3,
+                          data = NCOVR.sf)
+summary(sur.slm.3sls)
+```
+
+As usual, we can activate the argument *"Durbin = "* to restrict the lags of the X variables in the equations of the SUR-SDM model. 
+
+```{r SUR-SDM-IV}
+formulaD <-  ~ RD60 |PS70 + DV70 
+sur.sdm.3sls <- spsur3sls(formula = formula_sur, 
+                          listw = lwncovr, type = "sdm",
+                          Durbin = formulaD, data = NCOVR.sf)
+summary(sur.sdm.3sls)
+```
+
+In the example above we have used the default in the argument *"maxlagW="*, 3 for a SUR-SDM.
+
+# Testing for the specification
+
+**spsur** includes a collection of test which may help the user to improve the specification. Some of them appear routinely as part of the output of the estimation of spatial SUR models whereas others require the intervention of the user. Below we discuss what we consider the most interest tests for the user.
+
+## Routine tests
+
+**spsur** deals with SUR models applied in a spatial setting and, thus, is important to control for the SUR nature of the system of equations and for the symptoms of spatial misspecification. In the first case we are refering to the well known Breusch-Pagan LM test (@BP1980) of diagonality of the covariance matrix of the SUR residuals. This test appears in the last line of the table of  results for any estimated SUR model. Furthermore, The value of the statistic can be recovered using the command `print()`.
+
+```{r BP}
+print(sur.sim$BP)
+print(sur.slm$BP)
+print(sur.slm.3sls$BP)
+```
+
+The second issue is solved by using the Marginal Lagrange Multipliers, $LM(\lambda|\rho)$ and $LM(\rho|\lambda)$ (see @Lopez2014), which tests for omitted spatial structure, conditional to the estimated spatial SUR model . That is, the SUR-SLM and SUR-SDM models include spatial lags of the endogenous variables in the right hand side of the equations, but we may wonder if we need also of spatial errors. This is the purpose of the $LM(\lambda|\rho)$ Multiplier. Moreover, in the SUR-SEM and SUR-SDEM models, we may wonder if spatial errors are enough or we would need the introduction of lags of the endogeneous variables, which is the purpose of the $LM(\rho|\lambda)$ Multiplier.
+
+The value of this test appears at the bottom of the table of estimation results for any of the four SUR models, indicated under the heading of *LMM* (the Marginal Multipliers makes no sense for the SUR-SLX and SUR-SARAR cases). This test can be viewed as a general measure of misspecification in what respects the spatial structure of the model. Finaly, note that the Marginal Multipliers are obtained, for reasons of calculus, only for the ML algorithm and under the option *fdHess = FALSE* which is the default (you may change it to *fdHess = TRUE*, using the argument *control=*); in fact, we need the analytical Hessian.
+
+By way of example, in the case of the SUR-SLM, the Marginal Multiplier ($LM(\lambda|\rho)$ in this case) in the Table below clearly indicates that the spatial lags of the endogeous variables are not enough to model the spatial structure present in the data. The LMM test (last line) appears with a value of 30.856 which is highly significant. On other words, the user should consider a SUR-SARAR specification, better than just a SUR-SLM.
+
+```{r SUR-SLM-ML1}
+control <- list(fdHess = FALSE)
+sur.slm1 <- spsurml(formula = formula_sur, listw = lwncovr, 
+                   method = "LU", type = "slm", 
+                   data = NCOVR.sf)
+summary(sur.slm1)
+```
+
+## Linear restrictions on the $\beta$ parameters
+
+**spsur** allows to tests linear restrictions on the $\beta$ parameters of a SUR model that has been previously estimated. The restrictions may refer to parameters of the same or of different equations and are solved through a Wald test, asymptotically distributed as a $\chi^2$ with degrees of freedom equal to the number of restrictions involved in the test. In this sense, the function `wald_betas()` offers a great flexibility; it requires the especification of three arguments:
+
+1. The matrix of restrictions: A $(r \times K)$ matrix, being r the number of restrictions a K the total number of $\beta$ parameters in the models; R1 in the example below.
+2. The value of the restrictions under the null hypothesis. This is a a $(r \times 1)$ vector; b1 in the example below.
+3. The model where we wish to evaluate these restrictions</li>
+
+For example, suppose that we want to test if the parameters associated with variable SOUTH in the two equations of the model \@ref(eq:surslm) are equal; so that
+\begin{equation}
+H_0:\beta_{16} = \beta_{26} \\ H_A:\beta_{16} \neq \beta_{26}
+(\#eq:waldtest1)
+\end{equation}
+
+We should remind that there are six $\beta$ coefficients in each of the two equation of the SUR-SLM and that the SOUTH variable appears in position six and twelve, respectively. Then we write
+
+```{r waldbeta1}
+R1 <- matrix(c(0, 0, 0, 0, 0, 0, 1, 
+               0, 0, 0, 0, 0, 0, -1), nrow = 1)
+b1 <- matrix(0, ncol = 1)
+waldbeta1 <- wald_betas(sur.slm, R1, b1)
+print(waldbeta1)
+```
+
+The test confirms our suspicious that both coefficients are not statistically different. Therefore, the user would be surely interested in the restricted version where the two coefficients are indeed the same. That is
+
+\begin{equation}
+HR_{60} = \beta_{10}+\beta_{11}RD_{60}+\beta_{12}PS_{60}+\beta_{13}MA_{60}+\beta_{14}DV_{60} +\beta_{15}UE_{60} +\beta_{16}SOUTH+\epsilon_{60}\\
+HR_{70} = \beta_{20}+\beta_{21}RD_{70}+\beta_{22}PS_{70}+\beta_{23}MA_{70}+\beta_{24}DV_{70} +\beta_{25}UE_{70} +\beta_{16}SOUTH+\epsilon_{70} \\
+Corr(\epsilon_{60},\epsilon_{70}) \neq 0
+(\#eq:surr)
+\end{equation}
+
+**spsur** allows easily for the estimation of a linearly restricted model, in the $\beta$ coefficients, just by adding two new arguments *"R="* and *"b=* to the respective `spsurml()`function. For example, in the case of the SUR-SLM model analyzed so far, we obtain
+
+```{r SUR-SLM-R-ML}
+R1 <- matrix(c(0,0,0,0,0,0,1, 
+               0,0,0,0,0,0,-1), nrow=1)
+b1 <- matrix(0, ncol = 1)
+sur.slm.r <- spsurml(formula = formula_sur, listw = lwncovr, 
+                     type = "slm", R = R1, b = b1, 
+                     control = control, data = NCOVR.sf)
+summary(sur.slm.r)
+```
+
+The same technique applies for the other spatial SUR models estimated by `spsurml()`.
+
+More complex hypotheses can be tested; for example, now including two restrictions:
+
+\begin{equation}
+H_0:\beta_{10}=\beta_{20} \ and \ \beta_{16}=\beta_{26} \\ \ H_A:\beta_{10} \neq \beta_{20} \ \text{and/or} \  \beta_{16} \neq \beta_{26}
+\end{equation}
+
+```{r wald2}
+# equal SOUTH coefficient
+R21 <- matrix(c(0, 0, 0, 0, 0, 0, 1, 
+                0, 0, 0, 0, 0, 0, -1), nrow = 1)
+# equal intercept
+R22 <- matrix(c(1, 0, 0, 0, 0, 0, 0, 
+               -1, 0, 0, 0, 0, 0, 0), nrow = 1)
+R2 <- rbind(R21, R22)
+b2 <- matrix(c(0, 0), ncol = 1)
+waldbeta2 <- wald_betas(sur.slm, R1, b1)
+print(waldbeta2)
+```
+
+The corresponding restricted model can be estimated as before
+
+```{r SUR-SLM-R2-ML, echo=TRUE}
+sur.slm.r2 <- spsurml(formula = formula_sur, listw = lwncovr, 
+                      type = "slm", R = R2, b = b2, 
+                      control = control, data = NCOVR.sf)
+summary(sur.slm.r2)
+```
+
+Finally, the same technique applies for the 3SLS estimation algorithm. Assuming, for example, that we want to test that the intercepts of the two equations of the SUR-SLM estimated in Section 4.7 are the same
+
+\begin{equation}
+H_0:\beta_{10}=\beta_{20} \\ 
+H_A:\beta_{10} \neq \beta_{20}
+\end{equation}
+
+The function,`wald_betas()`, and the arguments are the same. The only change is the estimated model that the user uploads, *sur.slm.3sls* in this occasion.
+
+```{r wald-beta3-3sls}
+R3 <- matrix(c(1, 0, 0, 0, 0, 0, 0, 
+              -1, 0, 0, 0, 0, 0, 0), nrow = 1)
+b3 <- matrix(0, ncol = 1)
+waldbeta3 <- wald_betas(sur.slm.3sls, R = R3, b = b3)
+print(waldbeta3)
+```
+
+The estimation of the restricted model, by 3SLS produces exactly the same results as with the ML algorithm.
+
+```{r SUR-SLM-R-3SLS}
+sur.slm.3sls.r <- spsur3sls(formula = formula_sur, 
+                            listw = lwncovr, type = "slm", 
+                            R = R3, b = b3, data = NCOVR.sf)
+summary(sur.slm.3sls.r)
+```
+
+
+## Linear restrictions on the spatial coefficients
+
+With slight variations, a similar discussion applies to tests for linear restrictions on the spatial coefficients of a spatial SUR model, now using the function `wald_deltas()`. Continuing with the case of the SUR-SLM model of Section 4.2, we may test if the two $\rho$ coefficients are equal
+
+\begin{equation}
+H_0:\rho_1 = \rho_2 \\
+H_A:\rho_1 \neq \rho_2
+\end{equation}
+
+`wald_deltas()` requires the same three arguments as before specifying the $(r \times D)$  R matrix of restrictions, being D the number of spatial coefficients in the SUR model, the $(r \times 1)$ b vector of values of the restrictions under the null hypothesis and the model to test the linear constraints. So, we would write
+
+```{r walddelta1}
+R1 <- matrix(c(1, -1), nrow = 1)
+b1 <- matrix(0, ncol = 1)
+wald_deltas(sur.slm, R = R1, b = b1)
+```
+
+In the case of the SUR-SEM model of Section 4.3, we are interested in
+
+\begin{equation}
+H_0:\lambda_1 = \lambda_2 \\
+H_A:\lambda_1 \neq \lambda_2
+\end{equation}
+
+The code is very simple.
+
+```{r walddelta2}
+wald_deltas(sur.sem, R = R1, b = b1)
+```
+
+In the case of a SUR-SARAR model, Section 4.6, we must consider that there are four spatial coefficients, for which we can test two equality constraints:
+
+\begin{equation}
+H_0:\rho_1 = \rho_2 \ and \ \lambda_1 = \lambda_2 \\
+H_A:\rho_1 \neq \rho_2 \ or \ \lambda_1 \neq \lambda_2
+\end{equation}
+
+The code is only a bit more complex
+
+
+```{r walddelta3}
+R3 <- matrix(c(1, -1, 0, 0, 0, 0, 1, -1), nrow = 2, ncol = 4,
+             byrow = TRUE)
+b3 <- matrix(c(0, 0), ncol = 1)
+wald_deltas(sur.sarar, R = R3, b = b3)
+```
+
+The same as before, `wald_deltas()` operates with ML or with 3SLS estimates.
+
+Finally, note that if we have the ML estimation of a collection of models, some of which are nested in the others, it is immediate to obtain the corresponding Likelihood Ratios as an additional procedure to test linear constraints. Firts, let us note that the function `logLik()` shows the value of the estimated log-likelihood for the corresponding ML estimation
+
+```{r}
+logLik(sur.sarar)
+```
+
+The `anova()` function shows information criteria (AIC and BIC), log-likelihood and degrees of freedom of each fitted model. When the argument *lrtest = TRUE* this function also computes the LR corresponding to nested SUR models. Under the null hypothesis, the statistics is distributed as a $\chi^2$ with degrees of freedom equal to the number of restrictions involved in the nesting sequence. 
+
+```{r}
+anova(sur.sim, sur.slx, lrtest = TRUE)
+anova(sur.slm, sur.sarar, lrtest = TRUE)
+anova(sur.slm.r2, sur.slm, lrtest = TRUE)
+```
+
+The LR can be applied both in the case of linear restrictions on the $\beta$ parameters and in the case of the spatial coefficients.
+
+# Impacts: Direct, Indirect and Total Effects
+
+ @LeSage2009 address the problem of measuring the impact that a unitary change in the value of a regressor, in a certain point in space, has on the explained variable. The question is of interest because the impact of such changes are, in general, non linear and may spillover non uniformly over the space. In fact, the reaction of the explained variable, in every point of space, depends on its relative location in relation to the point of intervention. Obviously, the location is measured according the corresponding **W** matrix. To simplify matters, they propose obtaining only aggregated multipliers for each regressor, by averaging the $N^{2}$ impacts that result from intervening the value of one regressor on each of the *N* points in space, on the explained variable, measured also in each of the *N* points in space. 
+ 
+Using the notation introduced by @LeSage2009, we can distinguish three types of effects; namely
+ 
+1. Average Direct Effects: Measure the impact average, over the *N* spatial units and *Tm* time periods, of a unitary change in the value of a explanatory variable on the contemporaneous value of the corresponding explained variable, located in the same spatial unit of the regressor. This calculus is solved for all the regressors that appear in the *G* equations of the model.
+
+2. Average Indirect Effects: Measure the impact average, over the *N* spatial units and *Tm* time periods, of a unitary change in the value of a explanatory variable on the contemporaneous value of the corresponding explained variable, located in a different spatial unit that that of the  regressor. Once again, this calculus is solved for all the regressors that appear in the *G* equations of the model.
+
+3. Average Total Effects, which is simply the sum of Direct and 
+    Indirect Effects.
+
+Note that these effects are exactly linear in a standard time series model. For example, assume the simple following case $y_t=\beta_0+\beta_1x_t+u_t$ where $y_t$, $x_t$ and $u_t$ are the endogenous variable, the exogenous variable and the error term, respectively, in period t. In that case, if we increase the value of the exogenous in period t by one unit, $x_t+1$, the endogenous variable will also increase in $\beta_1$ units in this period, $y_t+\beta_1$. The chain of effects stops here. For the same reason, if a cross-sectional model lacks of substantial interaction mechanisms, there will be no spill-overs and the effects will be merely linear inside each spatial unit. 
+
+It is possible to obtain the three multipliers together with indirect measures of statistical significance, according to the  randomization approach described in @LeSage2009. Briefly, they suggest to obtain a sequence of *R* random matrices of order *(NTmxG)* from a multivariate normal distribution $N(0; \Sigma)$, being $\Sigma$ the estimated covariance matrix  of the *G* equations of the SUR model. These random matrices, combined with the observed values of the regressors and the estimated values of the parameters, are used to obtain simulated values of the explained variables. Then, for each one of the *R* experiments, the SUR model is estimated, and the effects are evaluated. Therefore, it is possible to obtain the standard deviations of the *R* estimated effects in the randomization procedure, which are used to test the significance of the estimated  effects for the original data.
+
+The **spsur** package implements the function `impactspsur()` to compute direct, indirect and total impacts either to models with an autoregressive structure ("slm", "sdm" or "sarar") or models with spatial lags of the regressors ("slx" or "sdem"). The function `impactspsur()` is a wrapper to method `impacts` available in **spatialreg** package (see @BivandPiras2015) and both functions share the same arguments (see the help of any of them for details). The output of `impactspsur()` is a list of objects (one for each equation of the SUR model) either of class `lagImpact`(for "slm", "sdm" or "sarar") or class `WXImpact` (for "slx" or "sdem"). It is important to highlight than the previous simulation method (described in @LeSage2009) it is used only to compute the variances of the impacts for models with spatial lags of the dependent variable ("slm", "sdm" or "sarar"); for models with only spatial lags of exogeneous variables ("slx" or "sdem") the dispersion measures can be obtained directly from the estimates without any need to simulate.  
+
+As a way of example, below appear the impacts estimated for the case of the SUR-SDM model of Section \@ref(model-sursdm). To speed the computations, we previosly compute a vector of traces of **W** matrix (see `help(spatialreg::trW)` for details) which is provided as an argument to the function. 
+
+```{r impactSLM}
+Wncovr <- as(lwncovr, "CsparseMatrix")
+trWncovr <- spatialreg::trW(Wncovr, type = "MC")
+sur.sdm.impacts <- impactspsur(sur.slm, tr = trWncovr, R = 1000)
+class(sur.sdm.impacts[[1]])
+summary(sur.sdm.impacts[[1]], zstats = TRUE, short = TRUE)
+summary(sur.sdm.impacts[[2]], zstats = TRUE, short = TRUE)
+```
+
+Finally, an example of the impacts estimated for the case of the SUR-SLX model of Section \@ref(model-surslx) is given below (remark: in this case it is necessary to use `print` instead of `summary` method to check the output),
+
+```{r impacts-slm, echo=TRUE}
+sur.slx.impacts <- impactspsur(sur.slx, listw = lwncovr)
+print(sur.slx.impacts)
+```
+
+# The Anselin's approach to spatial panel SUR models and the function `spsurtime()`
+
+@Anselin2016, see also @Anselin1988a, reserves the term of spatial panel SUR models to the case of N individuals, or spatial units, Tm time periods and only 1 equation, G=1. Moreover,  the errors corresponding to the same spatial unit are serially dependent but remain independent for different spatial units. For example, assuming a SLM structure:
+
+\begin{equation}
+y_t=\rho W y_t+x_t\beta+u_t; t=1,2,..., Tm \\
+E[u_t]=0; E[u_tu_s']=\sigma_{ts}I_N; 
+\end{equation}
+
+$y_t$ and $u_t$ are $(N\times 1)$ vectors corresponding to time period t, and $x_t$ is a $(N\times k)$ matrix corresponding to the observations of the X variables in the same period. As said, the SUR structure appears because there is serial dependence in the error terms of each individual in the sample, as corresponds to the diagonality of the covariance matrix. The serial dependence is estimated non parametrically in the $(Tm \times Tm)$ $\Sigma$ matrix of the SUR model. This serial dependence is assumed to be uniform for all individuals in the sample, which is an important constraint.
+
+The function `spsurtime()` is directed to deal with this type of spatial panel SUR models. The syntax is very transparent
+
+`spsurtime (formula, data, time, listw = NULL, type = "sim", Durbin = NULL, method = "eigen",`
+`fit_method = "ml", maxlagW = NULL, R = NULL, b = NULL, demean = FALSE, control = list())`
+
+*type=* decides the spatial structure required for the panel specification, where SUR-SIM is the default, and *fit_method=* the estimation algorithm, which can be ML, the default, or 3SLS (in which case the argument *maxlagW =* can be activated). *R*, *b* and *Durbin* can be used to restrict, as usual, the corresponding panel equation  and *time=* identifies the time variable in the dataframe needed to structrure the panel data. Finally *demean* allows the user to demean the data, to remove potential unobserved effects, by substracting the corresponding individual sampling average from the data of each spatial unit in the sample. This transform would require the data be ordered, first, by time and then by individual. If this is not the case, the data are routinely sorted by `spsurtime()`, according to the argument *time*.
+
+In this vignette we are illustrating the capabilities of **spsur** by using the dataset *NCOVR.sf*, which is not, strictly, a panel data set. So, let us in the first place to manipulate slightly this dataset to produce a panel data frame as required by the function `spsurtime()`. This can be done quite easily
+
+```{r data_time}
+N <- nrow(NCOVR.sf)
+Tm <- 2
+index_name <- rep(NCOVR.sf$NAME,Tm)
+index_indiv <- rep(1:N, Tm)
+index_time <- rep(1:Tm, each = N)
+HR <- c(NCOVR.sf$HR60, NCOVR.sf$HR70)
+RD <- c(NCOVR.sf$RD60, NCOVR.sf$RD70)
+PS <- c(NCOVR.sf$PS60, NCOVR.sf$PS70)
+MA <- c(NCOVR.sf$MA60, NCOVR.sf$MA70)
+DV <- c(NCOVR.sf$DV60, NCOVR.sf$DV70)
+UE <- c(NCOVR.sf$UE60, NCOVR.sf$UE70)
+SOUTH <- c(NCOVR.sf$SOUTH, NCOVR.sf$SOUTH) 
+NCOVR.df <- data.frame(index_name, index_indiv, index_time, HR,
+                       RD, PS, MA, DV, UE, SOUTH)
+```
+
+Once we have the data in the format required it is immediate to estimate, for example, a SLM model where the error of each individual are serially correlated. The data are not demeaned. The classical expresion for the formula is used in the function `spsurtime()`. Moreover, use the argument *fit_method* to select ML or IV.
+
+```{r SUR-SLM-TIME-ML}
+formula_sur_time <- HR ~ RD + PS + MA + DV + UE + SOUTH
+sur.slm.time <- spsurtime(formula = formula_sur_time, 
+                          data = NCOVR.df,
+                          listw = lwncovr, 
+                          time =  NCOVR.df$index_time, 
+                          type = "slm", fit_method = "ml")
+summary(sur.slm.time)
+```
+
+According to our experience, *demean* should be used with caution, only in cases where the time span is sufficiently large and the X variables have enough time variability. Other case, *demean* can produce singularities and unexpected results. Finally, note that the argument *demean* can be used only with the function `spsurtime()`, when the user has panel data.
+
+```{r sur-slm-panel-demean}
+formula.panel <- HR | RD ~ PS + MA + SOUTH | UE + DV
+sur.slm.panel.demean <- spsurml(formula = formula.panel,
+                                listw = lwncovr, type = "slm",
+                                method ="LU", Tm = 2,
+                                data = NCOVR.df,
+                                control = list(fdHess = TRUE))
+summary(sur.slm.panel.demean)
+```
+
+## A general SUR model, with G>1
+
+Finally, it is relatively simple to generalize the panel data framework of the previous Section to a case where the user has to work with more than one single equation. For example, suppose the case of the previous SLM panel data model, that now we want to estimate as a standard SUR system such as the following
+
+\begin{equation}
+HR_{t} = \rho_{1} WHR_{t} +PS_{t} \beta_{1} + MA_{t} \beta_{2} + SOUTH_{t} \beta_{3} + u_{HRt}; \\
+RD_{t} = \rho_{2} WRD_{t} +UE_{t} \beta_{4} + DV_{t} \beta_{5} + u_{RDt}; \\
+\ t=60, 70 \\
+Corr(u_{HRt},u_{RDt}) \neq \ 0 \ (\forall t)
+\end{equation}
+
+We have *G=2* equations, *Tm=2* time periods and *N=3085* spatial units. The ML estimate of this SLM-SUR model appears below.
+
+```{r sur-slm-panel}
+formula.panel <- HR | RD ~ PS + MA + SOUTH | UE + DV
+sur.slm.panel <- spsurml(formula = formula.panel, 
+                         listw = lwncovr, type = "slm",
+                         method = "LU",
+                         Tm = 2,
+                         data = NCOVR.df,
+                         control = list(fdHess = TRUE))
+summary(sur.slm.panel)
+```
+
+
+# Simulation of spatial SUR datasets
+
+This section describes an additional functionality included in **spsur**, which offers the possibility of generate random data sets with the dimensions and spatial structure decided by the user. This is the purpose of the function `dgp_spsur()`, which has great flexibility to accomodate the necessities of the user. Our impression is that the function may be of special interest in two different situations: (i) as part of a larger simulation experiment where the user needs random data sets with specific features (SUR nature, spatial structure, etc.) or (ii) with the aim of showing specific properties of spatial SUR models and inferential procedures related to them.
+
+`dgp_spsur()` refers to a Data Generating Process functionality where the user decides the dimensions of the required data set, specificies the values of the parameters that intervene in the corresponding SUR model and selects the distribution function from which the regressors and the random terms are to be drawn. The syntax of the function is the following:
+
+`dgp_spsur (Sigma, Tm = 1, G, N, Betas, Thetas = NULL, durbin = FALSE,`
+            `rho = NULL,lambda = NULL, p = NULL, listw = NULL,`
+            `X = NULL, pdfU = "nvrnorm", pdfX = "nvrnorm")`
+            
+The dimensions of the data set are defined by the arguments *Tm*,  *N* and *G*. Then the user specifies the SUR structure, begining by the covariance matrix among the residuals of the *G* equations, the core of the SUR model, with the argument *Sigma*. Moreover, a $(N\times N)$ spatial weighting matrix should be uploaded in the argument *listw =*.
+
+Then, the user should fix the parameters that intervene in the equations of the SUR. This is the purpose of the arguments *Betas*, *Thetas*, *rho* and *lambda* which are defined through row vectors of the adequate dimensions. A fundamental piece of information is the argument *p* that defines the number of regressors (that is, X variables) that appear in each equation. We can distinguish two cases: (i)- if *p* is a scalar, every equation has the same number of regressors whereas (ii)  if *p* is a $(1 \times G)$ vector the model has a different number of regressor in each equation. In both cases, *Betas* is a row vector of order $(1 \times G^*)$, where $G^*$ is equal to $pG$ in the first case and $\Sigma^G_1p_g$ in the second case.
+
+The type of spatial model needed by the user is unequivocally determined depending on the values given to these parameters. For example, if *Thetas=NULL*, *rho=NULL* but *lambda* is not NULL, the user is specifying a SUR-SEM model or a SUR-SLM model in the case of *lambda=NULL*, *Thetas=NULL* and *rho* different from NULL.
+
+There are two possibilities to build the matrix X of regressors. In Monte Carlo experiments is very usual to maintain fixed the values of the regressors and repeatedly draw random matrices for the error terms, to simulate the explained variable. If this is the case, the user should upload the required X matrix in the argument *X*, which must be consistent with the dimensions of the SUR model. If *X=NULL*, which is the default, the user prefers to randomly draw this matrix using the functionalies in `dgp_spsur()`. This is the purpose of the argument *pdfX*. By default, `dgp_spsur()` uses a multivariate standard Normal distribution to draw the observations of the regressors; the alternative is a Uniform [0,1] distribution for each regressor. In both cases, the regressors are generated independently.
+
+Finally, the argument *dfU* selects the multivariate probability distribution function that should be used to draw the values of the error terms. `dgp_spsur()` offers two possibilities, the multivariate Normal, which is the default, and the log-Normal distribution. In both cases, the covariance matrix matches the $\Sigma$ matrix uploaded previously. The log-Normal should be taken as a clear departure from the assumption of normality.
+
+The output of dgp_spsur()` is a vector, called *Y*, of order $(TmNG\times 1)$, with the values generated for the explained variable for the *N* individuals, *Tm* time periods and *G* equations of the spatial SUR model. If the argument *X* is set to  NULL, the user will receive another matrix, called *XX*, of order $(TmNG\times \Sigma^G_1p_g)$, with the values generated for the regressors of the SUR.
+
+The example below shows the random generation of 3 variables, with a SUR structure, for 500 individuals and 1 cross-section, using a SUR-SDM model. Each equation contains 3 regressors, as specified in p. Note that the argument *listw* includes a matrix instead of a *listw* object. In fact **spsur** accepts both formats.
+
+```{r DGP}
+Tm <- 1 # Number of time periods
+G <- 3 # Number of equations
+N <- 500 # Number of spatial elements
+p <- 3 # Number of independent variables
+Sigma <- matrix(0.3, ncol = G, nrow = G) # Matrix error correlation 
+diag(Sigma) <- 1
+Betas <- c(1, 2, 3, 1, -1, 0.5, 1, -0.5, 2) # Beta coefficients
+rho <- 0.5 # Level of sustantive spatial dependence
+lambda <- 0.0 # spatial autocorrelation error term = 0
+# random coordinates
+co <- cbind(runif(N,0,1),runif(N,0,1))
+lwdgp <- spdep::nb2listw(spdep::knn2nb(spdep::knearneigh(co, k = 5, longlat = FALSE)))
+sur.dgp <- dgp_spsur(Sigma = Sigma, Betas = Betas, rho = rho, 
+                     lambda = lambda, Tm = Tm, G = G, N = N, 
+                     p = p, pdfU = "nvrnorm", listw = lwdgp)
+```
+
+As said, the output of this function is a list with the data (explained variable and regressors) in matrix form. Next code estimates a SDM model for the simulated data:
+
+```{r DGP2}
+sdm_dgp <- spsurml(Y = sur.dgp$Y, X = sur.dgp$X, type = "sdm", G = G, 
+                   Tm = Tm, N = N, p = 3, listw = lwdgp, 
+                   control = list(tol = 0.01, maxit = 200, 
+                                  trace = FALSE))
+summary(sdm_dgp)
+```
+
+Indeed, the ML estimates of the parameters are very close to the values specified in `dgp_spsur()`.
+
+
+# References
