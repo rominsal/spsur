@@ -4,7 +4,7 @@
 \alias{spsurgs3sls}
 \title{General Spatial 3SLS for systems of spatial equations.}
 \usage{
-spsurgs3ls (formula = NULL, data = NULL, na.action,
+spsurgs3sls(formula = NULL, data = NULL, na.action,
                   listw = NULL, zero.policy = NULL, 
                   type = "slm", Durbin = FALSE,
                   endog = NULL, instruments = NULL,
@@ -58,7 +58,7 @@ previous \emph{endog} argument.}
 
 \item{lag.instr}{should the external instruments be spatially lagged?}
 
-\item{initial.value}{he initial value for ρ. It can be either numeric
+\item{initial.value}{the initial value for rho. It can be either numeric
 (default is 0.2) or set to 'SAR', in which case the optimization 
 will start from the estimated coefficient of a regression of 
 the 2SLS residuals over their spatial lag (i.e. a spatial 
@@ -252,7 +252,7 @@ summary(impacts_spcsarar[[2]], zstats = TRUE, short = TRUE)
       Models with Heteroskedastic Innovations 
       in R. \emph{Journal of Statistical 
       Software}, 35(1), pp. 1-21. 
-      \url{http://www.jstatsoft.org/v35/i01/}. -          
+      \url{https://www.jstatsoft.org/article/view/v035i01}
   }
 }
 \seealso{
@@ -263,8 +263,8 @@ summary(impacts_spcsarar[[2]], zstats = TRUE, short = TRUE)
 }
 \author{
 \tabular{ll}{
-  Fernando López  \tab \email{fernando.lopez@upct.es} \cr
-  Román Mínguez  \tab \email{roman.minguez@uclm.es} \cr
-  Jesús Mur  \tab \email{jmur@unizar.es} \cr
+  Fernando Lopez  \tab \email{fernando.lopez@upct.es} \cr
+  Roman Minguez  \tab \email{roman.minguez@uclm.es} \cr
+  Jesus Mur  \tab \email{jmur@unizar.es} \cr
   }
 }

@@ -18,7 +18,6 @@ A data frame with 25 rows and 10 variables:
   \item{UN80}{Inverse unemployment rate in 1980.}
   \item{NMR80}{Net migration rate 1983.}
   \item{WAGE80}{changes in wage rates.}
-  \item{geometry}{geometry of sf object.}
 }
 }
 \source{

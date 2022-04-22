@@ -1,9 +1,6 @@
 #' @name spsurgs3sls
 #' @rdname spsurgs3sls
-#'
 #' @title General Spatial 3SLS for systems of spatial equations. 
-#' 
-
 #' @description The function estimates spatial SUR models using 
 #' general spatial three stages least squares. This is a 
 #' system instrumental variable procedure which also include 
@@ -15,7 +12,7 @@
 #' regressors ("iv"), it could be used to estimate using 
 #' instrumental variables and Feasible Generalized Least Squares.
 #'  
-#' @usage spsurgs3ls (formula = NULL, data = NULL, na.action,
+#' @usage spsurgs3sls(formula = NULL, data = NULL, na.action,
 #'                   listw = NULL, zero.policy = NULL, 
 #'                   type = "slm", Durbin = FALSE,
 #'                   endog = NULL, instruments = NULL,
@@ -58,7 +55,7 @@
 #'   dependent variable in the same way than 
 #'   previous \emph{endog} argument.
 #' @param lag.instr should the external instruments be spatially lagged?      
-#' @param initial.value he initial value for ρ. It can be either numeric
+#' @param initial.value the initial value for rho. It can be either numeric
 #'  (default is 0.2) or set to 'SAR', in which case the optimization 
 #'  will start from the estimated coefficient of a regression of 
 #'  the 2SLS residuals over their spatial lag (i.e. a spatial 
@@ -145,9 +142,9 @@
 #'
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@@upct.es} \cr
-#'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
-#'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
 #'
 #' @references
@@ -176,7 +173,7 @@
 #'       Models with Heteroskedastic Innovations 
 #'       in R. \emph{Journal of Statistical 
 #'       Software}, 35(1), pp. 1-21. 
-#'       \url{http://www.jstatsoft.org/v35/i01/}. -          
+#'       \url{https://www.jstatsoft.org/article/view/v035i01}
 #'   }
 #'
 #' @seealso
@@ -335,7 +332,6 @@ spsurgs3sls <- function(formula = NULL, data = NULL, na.action,
                         verbose = FALSE, HAC = FALSE, 
                         distance = NULL, type = "Epanechnikov",
                         bandwidth = "variable",
-                        step1.c = step1.c,
                         Durbin = Durbin_i)
     coeffg[[i]] <- lspreg[[i]]$coefficients
     VChatg[[i]] <- lspreg[[i]]$var
@@ -576,8 +572,5 @@ spsurgs3sls <- function(formula = NULL, data = NULL, na.action,
     if (length(zero.regs) > 0L) 
       attr(ret, "zero.regs") <- zero.regs
   }
-  if(exists("na.act")) { # It could not exist with data matrices
-    if (!is.null(na.act)) ret$na.action <- na.act
-  } 
   ret  
 }

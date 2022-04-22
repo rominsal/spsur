@@ -23,14 +23,14 @@
 #'   
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@@upct.es} \cr
-#'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
-#'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
 #'
 #' @references
 #'   \itemize{
-#'     \item Mur, J., López, F., and Herrera, M. (2010). Testing for spatial
+#'     \item Mur, J., Lopez, F., and Herrera, M. (2010). Testing for spatial
 #'       effects in seemingly unrelated regressions.
 #'       \emph{Spatial Economic Analysis}, 5(4), 399-440.
 #'       <doi:10.1080/17421772.2010.516443>

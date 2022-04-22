@@ -17,7 +17,6 @@
 #'   \item{UN80}{Inverse unemployment rate in 1980.}
 #'   \item{NMR80}{Net migration rate 1983.}
 #'   \item{WAGE80}{changes in wage rates.}
-#'   \item{geometry}{geometry of sf object.}
 #' }
 #'
 #' @source Anselin (1988, p. 203-211)

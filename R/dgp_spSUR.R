@@ -197,13 +197,13 @@
 #'
 #' @author
 #'   \tabular{ll}{
-#'   Fernando López  \tab \email{fernando.lopez@@upct.es} \cr
-#'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
-#'   Jesús Mur  \tab \email{jmur@@unizar.es} \cr
+#'   Fernando Lopez  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Roman Minguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Jesus Mur  \tab \email{jmur@@unizar.es} \cr
 #'   }
 #' @references
 #'   \itemize{
-#'       \item López, F. A., Mínguez, R., Mur, J. (2020). ML versus IV estimates 
+#'       \item Lopez, F. A., Minguez, R., Mur, J. (2020). ML versus IV estimates 
 #'       of spatial SUR models: evidence from the case of Airbnb in Madrid urban 
 #'       area. \emph{The Annals of Regional Science}, 64(2), 313-347.
 #'       <doi:10.1007/s00168-019-00914-1>

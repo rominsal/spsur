@@ -3,6 +3,7 @@ demo_spsur3sls      # Demo of spsur3sls() function
 demo_spsurtime      # Demo of spsurtime() function
 demo_impactspsur    # Demo of impactspsur() function
 demo_lmtestspsur    # Demo of lmtestspsur() function
+demo_lrtestspsur    # Demo of lrtestspsur() function
 demo_lr_betas       # Demo of lr_betas() function
 demo_wald_betas     # Demo of wald_betas() function
 demo_wald_deltas    # Demo of wald_deltas() function
